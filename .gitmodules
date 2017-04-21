@@ -1,0 +1,9 @@
+[submodule "firmware/submodules/ruckus"]
+	path = firmware/submodules/ruckus
+	url = git@github.com:/slaclab/ruckus
+[submodule "firmware/submodules/surf"]
+	path = firmware/submodules/surf
+	url = git@github.com:/slaclab/surf
+[submodule "firmware/submodules/epix-hr-core"]
+	path = firmware/submodules/epix-hr-core
+	url = git@github.com:/slaclab/epix-hr-core
