@@ -9,4 +9,4 @@
 ##############################################################################
 
 ## Source the EPIX-HR Core's .TCL file
-source $::env(PROJ_DIR)/../../submodules/epix-hr-core/vivado/promgen.tcl
+source $::env(PROJ_DIR)/../../submodules/epix-hr-core/vivado/vivado_sdk.tcl
