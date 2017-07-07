@@ -132,11 +132,32 @@ entity Application is
       smaRxN           : in    sl;
       smaTxP           : out   sl;
       smaTxN           : out   sl);
+
 end Application;
 
 architecture mapping of Application is
 
+   --heart beat signal
+   signal heartBeat   : sl;
+
 begin
+
+
+   led(0)          <= heartBeat;
+   led(2 downto 1) <= (others => '1');
+   led(3)          <= not heartBeat;
+   ---------------------
+   -- Heart beat LED  --
+   ---------------------
+   U_Heartbeat : entity work.Heartbeat
+      generic map(
+         PERIOD_IN_G => 10.0E-9
+      )   
+      port map (
+         clk => sysClk,
+         o   => heartBeat
+      );
+
 
    U_AxiLiteEmpty : entity work.AxiLiteEmpty
       generic map (
