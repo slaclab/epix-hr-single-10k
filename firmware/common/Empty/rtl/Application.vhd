@@ -180,7 +180,7 @@ begin
    syncDigDcDc     <= '0';
    syncAnaDcDc     <= '0';
    syncDcDc        <= (others => '0');
-   led             <= (others => '0');
+   --led             <= (others => '0');
    connTgOut       <= '0';
    connMps         <= '0';
    adcSpiClk       <= '1';
