@@ -190,7 +190,7 @@ if (PRINT_VERBOSE): pyrogue.streamTap(pgpVc0, dbgData)
 appTop = PyQt4.QtGui.QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop('ePixHRGEn1Gui')
 ePixBoard = EpixBoard(guiTop, cmd, dataWriter, srp)
-ePixBoard.start(pollEn=True, pyroGroup=None, pyroHost=None)
+ePixBoard.start(pollEn=False, pyroGroup=None, pyroHost=None)
 guiTop.addTree(ePixBoard)
 guiTop.resize(800,800)
 
