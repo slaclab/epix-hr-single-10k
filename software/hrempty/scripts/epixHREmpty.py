@@ -48,10 +48,10 @@ PRINT_VERBOSE = False
 #############################################
 
 # Create the PGP interfaces for ePix camera
-pgpVc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,0) # Data & cmds
-pgpVc1 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,1) # Registers for ePix board
-pgpVc2 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,2) # PseudoScope
-pgpVc3 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,3) # Monitoring (Slow ADC)
+pgpVc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,0) # Data & cmds
+pgpVc1 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,1) # Registers for ePix board
+pgpVc2 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,2) # PseudoScope
+pgpVc3 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,3) # Monitoring (Slow ADC)
 
 print("")
 print("PGP Card Version: %x" % (pgpVc0.getInfo().version))
