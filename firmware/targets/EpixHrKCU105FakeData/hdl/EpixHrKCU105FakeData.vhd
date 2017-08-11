@@ -153,7 +153,7 @@ entity EpixHrKCU105FakeData is
       -- SYSMON Ports
       vPIn          : in    sl;
       vNIn          : in    sl);
-end EpixHrKCU105Empty;
+end EpixHrKCU105FakeData;
 
 architecture top_level of EpixHrKCU105FakeData is
 
@@ -202,7 +202,8 @@ begin
 
    U_App : entity work.Application
       generic map (
-         TPD_G => TPD_G)
+         TPD_G => TPD_G,
+         BUILD_INFO_G => BUILD_INFO_G)
       port map (
          ----------------------
          -- Top Level Interface

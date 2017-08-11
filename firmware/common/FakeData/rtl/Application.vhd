@@ -148,7 +148,8 @@ architecture mapping of Application is
 
    -- clock signals
    signal appClk, asicClk : sl;
-   signal appRst, asicRst : sl;
+   signal appRst, axiRst  : sl;
+   signal asicRst         : sl;
    signal clkLocked       : sl;
 
    -- AXI-Lite Signals
@@ -161,6 +162,7 @@ architecture mapping of Application is
    signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadMasters  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
+
 
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
@@ -221,17 +223,19 @@ begin
       );
 
 
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-      port map (
-         axiClk         => sysClk,
-         axiClkRst      => sysRst,
-         axiReadMaster  => sAxilReadMaster,
-         axiReadSlave   => sAxilReadSlave,
-         axiWriteMaster => sAxilWriteMaster,
-         axiWriteSlave  => sAxilWriteSlave);
+--   U_AxiLiteEmpty : entity work.AxiLiteEmpty
+--      generic map (
+--         TPD_G            => TPD_G,
+--         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
+--      port map (
+--         axiClk         => sysClk,
+--         axiClkRst      => sysRst,
+--         axiReadMaster  => sAxilReadMaster,
+--         axiReadSlave   => sAxilReadSlave,
+--         axiWriteMaster => sAxilWriteMaster,
+--         axiWriteSlave  => sAxilWriteSlave);
+
+  
 
    mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
    mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
@@ -318,12 +322,40 @@ begin
       locked          => clkLocked,
       -- AXI-Lite Interface 
       axilClk         => sysClk,
-      axilRst         => sysRst,
+      axilRst         => axiRst,
       axilReadMaster  => mAxiReadMasters(PLLREGS_AXI_INDEX_C),
       axilReadSlave   => mAxiReadSlaves(PLLREGS_AXI_INDEX_C),
       axilWriteMaster => mAxiWriteMasters(PLLREGS_AXI_INDEX_C),
       axilWriteSlave  => mAxiWriteSlaves(PLLREGS_AXI_INDEX_C)
    );      
+
+
+   U_AxiLiteAsync : entity work.AxiLiteAsync 
+   generic map(
+      TPD_G            => 1 ns,
+      AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
+      COMMON_CLK_G     => false,
+      NUM_ADDR_BITS_G  => 31,
+      PIPE_STAGES_G    => 0)
+   port map(
+      -- Slave Port
+      sAxiClk         => sysClk,
+      sAxiClkRst      => sysRst,
+      sAxiReadMaster  => sAxilReadMaster,
+      sAxiReadSlave   => sAxilReadSlave,
+      sAxiWriteMaster => sAxilWriteMaster,
+      sAxiWriteSlave  => sAxilWriteSlave,
+      -- Master Port
+      mAxiClk         => appClk,
+      mAxiClkRst      => appRst,
+      mAxiReadMaster  => sAxiReadMaster(0),
+      mAxiReadSlave   => sAxiReadSlave(0),
+      mAxiWriteMaster => sAxiWriteMaster(0),
+      mAxiWriteSlave  => sAxiWriteSlave(0)
+    );
+
+
+
 
    --------------------------------------------
    -- AXI Lite Crossbar for register control --
@@ -337,7 +369,7 @@ begin
       NUM_MASTER_SLOTS_G => HR_FD_NUM_AXI_MASTER_SLOTS_C, 
       MASTERS_CONFIG_G   => HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C
    )
-   port map (
+   port map (                
       sAxiWriteMasters    => sAxiWriteMaster,
       sAxiWriteSlaves     => sAxiWriteSlave,
       sAxiReadMasters     => sAxiReadMaster,
@@ -347,7 +379,7 @@ begin
       mAxiReadMasters     => mAxiReadMasters,
       mAxiReadSlaves      => mAxiReadSlaves,
       axiClk              => appClk,
-      axiClkRst           => sysRst
+      axiClkRst           => appRst
    );
 
    ---------------------
@@ -377,7 +409,7 @@ begin
       
       -- AXI lite slave port for register access
       axilClk           => appClk,
-      axilRst           => appRst,
+      axilRst           => axiRst,
       sAxilWriteMaster  => mAxiWriteMasters(TRIG_REG_AXI_INDEX_C),
       sAxilWriteSlave   => mAxiWriteSlaves(TRIG_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(TRIG_REG_AXI_INDEX_C),
@@ -395,8 +427,8 @@ begin
    )
    port map (
       axiClk         => appClk,
-      axiRst         => appRst,
-      sysRst         => sysRst,
+      axiRst         => axiRst,
+      sysRst         => appRst,
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  => mAxiReadMasters(HR_FD_REG_AXI_INDEX_C),
       axiReadSlave   => mAxiReadSlaves(HR_FD_REG_AXI_INDEX_C),
