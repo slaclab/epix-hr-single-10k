@@ -59,7 +59,7 @@ package AppPkg is
    end record;
 
 
-   constant APP_CONFIG_INIT_C; : AppConfigType := (
+   constant APP_CONFIG_INIT_C : AppConfigType := (
       AppVersion           => (others => '0')
    );
    
