@@ -44,7 +44,7 @@ START_GUI = True
 START_VIEWER = False
 #############################################
 #print debug info
-PRINT_VERBOSE = False
+PRINT_VERBOSE = True
 #############################################
 
 # Create the PGP interfaces for ePix hr camera
@@ -178,19 +178,34 @@ class EpixBoard(pyrogue.Root):
 # debug
 mbcon = MbDebug()
 pyrogue.streamTap(pgpL0Vc0,mbcon)
+#pyrogue.streamTap(pgpL1Vc0,mbcon)
+#pyrogue.streamTap(pgpL2Vc0,mbcon)
+#pyrogue.streamTap(pgpL3Vc0,mbcon)
+
+mbcon1 = MbDebug()
 pyrogue.streamTap(pgpL1Vc0,mbcon)
+
+mbcon2 = MbDebug()
 pyrogue.streamTap(pgpL2Vc0,mbcon)
+
+mbcon3 = MbDebug()
 pyrogue.streamTap(pgpL3Vc0,mbcon)
 
-#mbcon1 = MbDebug()
-#pyrogue.streamTap(pgpL0Vc1,mbcon)
-
-#mbcon2 = MbDebug()
-#pyrogue.streamTap(pgpL0Vc3,mbcon)
+if (PRINT_VERBOSE): dbgData = rogue.interfaces.stream.Slave()
+if (PRINT_VERBOSE): dbgData.setDebug(60, "DATA Verbose 0[{}]".format(0))
+if (PRINT_VERBOSE): pyrogue.streamTap(pgpL0Vc0, dbgData)
 
 if (PRINT_VERBOSE): dbgData = rogue.interfaces.stream.Slave()
-if (PRINT_VERBOSE): dbgData.setDebug(60, "DATA[{}]".format(0))
-if (PRINT_VERBOSE): pyrogue.streamTap(pgpL0Vc0, dbgData)
+if (PRINT_VERBOSE): dbgData.setDebug(60, "DATA Verbose 1[{}]".format(0))
+if (PRINT_VERBOSE): pyrogue.streamTap(pgpL1Vc0, dbgData)
+
+if (PRINT_VERBOSE): dbgData = rogue.interfaces.stream.Slave()
+if (PRINT_VERBOSE): dbgData.setDebug(60, "DATA Verbose 2[{}]".format(0))
+if (PRINT_VERBOSE): pyrogue.streamTap(pgpL2Vc0, dbgData)
+
+if (PRINT_VERBOSE): dbgData = rogue.interfaces.stream.Slave()
+if (PRINT_VERBOSE): dbgData.setDebug(60, "DATA Verbose 3[{}]".format(0))
+if (PRINT_VERBOSE): pyrogue.streamTap(pgpL3Vc0, dbgData)
 
 
 # Create GUI

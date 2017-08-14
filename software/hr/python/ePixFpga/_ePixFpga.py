@@ -181,70 +181,84 @@ class EpixHRCoreFpgaRegisters(pr.Device):
       #############################################
       # Create block / variable combinations
       #############################################
-      
-      
+      debugChEnum={0:'Asic01DM', 1:'AsicSync', 2:'AsicEnA', 3:'AsicAcq', 4:'AsicEnB', 5:'AsicR0', 6:'SaciClk', 7:'SaciCmd', 8:'saciRsp', 9:'SaciSelL(0)', 10:'SaciSelL(1)', 11:'asicRdClk', 12:'bitClk', 13:'byteClk', 14:'asicSR0', 15: 'acqStart'}
+
       #Setup registers & variables
       
-      self.add(pr.Variable(name='Version',         description='Version',           offset=0x00000000, bitSize=32, bitOffset=0, base='hex',  mode='RW'))
+      self.add(pr.Variable(name='Version',         description='Version',           offset=0x00000000, bitSize=32, bitOffset=0, base='hex',  verify = False, mode='RW'))
 #      self.add(pr.Variable(name='IdDigitalLow',    description='IdDigitalLow',      offset=0x00000004, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
 #      self.add(pr.Variable(name='IdDigitalHigh',   description='IdDigitalHigh',     offset=0x00000008, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
 #      self.add(pr.Variable(name='IdAnalogLow',     description='IdAnalogLow',       offset=0x0000000C, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
 #      self.add(pr.Variable(name='IdAnalogHigh',    description='IdAnalogHigh',      offset=0x00000010, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
 #      self.add(pr.Variable(name='IdCarrierLow',    description='IdCarrierLow',      offset=0x00000014, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
 #      self.add(pr.Variable(name='IdCarrierHigh',   description='IdCarrierHigh',     offset=0x00000018, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
-#      self.add(pr.Variable(name='R0Polarity',      description='R0Polarity',        offset=0x00000100, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='R0Delay',         description='R0Delay',           offset=0x00000104, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='R0Width',         description='R0Width',           offset=0x00000108, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='GlblRstPolarity', description='GlblRstPolarity',   offset=0x0000010C, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='GlblRstDelay',    description='GlblRstDelay',      offset=0x00000110, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='GlblRstWidth',    description='GlblRstWidth',      offset=0x00000114, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='AcqPolarity',     description='AcqPolarity',       offset=0x00000118, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='AcqDelay1',       description='AcqDelay1',         offset=0x0000011C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='AcqWidth1',       description='AcqWidth1',         offset=0x00000120, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='AcqDelay2',       description='AcqDelay2',         offset=0x00000124, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='AcqWidth2',       description='AcqWidth2',         offset=0x00000128, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='TpulsePolarity',  description='TpulsePolarity',    offset=0x0000012C, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='TpulseDelay',     description='TpulseDelay',       offset=0x00000130, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='TpulseWidth',     description='TpulseWidth',       offset=0x00000134, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='StartPolarity',   description='StartPolarity',     offset=0x00000138, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='StartDelay',      description='StartDelay',        offset=0x0000013C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='StartWidth',      description='StartWidth',        offset=0x00000140, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='PPbePolarity',    description='PPbePolarity',      offset=0x00000144, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='PPbeDelay',       description='PPbeDelay',         offset=0x00000148, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='PPbeWidth',       description='PPbeWidth',         offset=0x0000014C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='PpmatPolarity',   description='PpmatPolarity',     offset=0x00000150, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='PpmatDelay',      description='PpmatDelay',        offset=0x00000154, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='PpmatWidth',      description='PpmatWidth',        offset=0x00000158, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='SyncPolarity',    description='SyncPolarity',      offset=0x0000015C, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='SyncDelay',       description='SyncDelay',         offset=0x00000160, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='SyncWidth',       description='SyncWidth',         offset=0x00000164, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='SaciSyncPolarity',description='SaciSyncPolarity',  offset=0x00000168, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add(pr.Variable(name='SaciSyncDelay',   description='SaciSyncDelay',     offset=0x0000016C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='SaciSyncWidth',   description='SaciSyncWidth',     offset=0x00000170, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      
+      self.add(pr.Variable(name='R0Polarity',      description='R0Polarity',        offset=0x00000100, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='R0Delay',         description='R0Delay',           offset=0x00000104, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='R0Width',         description='R0Width',           offset=0x00000108, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='GlblRstPolarity', description='GlblRstPolarity',   offset=0x0000010C, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='GlblRstDelay',    description='GlblRstDelay',      offset=0x00000110, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='GlblRstWidth',    description='GlblRstWidth',      offset=0x00000114, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='AcqPolarity',     description='AcqPolarity',         offset=0x00000118, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='AcqDelay1',       description='AcqDelay',            offset=0x0000011C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='AcqWidth1',       description='AcqWidth',            offset=0x00000120, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='EnAPattern',      description='EnAPattern',          offset=0x00000124, bitSize=32, bitOffset=0, base='hex',  mode='RW'))
+      self.add(pr.Variable(name='EnAShiftPattern', description='EnAShiftPattern',     offset=0x00000128, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
+      self.add(pr.Variable(name='EnAPolarity',     description='EnAPolarity',         offset=0x0000012C, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='EnADelay',        description='EnADelay',            offset=0x00000130, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='EnAWidth',        description='EnAWidth',            offset=0x00000134, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='ReqTriggerCnt',     description='ReqTriggerCnt',     offset=0x00000138, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='triggerCntPerCycle',description='triggerCntPerCycle',offset=0x0000013C, bitSize=32, bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='EnAllFrames',       description='EnAllFrames',       offset=0x00000140, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='EnSingleFrame',     description='EnSingleFrame',     offset=0x00000140, bitSize=1,  bitOffset=1, base='bool', mode='RW'))
+
+      self.add(pr.Variable(name='PPbePolarity',    description='PPbePolarity',      offset=0x00000144, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='PPbeDelay',       description='PPbeDelay',         offset=0x00000148, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='PPbeWidth',       description='PPbeWidth',         offset=0x0000014C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='PpmatPolarity',   description='PpmatPolarity',     offset=0x00000150, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='PpmatDelay',      description='PpmatDelay',        offset=0x00000154, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='PpmatWidth',      description='PpmatWidth',        offset=0x00000158, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='FastSyncPolarity',description='FastSyncPolarity',  offset=0x0000015C, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='FastSyncDelay',   description='FastSyncDelay',     offset=0x00000160, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='FastSyncWidth',   description='FastSyncWidth',     offset=0x00000164, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='SyncPolarity',    description='SyncPolarity',      offset=0x00000168, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='SyncDelay',       description='SyncDelay',         offset=0x0000016C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='SyncWidth',       description='SyncWidth',         offset=0x00000170, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='SaciSyncPolarity',description='SaciSyncPolarity',  offset=0x00000174, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='SaciSyncDelay',   description='SaciSyncDelay',     offset=0x00000178, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='SaciSyncWidth',   description='SaciSyncWidth',     offset=0x0000017C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='SR0Polarity',     description='SR0Polarity',       offset=0x00000180, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='SR0Delay1',       description='SR0Delay1',         offset=0x00000184, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='SR0Width1',       description='SR0Width1',         offset=0x00000188, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='SR0Delay2',       description='SR0Delay2',         offset=0x0000018C, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='SR0Width2',       description='SR0Width2',         offset=0x00000190, bitSize=32, bitOffset=0, base='uint', mode='RW'))
+      self.add(pr.Variable(name='Vid',             description='Vid',               offset=0x00000194, bitSize=1,  bitOffset=0, base='uint', mode='RW'))
+      
       self.add(pr.Variable(name='AcqCnt',          description='AcqCnt',            offset=0x00000200, bitSize=32, bitOffset=0, base='uint', mode='RO'))
-#      self.add(pr.Variable(name='SaciPrepRdoutCnt',description='SaciPrepRdoutCnt',  offset=0x00000204, bitSize=32, bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='SaciPrepRdoutCnt',description='SaciPrepRdoutCnt',  offset=0x00000204, bitSize=32, bitOffset=0, base='uint', mode='RO'))
       self.add(pr.Variable(name='ResetCounters',   description='ResetCounters',     offset=0x00000208, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      #self.add(pr.Variable(name='AsicPowerEnable', description='AsicPowerEnable',   offset=0x0000020C, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
-#      self.add((
-#         pr.Variable(name='AsicPwrEnable',      description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=0,  base='bool', mode='RW'),
-#         pr.Variable(name='AsicPwrManual',      description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=16, base='bool', mode='RW'),
-#         pr.Variable(name='AsicPwrManualDig',   description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=20, base='bool', mode='RW'),
-#         pr.Variable(name='AsicPwrManualAna',   description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=21, base='bool', mode='RW'),
-#         pr.Variable(name='AsicPwrManualIo',    description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=22, base='bool', mode='RW'),
-#         pr.Variable(name='AsicPwrManualFpga',  description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=23, base='bool', mode='RW')))
-#      self.add(pr.Variable(name='AsicMask',        description='AsicMask',          offset=0x00000210, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
-#      self.add(pr.Variable(name='VguardDacSetting',description='VguardDacSetting',  offset=0x00000214, bitSize=16, bitOffset=0, base='uint', mode='RW'))
-#      self.add(pr.Variable(name='TixelDebugSel1',  description='TixelDebugSel1',    offset=0x00000218, bitSize=5,  bitOffset=0, base='hex',  mode='RW'))
-#      self.add(pr.Variable(name='TixelDebugSel2',  description='TixelDebugSel2',    offset=0x0000021C, bitSize=5,  bitOffset=0, base='hex',  mode='RW'))
-      
+      #self.add(pr.Variable(name='AsicPowerEnable', description='AsicPowerEnable',   offset=0x0000020C, bitSize=1,  bitOffset=0, base='bool', mode='RW'))
+      self.add((
+         pr.Variable(name='AsicPwrEnable',      description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=0,  base='bool', mode='RW'),
+         pr.Variable(name='AsicPwrManual',      description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=16, base='bool', mode='RW'),
+         pr.Variable(name='AsicPwrManualDig',   description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=20, base='bool', mode='RW'),
+         pr.Variable(name='AsicPwrManualAna',   description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=21, base='bool', mode='RW'),
+         pr.Variable(name='AsicPwrManualIo',    description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=22, base='bool', mode='RW'),
+         pr.Variable(name='AsicPwrManualFpga',  description='AsicPower', offset=0x0000020C, bitSize=1, bitOffset=23, base='bool', mode='RW')))
+      self.add(pr.Variable(name='AsicMask',        description='AsicMask',          offset=0x00000210, bitSize=32, bitOffset=0, base='hex',  mode='RO'))
+      self.add(pr.Variable(name='VguardDacSetting',description='VguardDacSetting',  offset=0x00000214, bitSize=16, bitOffset=0, base='uint', mode='RW'))
+              #pr.Variable(name='TriggerChannel',  description='Setting1',          offset=0x00000008, bitSize=4,  bitOffset=2, base='enum', mode='RW', enum=trigChEnum),
+      #self.add(pr.Variable(name='Cpix2DebugSel1',  description='Cpix2DebugSel1',    offset=0x00000218, bitSize=5,  bitOffset=0, base='enum', mode='RW', enum=debugChEnum))
+      #self.add(pr.Variable(name='Cpix2DebugSel2',  description='Cpix2DebugSel2',    offset=0x0000021C, bitSize=5,  bitOffset=0, base='enum', mode='RW', enum=debugChEnum))
+      self.add(pr.Variable(name='SyncCnt',         description='SyncCnt',           offset=0x00000220, bitSize=32, bitOffset=0, base='uint', mode='RO'))      
+
 #      self.add(pr.Variable(name='AdcClkHalfT',     description='AdcClkHalfT',       offset=0x00000300, bitSize=32, bitOffset=0, base='uint', mode='RW'))
-#      self.add((
-#         pr.Variable(name='StartupReq',  description='AdcStartup', offset=0x00000304, bitSize=1, bitOffset=0, base='bool', mode='RW'),
-#         pr.Variable(name='StartupAck',  description='AdcStartup', offset=0x00000304, bitSize=1, bitOffset=1, base='bool', mode='RO'),
-#         pr.Variable(name='StartupFail', description='AdcStartup', offset=0x00000304, bitSize=1, bitOffset=2, base='bool', mode='RO')))
-     
+      self.add((
+         pr.Variable(name='StartupReq',  description='AdcStartup', offset=0x00000304, bitSize=1, bitOffset=0, base='bool', mode='RW'),
+         pr.Variable(name='StartupAck',  description='AdcStartup', offset=0x00000304, bitSize=1, bitOffset=1, base='bool', mode='RO'),
+         pr.Variable(name='StartupFail', description='AdcStartup', offset=0x00000304, bitSize=1, bitOffset=2, base='bool', mode='RO')))
       
+     
+     
       #####################################
       # Create commands
       #####################################
