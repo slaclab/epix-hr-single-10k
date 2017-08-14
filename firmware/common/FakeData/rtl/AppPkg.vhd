@@ -53,6 +53,15 @@ package AppPkg is
          connectivity         => x"FFFF")
    );
 
+
+   type AppConfigType is record
+      AppVersion           : slv(31 downto 0);
+   end record;
+
+
+   constant APP_CONFIG_INIT_C; : AppConfigType := (
+      AppVersion           => (others => '0')
+   );
    
    type HR_FDConfigType is record
       pwrEnableReq         : sl;

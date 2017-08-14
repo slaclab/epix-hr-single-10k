@@ -28,3 +28,9 @@ set_property -dict {PACKAGE_PIN N22 IOSTANDARD LVCMOS18} [get_ports {led[3]}]
 ## Misc. Configurations ##
 ##########################
 
+create_generated_clock -name appClk  [get_pins {U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0}]
+create_generated_clock -name asicClk [get_pins {U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1}]
+
+set_clock_groups -asynchronous -group [get_clocks {sysClk}] -group [get_clocks {appClk}]
+set_clock_groups -asynchronous -group [get_clocks {sysClk}] -group [get_clocks {asicClk}]
+

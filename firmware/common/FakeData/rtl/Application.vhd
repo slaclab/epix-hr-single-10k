@@ -36,6 +36,7 @@ use unisim.vcomponents.all;
 entity Application is
    generic (
       TPD_G            : time            := 1 ns;
+      APP_CONFIG_G     : AppConfigType   := APP_CONFIG_INIT_C;
       SIMULATION_G     : boolean         := false;
       BUILD_INFO_G     : BuildInfoType;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
