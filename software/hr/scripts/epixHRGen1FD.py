@@ -47,46 +47,50 @@ START_VIEWER = False
 PRINT_VERBOSE = False
 #############################################
 
-# Create the PGP interfaces for ePix camera
-pgpVc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,0) # Data & cmds
-pgpVc1 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,1) # Registers for ePix board
-pgpVc2 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,2) # PseudoScope
-pgpVc3 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,3) # Monitoring (Slow ADC)
+# Create the PGP interfaces for ePix hr camera
+pgpL0Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,0) # Data & cmds
+pgpL0Vc1 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,1) # Registers for ePix board
+pgpL0Vc2 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,2) # PseudoScope
+pgpL0Vc3 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,3) # Monitoring (Slow ADC)
+
+pgpL1Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,0) # Data (when using all four lanes it should be swapped back with L0)
+pgpL2Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',2,0) # Data
+pgpL3Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',3,0) # Data
 
 print("")
-print("PGP Card Version: %x" % (pgpVc0.getInfo().version))
+print("PGP Card Version: %x" % (pgpL0Vc0.getInfo().version))
 
 
 # Add data stream to file as channel 1
 # File writer
 dataWriter = pyrogue.utilities.fileio.StreamWriter('dataWriter')
-pyrogue.streamConnect(pgpVc0, dataWriter.getChannel(0x1))
+pyrogue.streamConnect(pgpL0Vc0, dataWriter.getChannel(0x1))
 # Add pseudoscope to file writer
-#pyrogue.streamConnect(pgpVc2, dataWriter.getChannel(0x2))
-#pyrogue.streamConnect(pgpVc3, dataWriter.getChannel(0x3))
+#pyrogue.streamConnect(pgpL0Vc2, dataWriter.getChannel(0x2))
+#pyrogue.streamConnect(pgpL0Vc3, dataWriter.getChannel(0x3))
 
 cmd = rogue.protocols.srp.Cmd()
-pyrogue.streamConnect(cmd, pgpVc0)
+pyrogue.streamConnect(cmd, pgpL0Vc0)
 
 # Create and Connect SRP to VC1 to send commands
 srp = rogue.protocols.srp.SrpV3()
-pyrogue.streamConnectBiDir(pgpVc1,srp)
+pyrogue.streamConnectBiDir(pgpL0Vc1,srp)
 
 # Add configuration stream to file as channel 0
 # Removed to reduce amount of data going to file
 #pyrogue.streamConnect(ePixBoard,dataWriter.getChannel(0x0))
 
 ## Add microblaze console stream to file as channel 2
-#pyrogue.streamConnect(pgpVc3,dataWriter.getChannel(0x2))
+#pyrogue.streamConnect(pgpL0Vc3,dataWriter.getChannel(0x2))
 
 # PRBS Receiver as secdonary receiver for VC1
 #prbsRx = pyrogue.utilities.prbs.PrbsRx('prbsRx')
-#pyrogue.streamTap(pgpVc1,prbsRx)
+#pyrogue.streamTap(pgpL0Vc1,prbsRx)
 #ePixBoard.add(prbsRx)
 
 # Microblaze console monitor add secondary tap
 #mbcon = MbDebug()
-#pyrogue.streamTap(pgpVc3,mbcon)
+#pyrogue.streamTap(pgpL0Vc3,mbcon)
 
 #br = testBridge.Bridge()
 #br._setSlave(srp)
@@ -172,18 +176,21 @@ class EpixBoard(pyrogue.Root):
 
 
 # debug
-#mbcon = MbDebug()
-#pyrogue.streamTap(pgpVc0,mbcon)
+mbcon = MbDebug()
+pyrogue.streamTap(pgpL0Vc0,mbcon)
+pyrogue.streamTap(pgpL1Vc0,mbcon)
+pyrogue.streamTap(pgpL2Vc0,mbcon)
+pyrogue.streamTap(pgpL3Vc0,mbcon)
 
 #mbcon1 = MbDebug()
-#pyrogue.streamTap(pgpVc1,mbcon)
+#pyrogue.streamTap(pgpL0Vc1,mbcon)
 
 #mbcon2 = MbDebug()
-#pyrogue.streamTap(pgpVc3,mbcon)
+#pyrogue.streamTap(pgpL0Vc3,mbcon)
 
 if (PRINT_VERBOSE): dbgData = rogue.interfaces.stream.Slave()
 if (PRINT_VERBOSE): dbgData.setDebug(60, "DATA[{}]".format(0))
-if (PRINT_VERBOSE): pyrogue.streamTap(pgpVc0, dbgData)
+if (PRINT_VERBOSE): pyrogue.streamTap(pgpL0Vc0, dbgData)
 
 
 # Create GUI
@@ -199,9 +206,9 @@ guiTop.resize(800,800)
 #gui.eventReader.frameIndex = 0
 #gui.eventReaderImage.VIEW_DATA_CHANNEL_ID = 0
 #gui.setReadDelay(0)
-#pyrogue.streamTap(pgpVc0, gui.eventReader) 
-#pyrogue.streamTap(pgpVc2, gui.eventReaderScope)# PseudoScope
-#pyrogue.streamTap(pgpVc3, gui.eventReaderMonitoring) # Slow Monitoring
+#pyrogue.streamTap(pgpL0Vc0, gui.eventReader) 
+#pyrogue.streamTap(pgpL0Vc2, gui.eventReaderScope)# PseudoScope
+#pyrogue.streamTap(pgpL0Vc3, gui.eventReaderMonitoring) # Slow Monitoring
 
 # Create mesh node (this is for remote control only, no data is shared with this)
 #mNode = pyrogue.mesh.MeshNode('rogueTest',iface='eth0',root=ePixBoard)

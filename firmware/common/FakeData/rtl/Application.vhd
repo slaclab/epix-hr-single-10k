@@ -339,7 +339,7 @@ begin
 
    U_BUFR : BUFR
    generic map (
-      SIM_DEVICE  => "ULTRASCALE",
+      SIM_DEVICE  => "7SERIES",
       BUFR_DIVIDE => "5"
    )
    port map (
@@ -511,7 +511,7 @@ begin
          sAxilWriteSlave   => mAxiWriteSlaves(ASICS0_AXI_INDEX_C+i),
          sAxilReadMaster   => mAxiReadMasters(ASICS0_AXI_INDEX_C+i),
          sAxilReadSlave    => mAxiReadSlaves(ASICS0_AXI_INDEX_C+i),
-         axisClk           => sysClk,
+         axisClk           => appClk,
          axisRst           => axiRst,
          mAxisMaster       => mAxisMasters(i),
          mAxisSlave        => mAxisSlaves(i),
