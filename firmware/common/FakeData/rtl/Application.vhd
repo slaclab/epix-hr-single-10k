@@ -511,7 +511,7 @@ begin
          sAxilWriteSlave   => mAxiWriteSlaves(ASICS0_AXI_INDEX_C+i),
          sAxilReadMaster   => mAxiReadMasters(ASICS0_AXI_INDEX_C+i),
          sAxilReadSlave    => mAxiReadSlaves(ASICS0_AXI_INDEX_C+i),
-         axisClk           => appClk,
+         axisClk           => sysClk,
          axisRst           => axiRst,
          mAxisMaster       => mAxisMasters(i),
          mAxisSlave        => mAxisSlaves(i),
