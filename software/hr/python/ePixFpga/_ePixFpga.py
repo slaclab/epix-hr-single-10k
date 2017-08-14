@@ -113,7 +113,7 @@ class EpixHRGen1FD(pr.Device):
       
         super(self.__class__, self).__init__(**kwargs)
         self.add((
-            axi.AxiVersion(offset=0x00000000),
+            #axi.AxiVersion(offset=0x00000000),
             #SlowAdcRegisters(name="SlowAdcRegisters", offset=0x03000000, expand=False),
             #epix.TixelAsic(name='TixelAsic0', offset=0x04000000, enabled=False, expand=False),
             #epix.TixelAsic(name='TixelAsic1', offset=0x04400000, enabled=False, expand=False),
@@ -136,7 +136,10 @@ class EpixHRGen1FD(pr.Device):
             MMCM7Registers(name='MMCM7Registers', offset=0x80000000, enabled=False, expand=False),
             EpixHRCoreFpgaRegisters(name="EpixHRCoreFpgaRegisters", offset=0x81000000),
             TriggerRegisters(name="TriggerRegisters", offset=0x82000000, expand=False),
-
+            AsicPktRegisters(name='Asic0PktRegisters', offset=0x83000000, enabled=False, expand=False),
+            AsicPktRegisters(name='Asic1PktRegisters', offset=0x84000000, enabled=False, expand=False),
+            AsicPktRegisters(name='Asic2PktRegisters', offset=0x85000000, enabled=False, expand=False),
+            AsicPktRegisters(name='Asic3PktRegisters', offset=0x86000000, enabled=False, expand=False)
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))

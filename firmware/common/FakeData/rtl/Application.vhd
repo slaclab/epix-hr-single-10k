@@ -19,6 +19,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
@@ -27,6 +28,7 @@ use work.AxiPkg.all;
 use work.Pgp2bPkg.all;
 use work.SsiPkg.all;
 use work.SsiCmdMasterPkg.all;
+use work.Code8b10bPkg.all;
 
 use work.AppPkg.all;
 
@@ -148,10 +150,14 @@ architecture mapping of Application is
    signal heartBeat   : sl;
 
    -- clock signals
-   signal appClk, asicClk : sl;
-   signal appRst, axiRst  : sl;
-   signal asicRst         : sl;
-   signal clkLocked       : sl;
+   signal appClk      : sl;
+   signal asicClk     : sl;
+   signal byteClk     : sl;
+   signal appRst      : sl;
+   signal axiRst      : sl;
+   signal asicRst     : sl;
+   signal byteClkRst  : sl;
+   signal clkLocked   : sl;
 
    -- AXI-Lite Signals
    signal sAxiReadMaster  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_SLAVE_SLOTS_C-1 downto 0);
@@ -238,7 +244,7 @@ begin
 
   
 
-   mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
+--   mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
    mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
    mAxiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
    mbIrq           <= (others => '0');
@@ -329,6 +335,28 @@ begin
       axilWriteMaster => mAxiWriteMasters(PLLREGS_AXI_INDEX_C),
       axilWriteSlave  => mAxiWriteSlaves(PLLREGS_AXI_INDEX_C)
    );      
+
+
+   U_BUFR : BUFR
+   generic map (
+      SIM_DEVICE  => "ULTRASCALE",
+      BUFR_DIVIDE => "5"
+   )
+   port map (
+      I   => asicClk,
+      O   => byteClk,
+      CE  => '1',
+      CLR => '0'
+   );
+
+   U_RdPwrUpRst : entity work.PwrUpRst
+   generic map (
+      DURATION_G => 20000000
+   )
+   port map (
+      clk      => byteClk,
+      rstOut   => byteClkRst
+   );
 
 
    U_AxiLiteAsync : entity work.AxiLiteAsync 
@@ -462,6 +490,40 @@ begin
       asicAcq        => iAsicAcq,
       errInhibit     => errInhibit
    );
+
+   G_ASIC : for i in 0 to NUMBER_OF_ASICS_C-1 generate 
+      -------------------------------------------------------
+      -- ASIC AXI stream framers
+      -------------------------------------------------------
+      
+      U_AXI_Framer : entity work.HRStreamAxi
+      generic map (
+         ASIC_NO_G   => std_logic_vector(to_unsigned(i, 3))
+      )
+      port map (
+         rxClk             => byteClk,
+         rxRst             => byteClkRst,
+         rxData            => (others => '0'),
+         rxValid           => '0',
+         axilClk           => appClk,
+         axilRst           => axiRst,
+         sAxilWriteMaster  => mAxiWriteMasters(ASICS0_AXI_INDEX_C+i),
+         sAxilWriteSlave   => mAxiWriteSlaves(ASICS0_AXI_INDEX_C+i),
+         sAxilReadMaster   => mAxiReadMasters(ASICS0_AXI_INDEX_C+i),
+         sAxilReadSlave    => mAxiReadSlaves(ASICS0_AXI_INDEX_C+i),
+         axisClk           => sysClk,
+         axisRst           => axiRst,
+         mAxisMaster       => mAxisMasters(i),
+         mAxisSlave        => mAxisSlaves(i),
+         acqNo             => hrConfig.syncCounter,
+         testTrig          => iAsicAcq,
+         asicSR0           => iAsicSR0,
+         asicSync          => iAsicSync,
+         errInhibit        => errInhibit
+      );
+
+   end generate;
+
 
 
 end mapping;
