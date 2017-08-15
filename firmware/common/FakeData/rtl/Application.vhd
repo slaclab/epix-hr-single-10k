@@ -170,6 +170,9 @@ architecture mapping of Application is
    signal mAxiReadMasters  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
 
+   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+   signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
+
 
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
@@ -245,6 +248,7 @@ begin
   
 
 --   mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
+   mAxisMasters    <= imAxisMasters;
    mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
    mAxiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
    mbIrq           <= (others => '0');
@@ -513,7 +517,7 @@ begin
          sAxilReadSlave    => mAxiReadSlaves(ASICS0_AXI_INDEX_C+i),
          axisClk           => sysClk,
          axisRst           => axiRst,
-         mAxisMaster       => mAxisMasters(i),
+         mAxisMaster       => imAxisMasters(i),
          mAxisSlave        => mAxisSlaves(i),
          acqNo             => hrConfig.syncCounter,
          testTrig          => iAsicAcq,
@@ -521,9 +525,28 @@ begin
          asicSync          => iAsicSync,
          errInhibit        => errInhibit
       );
-
    end generate;
 
 
-
+   U_AxiSMonitor : entity work.AxiStreamMonAxiL 
+   generic map(
+      TPD_G           => 1 ns,
+      COMMON_CLK_G    => false,  -- true if axisClk = statusClk
+      AXIS_CLK_FREQ_G => 156.25E+6,  -- units of Hz
+      AXIS_NUM_SLOTS  => 4,
+      AXIS_CONFIG_G   => AXI_STREAM_CONFIG_O_C)
+   port map(
+      -- AXIS Stream Interface
+      axisClk         => sysClk,
+      axisRst         => axiRst,
+      axisMaster      => imAxisMasters,
+      axisSlave       => mAxisSlaves,
+      -- AXI lite slave port for register access
+      axilClk         => appClk,  
+      axilRst         => axiRst,   
+      sAxilWriteMaster=> mAxiWriteMasters(AXI_STREAM_MON_INDEX_C),
+      sAxilWriteSlave => mAxiWriteSlaves(AXI_STREAM_MON_INDEX_C),
+      sAxilReadMaster => mAxiReadMasters(AXI_STREAM_MON_INDEX_C),
+      sAxilReadSlave  => mAxiReadSlaves(AXI_STREAM_MON_INDEX_C)
+   );
 end mapping;

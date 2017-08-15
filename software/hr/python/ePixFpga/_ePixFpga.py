@@ -133,13 +133,17 @@ class EpixHRGen1FD(pr.Device):
             #HighSpeedDacRegisters(name='High Speed DAC', offset=0x0D000000, enabled=True, expand=False, HsDacEnum = HsDacEnum),
             #surf.misc.GenericMemory(name='waveformMem', offset=0x0E000000,nelms=1024),
             #MicroblazeLog(name='MicroblazeLog', offset=0x0B000000, expand=False),
-            MMCM7Registers(name='MMCM7Registers', offset=0x80000000, enabled=False, expand=False),
+            MMCM7Registers(name='MMCM7Registers',                   offset=0x80000000, enabled=False, expand=False),
             EpixHRCoreFpgaRegisters(name="EpixHRCoreFpgaRegisters", offset=0x81000000),
-            TriggerRegisters(name="TriggerRegisters", offset=0x82000000, expand=False),
-            AsicPktRegisters(name='Asic0PktRegisters', offset=0x83000000, enabled=False, expand=False),
-            AsicPktRegisters(name='Asic1PktRegisters', offset=0x84000000, enabled=False, expand=False),
-            AsicPktRegisters(name='Asic2PktRegisters', offset=0x85000000, enabled=False, expand=False),
-            AsicPktRegisters(name='Asic3PktRegisters', offset=0x86000000, enabled=False, expand=False)
+            TriggerRegisters(name="TriggerRegisters",               offset=0x82000000, expand=False),
+            AsicPktRegisters(name='Asic0PktRegisters',              offset=0x83000000, enabled=False, expand=False),
+            AsicPktRegisters(name='Asic1PktRegisters',              offset=0x84000000, enabled=False, expand=False),
+            AsicPktRegisters(name='Asic2PktRegisters',              offset=0x85000000, enabled=False, expand=False),
+            AsicPktRegisters(name='Asic3PktRegisters',              offset=0x86000000, enabled=False, expand=False),
+            AxiStreamMonitoring(name='AxiStreamMon0',               offset=0x87000000, enabled=False, expand=False),
+            AxiStreamMonitoring(name='AxiStreamMon1',               offset=0x87000034, enabled=False, expand=False),
+            AxiStreamMonitoring(name='AxiStreamMon2',               offset=0x87000068, enabled=False, expand=False),
+            AxiStreamMonitoring(name='AxiStreamMon3',               offset=0x8700009C, enabled=False, expand=False),
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -1282,17 +1286,6 @@ class AsicPktRegisters(pr.Device):
       self.add(pr.Variable(name='bandwidthMax',    description='bandwidthMax',   offset=0x00000038, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
       self.add(pr.Variable(name='bandwidthMin',    description='bandwidthMin',   offset=0x00000040, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
 
-axiSlaveRegisterR(regCon, x"24", 0, r.frameRate);   
-      axiSlaveRegisterR(regCon, x"28", 0, r.frameRateMax);   
-      axiSlaveRegisterR(regCon, x"2C", 0, r.frameRateMin);   
-      axiSlaveRegisterR(regCon, x"30", 0, r.bandwidth(31 downto 0));   
-      axiSlaveRegisterR(regCon, x"34", 0, r.bandwidth(63 downto 32));   
-      axiSlaveRegisterR(regCon, x"38", 0, r.bandwidthMax(31 downto 0));   
-      axiSlaveRegisterR(regCon, x"3C", 0, r.bandwidthMax(63 downto 32));   
-      axiSlaveRegisterR(regCon, x"40", 0, r.bandwidthMin(31 downto 0));   
-      axiSlaveRegisterR(regCon, x"44", 0, r.bandwidthMin(63 downto 32)); 
-
-
       
       #####################################
       # Create commands
@@ -1310,6 +1303,47 @@ axiSlaveRegisterR(regCon, x"24", 0, r.frameRate);
          return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
       return func
 
+
+class AxiStreamMonitoring(pr.Device):
+   def __init__(self, **kwargs):
+      super().__init__(description='Axi Stream Monitoring registers', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables    
+      self.add(pr.Variable(name='ResetCounters',   description='ResetCounters',  offset=0x00000000, bitSize=1,   bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='frameRate',       description='frameRate',      offset=0x00000010, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMax',    description='frameRateMax',   offset=0x00000014, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMin',    description='frameRateMin',   offset=0x00000018, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidth',       description='bandwidth',      offset=0x0000001C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMax',    description='bandwidthMax',   offset=0x00000024, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMin',    description='bandwidthMin',   offset=0x0000002C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+
+      
+      #####################################
+      # Create commands
+      #####################################
+      
+      # A command has an associated function. The function can be a series of
+      # python commands in a string. Function calls are executed in the command scope
+      # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+      # A command can also be a call to a local function with local scope.
+      # The command object and the arg are passed
+   
+   @staticmethod   
+   def frequencyConverter(self):
+      def func(dev, var):         
+         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+      return func
 
 class MicroblazeLog(pr.Device):
    def __init__(self, **kwargs):

@@ -26,25 +26,26 @@ package AppPkg is
 
    constant NUMBER_OF_ASICS_C : natural := 4;   
    
-   constant HR_FD_NUM_AXI_MASTER_SLOTS_C : natural := 7;
+   constant HR_FD_NUM_AXI_MASTER_SLOTS_C : natural := 8;
    constant HR_FD_NUM_AXI_SLAVE_SLOTS_C : natural := 1;
    
-   constant PLLREGS_AXI_INDEX_C     : natural := 0;
-   constant HR_FD_REG_AXI_INDEX_C   : natural := 1;
-   constant TRIG_REG_AXI_INDEX_C    : natural := 2;
-   constant ASICS0_AXI_INDEX_C      : natural := 3;
-   constant ASICS1_AXI_INDEX_C      : natural := 4;
-   constant ASICS2_AXI_INDEX_C      : natural := 5;
-   constant ASICS3_AXI_INDEX_C      : natural := 6;
+   constant PLLREGS_AXI_INDEX_C           : natural := 0;
+   constant HR_FD_REG_AXI_INDEX_C         : natural := 1;
+   constant TRIG_REG_AXI_INDEX_C          : natural := 2;
+   constant ASICS0_AXI_INDEX_C            : natural := 3;
+   constant ASICS1_AXI_INDEX_C            : natural := 4;
+   constant ASICS2_AXI_INDEX_C            : natural := 5;
+   constant ASICS3_AXI_INDEX_C            : natural := 6;
+   constant AXI_STREAM_MON_INDEX_C        : natural := 7;
    
-   constant PLLREGS_AXI_BASE_ADDR_C    : slv(31 downto 0) := X"00000000";
-   constant HR_FD_REG_AXI_BASE_ADDR_C  : slv(31 downto 0) := X"01000000";
-   constant TRIG_REG_AXI_BASE_ADDR_C   : slv(31 downto 0) := X"02000000";
-   constant ASICS0_AXI_BASE_ADDR_C     : slv(31 downto 0) := X"03000000";
-   constant ASICS1_AXI_BASE_ADDR_C     : slv(31 downto 0) := X"04000000";
-   constant ASICS2_AXI_BASE_ADDR_C     : slv(31 downto 0) := X"05000000";
-   constant ASICS3_AXI_BASE_ADDR_C     : slv(31 downto 0) := X"06000000";
-
+   constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"00000000";
+   constant HR_FD_REG_AXI_BASE_ADDR_C       : slv(31 downto 0) := X"01000000";
+   constant TRIG_REG_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"02000000";
+   constant ASICS0_AXI_BASE_ADDR_C          : slv(31 downto 0) := X"03000000";
+   constant ASICS1_AXI_BASE_ADDR_C          : slv(31 downto 0) := X"04000000";
+   constant ASICS2_AXI_BASE_ADDR_C          : slv(31 downto 0) := X"05000000";
+   constant ASICS3_AXI_BASE_ADDR_C          : slv(31 downto 0) := X"06000000";
+   constant AXI_STREAM_MON_BASE_ADDR_C      : slv(31 downto 0) := X"07000000";
    
    constant HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0) := (
       PLLREGS_AXI_INDEX_C       => (
@@ -73,6 +74,10 @@ package AppPkg is
          connectivity         => x"FFFF"),
       ASICS3_AXI_INDEX_C        => ( 
          baseAddr             => ASICS3_AXI_BASE_ADDR_C,
+         addrBits             => 24,
+         connectivity         => x"FFFF"),
+      AXI_STREAM_MON_INDEX_C        => ( 
+         baseAddr             => AXI_STREAM_MON_BASE_ADDR_C,
          addrBits             => 24,
          connectivity         => x"FFFF")
    );
