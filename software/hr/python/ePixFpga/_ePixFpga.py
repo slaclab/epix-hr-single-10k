@@ -1275,6 +1275,24 @@ class AsicPktRegisters(pr.Device):
       self.add(pr.Variable(name='OverflowErrors',  description='OverflowErrors', offset=0x00000018, bitSize=16,  bitOffset=0, base='uint', mode='RO'))
       self.add(pr.Variable(name='TestMode',        description='TestMode',       offset=0x0000001C, bitSize=1,   bitOffset=0, base='bool', mode='RW'))
       self.add(pr.Variable(name='ResetCounters',   description='ResetCounters',  offset=0x00000020, bitSize=1,   bitOffset=0, base='bool', mode='RW'))
+      self.add(pr.Variable(name='frameRate',       description='frameRate',      offset=0x00000024, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMax',    description='frameRateMax',   offset=0x00000028, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMin',    description='frameRateMin',   offset=0x0000002C, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidth',       description='bandwidth',      offset=0x00000030, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMax',    description='bandwidthMax',   offset=0x00000038, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMin',    description='bandwidthMin',   offset=0x00000040, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+
+axiSlaveRegisterR(regCon, x"24", 0, r.frameRate);   
+      axiSlaveRegisterR(regCon, x"28", 0, r.frameRateMax);   
+      axiSlaveRegisterR(regCon, x"2C", 0, r.frameRateMin);   
+      axiSlaveRegisterR(regCon, x"30", 0, r.bandwidth(31 downto 0));   
+      axiSlaveRegisterR(regCon, x"34", 0, r.bandwidth(63 downto 32));   
+      axiSlaveRegisterR(regCon, x"38", 0, r.bandwidthMax(31 downto 0));   
+      axiSlaveRegisterR(regCon, x"3C", 0, r.bandwidthMax(63 downto 32));   
+      axiSlaveRegisterR(regCon, x"40", 0, r.bandwidthMin(31 downto 0));   
+      axiSlaveRegisterR(regCon, x"44", 0, r.bandwidthMin(63 downto 32)); 
+
+
       
       #####################################
       # Create commands

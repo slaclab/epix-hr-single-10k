@@ -145,6 +145,12 @@ architecture RTL of HRStreamAxi is
       rstCnt            : slv(2 downto 0);
       sAxilWriteSlave   : AxiLiteWriteSlaveType;
       sAxilReadSlave    : AxiLiteReadSlaveType;
+      frameRate         : slv(31 downto 0);
+      frameRateMax      : slv(31 downto 0);
+      frameRateMin      : slv(31 downto 0);
+      bandwidth         : slv(63 downto 0);
+      bandwidthMax      : slv(63 downto 0);
+      bandwidthMin      : slv(63 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -158,7 +164,13 @@ architecture RTL of HRStreamAxi is
       ovError           => (others=>'0'),
       rstCnt            => (others=>'0'),
       sAxilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
-      sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C
+      sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C,
+      frameRate         => (others=>'0'),
+      frameRateMax      => (others=>'0'),
+      frameRateMin      => (others=>'0'),
+      bandwidth         => (others=>'0'),
+      bandwidthMax      => (others=>'0'),
+      bandwidthMin      => (others=>'0')
    );
    
    signal r   : RegType := REG_INIT_C;
@@ -180,8 +192,9 @@ architecture RTL of HRStreamAxi is
    signal dFifoValid    : sl;
    signal dFifoOut      : slv(15 downto 0);
    
-   signal sAxisMaster : AxiStreamMasterType;
-   signal sAxisSlave  : AxiStreamSlaveType;
+   signal sAxisMaster   : AxiStreamMasterType;
+   signal imAxisMaster  : AxiStreamMasterType;
+   signal sAxisSlave    : AxiStreamSlaveType;
    
    signal testModeSync  : sl;
    signal iRxValid      : sl;
@@ -199,10 +212,43 @@ architecture RTL of HRStreamAxi is
    attribute keep of rxDataCs : signal is "true";        -- for chipscope
    attribute keep of rxValidCs : signal is "true";       -- for chipscope
 
+   signal frameRate         : slv(31 downto 0);
+   signal frameRateMax      : slv(31 downto 0);
+   signal frameRateMin      : slv(31 downto 0);
+   signal bandwidth         : slv(63 downto 0);
+   signal bandwidthMax      : slv(63 downto 0);
+   signal bandwidthMin      : slv(63 downto 0);
+
 begin
    
    rxDataCs <= rxData;     -- for chipscope
    rxValidCs <= rxValid;   -- for chipscope
+
+   U_rateMonitor : entity AxiStreamMon 
+   generic map(
+      TPD_G           => 1 ns,
+      COMMON_CLK_G    => false,  -- true if axisClk = statusClk
+      AXIS_CLK_FREQ_G => 156.25E+6,  -- units of Hz
+      AXIS_CONFIG_G   => AXI_STREAM_CONFIG_O_C)
+   port map(
+      -- AXIS Stream Interface
+      axisClk      => axisClk,
+      axisRst      => axisRst,
+      axisMaster   => imAxisMaster, 
+      axisSlave    => mAxisSlave,
+      -- Status Interface
+      statusClk    => axilClk,
+      statusRst    => axilRst,
+      frameRate    => frameRate,
+      frameRateMax => frameRateMax,
+      frameRateMin => frameRateMin,
+      bandwidth    => bandwidth,
+      bandwidthMax => bandwidthMax,
+      bandwidthMin => bandwidthMin
+   );
+
+   mAxisMaster <= imAxisMaster;
+
    
    -- synchronizers
    Sync1_U : entity work.Synchronizer
@@ -277,15 +323,16 @@ begin
       sAxisMaster => sAxisMaster,
       sAxisSlave  => sAxisSlave,
       mAxisClk    => axisClk,
-      mAxisRst    => axisRst,
-      mAxisMaster => mAxisMaster,
+      mAxisRst    => r.rstCnt(0),
+      mAxisMaster => imAxisMaster,
       mAxisSlave  => mAxisSlave
    );
 
  
    
    comb : process (axilRst, axisRst, sAxilReadMaster, sAxilWriteMaster, sAxisSlave, r, s, 
-      acqNo, dFifoOut, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, testTrig, errInhibit) is
+      acqNo, dFifoOut, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, testTrig, errInhibit,
+      frameRate, frameRateMax, frameRateMin, bandwidth, bandwidthMax, bandwidthMin) is
       variable sv       : StrType;
       variable rv       : RegType;
       variable regCon   : AxiLiteEndPointType;
@@ -297,18 +344,25 @@ begin
       sv.testTrig(0) := testTrig;
       sv.testTrig(1) := s.testTrig(0);
       sv.testTrig(2) := s.testTrig(1);
-      sv.errInhibit := errInhibit;
+      sv.errInhibit  := errInhibit;
       
       -- cross clock sync
       
-      rv.frmSize := s.frmSize;
-      rv.frmMax  := s.frmMax;
-      rv.frmMin  := s.frmMin;
-      rv.frmCnt   := s.frmCnt;
-      rv.sofError := s.sofError;
-      rv.eofError := s.eofError;
-      rv.ovError  := s.ovError;
+      rv.frmSize      := s.frmSize;
+      rv.frmMax       := s.frmMax;
+      rv.frmMin       := s.frmMin;
+      rv.frmCnt       := s.frmCnt;
+      rv.sofError     := s.sofError;
+      rv.eofError     := s.eofError;
+      rv.ovError      := s.ovError;
+      rv.frameRate    := frameRate;
+      rv.frameRateMax := frameRateMax;
+      rv.frameRateMin := frameRateMin;
+      rv.bandwidth    := bandwidth;
+      rv.bandwidthMax := bandwidthMax;
+      rv.bandwidthMin := bandwidthMin;
       sv.testMode := r.testMode;
+
       if r.rstCnt /= "000" then
          sv.rstCnt := '1';
       else
@@ -329,6 +383,16 @@ begin
       axiSlaveRegisterR(regCon, x"18", 0, r.ovError);
       axiSlaveRegister (regCon, x"1C", 0, rv.testMode);
       axiSlaveRegister (regCon, x"20", 0, rv.rstCnt);
+
+      axiSlaveRegisterR(regCon, x"24", 0, r.frameRate);   
+      axiSlaveRegisterR(regCon, x"28", 0, r.frameRateMax);   
+      axiSlaveRegisterR(regCon, x"2C", 0, r.frameRateMin);   
+      axiSlaveRegisterR(regCon, x"30", 0, r.bandwidth(31 downto 0));   
+      axiSlaveRegisterR(regCon, x"34", 0, r.bandwidth(63 downto 32));   
+      axiSlaveRegisterR(regCon, x"38", 0, r.bandwidthMax(31 downto 0));   
+      axiSlaveRegisterR(regCon, x"3C", 0, r.bandwidthMax(63 downto 32));   
+      axiSlaveRegisterR(regCon, x"40", 0, r.bandwidthMin(31 downto 0));   
+      axiSlaveRegisterR(regCon, x"44", 0, r.bandwidthMin(63 downto 32));   
       
       axiSlaveDefault(regCon, rv.sAxilWriteSlave, rv.sAxilReadSlave, AXIL_ERR_RESP_G);
       
