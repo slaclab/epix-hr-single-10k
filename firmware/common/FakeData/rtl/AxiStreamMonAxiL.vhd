@@ -104,7 +104,7 @@ begin
       port map(
          -- AXIS Stream Interface
          axisClk      => axisClk,
-         axisRst      => axisRst,
+         axisRst      => localRst,
          axisMaster   => axisMaster(i), 
          axisSlave    => axisSlave(i),
          -- Status Interface
@@ -136,21 +136,22 @@ begin
          v.bandwidthMin(i) := bandwidthMin(i);
       end loop;
 
+      v.rstCnt := '0';
       v.sAxilReadSlave.rdata := (others => '0');
       axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
       
       axiSlaveRegister (regCon, x"00",  0, v.rstCnt);
 
       for i in 0 to (AXIS_NUM_SLOTS-1) loop
-         axiSlaveRegisterR(regCon, toSlv(16 + (i * 36),16), 0,  r.frameRate(i));                       --x"10" + i * x"20" 
-         axiSlaveRegisterR(regCon, toSlv(20 + (i * 36),16), 0,  r.frameRateMax(i));                    --x"14" + i * x"20" 
-         axiSlaveRegisterR(regCon, toSlv(24 + (i * 36),16), 0,  r.frameRateMin(i));                    --x"18" + i * x"20" 
-         axiSlaveRegisterR(regCon, toSlv(28 + (i * 36),16), 0,  r.bandwidth(i)(31 downto 0));          --x"1C" + i * x"20" 
-         axiSlaveRegisterR(regCon, toSlv(32 + (i * 36),16), 0,  r.bandwidth(i)(63 downto 32));         --x"20" + i * x"20" 
-         axiSlaveRegisterR(regCon, toSlv(36 + (i * 36),16), 0,  r.bandwidthMax(i)(31 downto 0));       --x"24" + i * x"20" 
-         axiSlaveRegisterR(regCon, toSlv(40 + (i * 36),16), 0,  r.bandwidthMax(i)(63 downto 32));      --x"28" + i * x"20" 
-         axiSlaveRegisterR(regCon, toSlv(44 + (i * 36),16), 0,  r.bandwidthMin(i)(31 downto 0));       --x"2C" + i * x"20" 
-         axiSlaveRegisterR(regCon, toSlv(48 + (i * 36),16), 0,  r.bandwidthMin(i)(63 downto 32));      --x"30" + i * x"20" 
+         axiSlaveRegisterR(regCon, toSlv(16 + (i * 48),16), 0,  r.frameRate(i));                       --x"10" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(20 + (i * 48),16), 0,  r.frameRateMax(i));                    --x"14" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(24 + (i * 48),16), 0,  r.frameRateMin(i));                    --x"18" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(28 + (i * 48),16), 0,  r.bandwidth(i)(31 downto 0));          --x"1C" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(32 + (i * 48),16), 0,  r.bandwidth(i)(63 downto 32));         --x"20" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(36 + (i * 48),16), 0,  r.bandwidthMax(i)(31 downto 0));       --x"24" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(40 + (i * 48),16), 0,  r.bandwidthMax(i)(63 downto 32));      --x"28" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(44 + (i * 48),16), 0,  r.bandwidthMin(i)(31 downto 0));       --x"2C" + i * x"30" 
+         axiSlaveRegisterR(regCon, toSlv(48 + (i * 48),16), 0,  r.bandwidthMin(i)(63 downto 32));      --x"30" + i * x"30" 
       end loop;
       
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);

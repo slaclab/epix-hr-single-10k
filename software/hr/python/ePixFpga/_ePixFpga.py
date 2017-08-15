@@ -140,10 +140,7 @@ class EpixHRGen1FD(pr.Device):
             AsicPktRegisters(name='Asic1PktRegisters',              offset=0x84000000, enabled=False, expand=False),
             AsicPktRegisters(name='Asic2PktRegisters',              offset=0x85000000, enabled=False, expand=False),
             AsicPktRegisters(name='Asic3PktRegisters',              offset=0x86000000, enabled=False, expand=False),
-            AxiStreamMonitoring(name='AxiStreamMon0',               offset=0x87000000, enabled=False, expand=False),
-            AxiStreamMonitoring(name='AxiStreamMon1',               offset=0x87000034, enabled=False, expand=False),
-            AxiStreamMonitoring(name='AxiStreamMon2',               offset=0x87000068, enabled=False, expand=False),
-            AxiStreamMonitoring(name='AxiStreamMon3',               offset=0x8700009C, enabled=False, expand=False),
+            AxiStreamMonitoring(name='AxiStreamMon',               offset=0x87000000, enabled=False, expand=False),
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -1321,13 +1318,34 @@ class AxiStreamMonitoring(pr.Device):
       
       #Setup registers & variables    
       self.add(pr.Variable(name='ResetCounters',   description='ResetCounters',  offset=0x00000000, bitSize=1,   bitOffset=0, base='bool', mode='RW'))
-      self.add(pr.Variable(name='frameRate',       description='frameRate',      offset=0x00000010, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
-      self.add(pr.Variable(name='frameRateMax',    description='frameRateMax',   offset=0x00000014, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
-      self.add(pr.Variable(name='frameRateMin',    description='frameRateMin',   offset=0x00000018, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
-      self.add(pr.Variable(name='bandwidth',       description='bandwidth',      offset=0x0000001C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
-      self.add(pr.Variable(name='bandwidthMax',    description='bandwidthMax',   offset=0x00000024, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
-      self.add(pr.Variable(name='bandwidthMin',    description='bandwidthMin',   offset=0x0000002C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
-
+      #
+      self.add(pr.Variable(name='frameRate0',       description='frameRate',      offset=0x00000010, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMax0',    description='frameRateMax',   offset=0x00000014, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMin0',    description='frameRateMin',   offset=0x00000018, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidth0',       description='bandwidth',      offset=0x0000001C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMax0',    description='bandwidthMax',   offset=0x00000024, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMin0',    description='bandwidthMin',   offset=0x0000002C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      #
+      self.add(pr.Variable(name='frameRate1',       description='frameRate',      offset=0x00000040, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMax1',    description='frameRateMax',   offset=0x00000044, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMin1',    description='frameRateMin',   offset=0x00000048, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidth1',       description='bandwidth',      offset=0x0000004C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMax1',    description='bandwidthMax',   offset=0x00000054, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMin1',    description='bandwidthMin',   offset=0x0000005C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      #
+      self.add(pr.Variable(name='frameRate2',       description='frameRate',      offset=0x00000070, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMax2',    description='frameRateMax',   offset=0x00000074, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMin2',    description='frameRateMin',   offset=0x00000078, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidth2',       description='bandwidth',      offset=0x0000007C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMax2',    description='bandwidthMax',   offset=0x00000084, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMin2',    description='bandwidthMin',   offset=0x0000008C, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      #
+      self.add(pr.Variable(name='frameRate3',       description='frameRate',      offset=0x000000A0, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMax3',    description='frameRateMax',   offset=0x000000A4, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='frameRateMin3',    description='frameRateMin',   offset=0x000000A8, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidth3',       description='bandwidth',      offset=0x000000AC, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMax3',    description='bandwidthMax',   offset=0x000000B4, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='bandwidthMin3',    description='bandwidthMin',   offset=0x000000BC, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
       
       #####################################
       # Create commands
