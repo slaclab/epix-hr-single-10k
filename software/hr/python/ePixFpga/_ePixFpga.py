@@ -1268,9 +1268,9 @@ class AsicPktRegisters(pr.Device):
       #Setup registers & variables
       
       self.add(pr.Variable(name='FrameCount',      description='FrameCount',     offset=0x00000000, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
-      self.add(pr.Variable(name='FrameSize',       description='FrameSize',      offset=0x00000004, bitSize=16,  bitOffset=0, base='uint', mode='RO'))
-      self.add(pr.Variable(name='FrameMaxSize',    description='FrameMaxSize',   offset=0x00000008, bitSize=16,  bitOffset=0, base='uint', mode='RO'))
-      self.add(pr.Variable(name='FrameMinSize',    description='FrameMinSize',   offset=0x0000000C, bitSize=16,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='FrameSize',       description='FrameSize',      offset=0x00000004, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='FrameMaxSize',    description='FrameMaxSize',   offset=0x00000008, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='FrameMinSize',    description='FrameMinSize',   offset=0x0000000C, bitSize=32,  bitOffset=0, base='uint', mode='RO'))
       self.add(pr.Variable(name='SofErrors',       description='SofErrors',      offset=0x00000010, bitSize=16,  bitOffset=0, base='uint', mode='RO'))
       self.add(pr.Variable(name='EofErrors',       description='EofErrors',      offset=0x00000014, bitSize=16,  bitOffset=0, base='uint', mode='RO'))
       self.add(pr.Variable(name='OverflowErrors',  description='OverflowErrors', offset=0x00000018, bitSize=16,  bitOffset=0, base='uint', mode='RO'))
@@ -1282,6 +1282,7 @@ class AsicPktRegisters(pr.Device):
       self.add(pr.Variable(name='bandwidth',       description='bandwidth',      offset=0x00000030, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
       self.add(pr.Variable(name='bandwidthMax',    description='bandwidthMax',   offset=0x00000038, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
       self.add(pr.Variable(name='bandwidthMin',    description='bandwidthMin',   offset=0x00000040, bitSize=64,  bitOffset=0, base='uint', mode='RO'))
+      self.add(pr.Variable(name='numRowFD',        description='numRow FakeData',offset=0x00000048, bitSize=32,  bitOffset=0, base='uint', mode='RW'))
 
       
       #####################################

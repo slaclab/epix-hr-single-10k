@@ -95,9 +95,9 @@ architecture RTL of HRStreamAxi is
       testTrig       : slv(2 downto 0);
       testMode       : sl;
       testBitFlip    : sl;
-      frmSize        : slv(15 downto 0);
-      frmMax         : slv(15 downto 0);
-      frmMin         : slv(15 downto 0);
+      frmSize        : slv(31 downto 0);
+      frmMax         : slv(31 downto 0);
+      frmMin         : slv(31 downto 0);
       acqNo          : Slv32Array(1 downto 0);
       frmCnt         : slv(31 downto 0);
       sofError       : slv(15 downto 0);
@@ -135,9 +135,9 @@ architecture RTL of HRStreamAxi is
    
    type RegType is record
       testMode          : sl;
-      frmSize           : slv(15 downto 0);
-      frmMax            : slv(15 downto 0);
-      frmMin            : slv(15 downto 0);
+      frmSize           : slv(31 downto 0);
+      frmMax            : slv(31 downto 0);
+      frmMin            : slv(31 downto 0);
       frmCnt            : slv(31 downto 0);
       sofError          : slv(15 downto 0);
       eofError          : slv(15 downto 0);
@@ -151,6 +151,7 @@ architecture RTL of HRStreamAxi is
       bandwidth         : slv(63 downto 0);
       bandwidthMax      : slv(63 downto 0);
       bandwidthMin      : slv(63 downto 0);
+      numRowFD          : slv(31 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -170,7 +171,8 @@ architecture RTL of HRStreamAxi is
       frameRateMin      => (others=>'0'),
       bandwidth         => (others=>'0'),
       bandwidthMax      => (others=>'0'),
-      bandwidthMin      => (others=>'0')
+      bandwidthMin      => (others=>'0'),
+      numRowFD          => x"00000017"
    );
    
    signal r   : RegType := REG_INIT_C;
@@ -392,7 +394,8 @@ begin
       axiSlaveRegisterR(regCon, x"38", 0, r.bandwidthMax(31 downto 0));   
       axiSlaveRegisterR(regCon, x"3C", 0, r.bandwidthMax(63 downto 32));   
       axiSlaveRegisterR(regCon, x"40", 0, r.bandwidthMin(31 downto 0));   
-      axiSlaveRegisterR(regCon, x"44", 0, r.bandwidthMin(63 downto 32));   
+      axiSlaveRegisterR(regCon, x"44", 0, r.bandwidthMin(63 downto 32));  
+      axiSlaveRegister (regCon, x"48", 0, rv.numRowFD);  
       
       axiSlaveDefault(regCon, rv.sAxilWriteSlave, rv.sAxilReadSlave, AXIL_ERR_RESP_G);
       
@@ -472,7 +475,7 @@ begin
                else
                   if s.testColCnt = 23 then
                      sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & s.acqNo(1)(4 downto 0) & "00" & toSlv(s.testRowCnt, 6);
-                  elsif s.testRowCnt = 23 then
+                  elsif s.testRowCnt = r.numRowFD then
                      sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & s.acqNo(1)(4 downto 0) & "00" & toSlv(s.testColCnt, 6);
                   else
                      sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & "00000" & x"ff";
@@ -481,7 +484,7 @@ begin
                sv.dFifoRd := '1';
                sv.stCnt := s.stCnt + 1;
                if ((dFifoEof = '1' or dFifoEofe = '1') and s.testMode = '0') or s.stCnt = ASIC_DATA_G then 
-                  sv.frmSize := toSlv(s.stCnt, 16);
+                  sv.frmSize := toSlv(s.stCnt, 32);
                   sv.stCnt := 0;
                   if s.frmMax <= sv.frmSize then
                      sv.frmMax := sv.frmSize;
