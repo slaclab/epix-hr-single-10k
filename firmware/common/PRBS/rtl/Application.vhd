@@ -23,6 +23,7 @@ use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
+use work.EpixHrCorePkg.all;
 use work.AxiLitePkg.all;
 use work.AxiPkg.all;
 use work.Pgp2bPkg.all;
