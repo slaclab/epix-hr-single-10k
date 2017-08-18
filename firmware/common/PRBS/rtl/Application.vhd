@@ -173,7 +173,7 @@ architecture mapping of Application is
    signal mAxiReadMasters  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
 
-   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+   -- constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
 
 
@@ -448,7 +448,7 @@ begin
       generic map(         
          TPD_G                      => TPD_G,
          MASTER_AXI_PIPE_STAGES_G   => 1,
-         MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4))
+         MASTER_AXI_STREAM_CONFIG_G => COMM_AXIS_CONFIG_C)
       port map(
          -- Master Port (mAxisClk)
          mAxisClk        => sysClk,
@@ -478,7 +478,7 @@ begin
       COMMON_CLK_G    => false,  -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G => 156.25E+6,  -- units of Hz
       AXIS_NUM_SLOTS  => 4,
-      AXIS_CONFIG_G   => AXI_STREAM_CONFIG_O_C)
+      AXIS_CONFIG_G   => COMM_AXIS_CONFIG_C)
    port map(
       -- AXIS Stream Interface
       axisClk         => sysClk,
