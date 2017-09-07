@@ -478,7 +478,7 @@ begin
       TPD_G           => 1 ns,
       COMMON_CLK_G    => false,  -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G => 156.25E+6,  -- units of Hz
-      AXIS_NUM_SLOTS  => 4,
+      AXIS_NUM_SLOTS_G=> 4,
       AXIS_CONFIG_G   => COMM_AXIS_CONFIG_C)
    port map(
       -- AXIS Stream Interface
