@@ -177,9 +177,6 @@ architecture mapping of Application is
    -- constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
 
-
-
-
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
    signal iRunTrigger        : sl := '0';
@@ -208,12 +205,13 @@ architecture mapping of Application is
    signal errInhibit           : sl;
 
    -- Command interface
-   signal ssiCmd           : SsiCmdMasterType;
+   signal ssiCmd               : SsiCmdMasterType;
    
    -- External Signals 
-   signal serialIdIo          : slv(1 downto 0) := "00";
+   signal serialIdIo           : slv(1 downto 0) := "00";
 
-
+   -- DDR signals
+   signal startDdrTest_n       : sl;
 
 begin
 
@@ -236,8 +234,6 @@ begin
 
 --   mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
    mAxisMasters    <= imAxisMasters;
-   mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
-   mAxiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
    mbIrq           <= (others => '0');
    digPwrEn        <= '0';
    anaPwrEn        <= '0';
@@ -278,6 +274,7 @@ begin
    gtTxN           <= '1';
    smaTxP          <= '0';
    smaTxN          <= '1';
+
 
    ------------------------------------------
    -- Generate clocks from 156.25 MHz PGP  --
@@ -494,4 +491,50 @@ begin
       sAxilReadMaster => mAxiReadMasters(AXI_STREAM_MON_INDEX_C),
       sAxilReadSlave  => mAxiReadSlaves(AXI_STREAM_MON_INDEX_C)
    );
+
+
+   --------------------
+   -- DDR memory tester
+   --------------------
+   -- in order to desable the mem tester, the followint two signasl need to be wired
+   --   mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
+   --   mAxiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
+
+   U_AxiMemTester : entity work.AxiMemTester
+   generic map (
+      TPD_G        => TPD_G,
+      START_ADDR_G => START_ADDR_C,
+      STOP_ADDR_G  => STOP_ADDR_C,
+      AXI_CONFIG_G => DDR_AXI_CONFIG_C)
+   port map (
+      -- AXI-Lite Interface
+      axilClk         => appClk,
+      axilRst         => axiRst,
+      axilReadMaster  => mAxiReadMasters(DDR_MEM_INDEX_C),
+      axilReadSlave   => mAxiReadSlaves(DDR_MEM_INDEX_C),
+      axilWriteMaster => mAxiWriteMasters(DDR_MEM_INDEX_C),
+      axilWriteSlave  => mAxiWriteSlaves(DDR_MEM_INDEX_C),
+      memReady        => open,  -- status bits
+      memError        => open, -- status bits
+      -- DDR Memory Interface
+      axiClk          => sysClk,
+      axiRst          => axiRst,
+      start           => not startDdrTest_n, -- input signal that starts the test (not possible to use axil at the current version)
+      axiWriteMaster  => mAxiWriteMaster,
+      axiWriteSlave   => mAxiWriteSlave,
+      axiReadMaster   => mAxiReadMaster,
+      axiReadSlave    => mAxiReadSlave
+   );
+
+   U_StartDdrTest : entity work.PwrUpRst
+   generic map (
+      DURATION_G => 10000000
+   )
+   port map (
+      clk      => appClk,
+      rstOut   => startDdrTest_n
+   );
+
+
+
 end mapping;

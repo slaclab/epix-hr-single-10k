@@ -133,6 +133,7 @@ class EpixHRGen1Prbs(pr.Device):
             ssiPrbsTxRegisters(  name='ssiPrbs2PktRegisters',              offset=0x84000000, enabled=False, expand=False),
             ssiPrbsTxRegisters(  name='ssiPrbs3PktRegisters',              offset=0x85000000, enabled=False, expand=False),
             AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, enabled=False, expand=False),
+            axi.AxiMemTester(    name='AxiMemTester',                      offset=0x87000000, enabled=True, expand=False, pollEn=False),
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))

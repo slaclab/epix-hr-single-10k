@@ -48,10 +48,10 @@ PRINT_VERBOSE = False
 #############################################
 
 # Create the PGP interfaces for ePix hr camera
-pgpL0Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,0) # Data & cmds
-pgpL0Vc1 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,1) # Registers for ePix board
-pgpL0Vc2 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,2) # PseudoScope
-pgpL0Vc3 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,3) # Monitoring (Slow ADC)
+pgpL0Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,0) # Data & cmds
+pgpL0Vc1 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,1) # Registers for ePix board
+pgpL0Vc2 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,2) # PseudoScope
+pgpL0Vc3 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,3) # Monitoring (Slow ADC)
 
 #pgpL1Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,0) # Data (when using all four lanes it should be swapped back with L0)
 pgpL2Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',2,0) # Data
