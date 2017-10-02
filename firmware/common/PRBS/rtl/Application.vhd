@@ -212,6 +212,15 @@ architecture mapping of Application is
 
    -- DDR signals
    signal startDdrTest_n       : sl;
+   -- DDR sconstants
+   constant DDR_AXI_CONFIG_C : AxiConfigType := axiConfig(
+      ADDR_WIDTH_C => 15,
+      DATA_BYTES_C => 32,
+      ID_BITS_C    => 4,
+      LEN_BITS_C   => 8);
+
+   constant START_ADDR_C : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '0');
+   constant STOP_ADDR_C  : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '1');
 
 begin
 
