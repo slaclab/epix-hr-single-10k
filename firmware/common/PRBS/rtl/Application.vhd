@@ -147,6 +147,9 @@ end Application;
 
 architecture mapping of Application is
 
+
+   attribute keep : string;
+
    --heart beat signal
    signal heartBeat   : sl;
    
@@ -221,6 +224,12 @@ architecture mapping of Application is
 
    constant START_ADDR_C : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '0');
    constant STOP_ADDR_C  : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '1');
+
+   attribute keep of appClk            : signal is "true";
+   attribute keep of startDdrTest_n    : signal is "true";
+   attribute keep of iAsicAcq          : signal is "true";
+
+
 
 begin
 

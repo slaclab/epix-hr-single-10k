@@ -11,10 +11,10 @@ export COMMON_NAME = PRBS
 export SDK_SRC_PATH = $(PROJ_DIR)/../../common/$(COMMON_NAME)/src
 
 # Define if you want to build the user Microblaze core
-export BUILD_MB_CORE = 0
+export BUILD_MB_CORE = 1
 
 # Define if you want to build the DDR MIG core
-export BUILD_MIG_CORE = 0
+export BUILD_MIG_CORE = 1
 
 # Define if this is FSBL PROM address
 export PROM_FSBL = 1
