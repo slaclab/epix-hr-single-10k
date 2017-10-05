@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EpixHrEmpty.vhd
+-- File       : TestWithoutMigWithMb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
 -- Last update: 2017-04-24
@@ -25,7 +25,7 @@ use work.AxiStreamPkg.all;
 use work.EpixHrCorePkg.all;
 use work.AppPkg.all;
 
-entity EpixHrEmpty is
+entity TestWithoutMigWithMb is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -147,9 +147,9 @@ entity EpixHrEmpty is
       -- SYSMON Ports
       vPIn          : in    sl;
       vNIn          : in    sl);
-end EpixHrEmpty;
+end TestWithoutMigWithMb;
 
-architecture top_level of EpixHrEmpty is
+architecture top_level of TestWithoutMigWithMb is
 
    -- System Clock and Reset
    signal sysClk          : sl;
