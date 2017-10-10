@@ -238,6 +238,8 @@ begin
    led(1)          <= prbsBusy(0) or prbsBusy(1) or prbsBusy(2) or prbsBusy(3);
    led(2)          <= '0';
    led(3)          <= not heartBeat;
+
+   axiRst <= appRst;
    ---------------------
    -- Heart beat LED  --
    ---------------------

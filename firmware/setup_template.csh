@@ -11,8 +11,8 @@ set KERNAL_TYPE = `uname -m`
 if ( $KERNAL_TYPE == "x86_64" ) then
 	printf  "Using 64-bit Xilinx\n"
 	source /afs/slac/g/reseng/xilinx/ise_14.7/ISE_DS/settings64.csh
-    source /afs/slac/g/reseng/xilinx/vivado_2016.4/Vivado/2016.4/settings64.csh
-    #source  /afs/slac/g/reseng/xilinx/vivado_2017.2/Vivado/2017.2/settings64.csh
+    #source /afs/slac/g/reseng/xilinx/vivado_2016.4/Vivado/2016.4/settings64.csh
+    source  /afs/slac/g/reseng/xilinx/vivado_2017.2/Vivado/2017.2/settings64.csh
 else
 	printf  "Firmware can only be compiled on 64-bit OS\n"
 endif
