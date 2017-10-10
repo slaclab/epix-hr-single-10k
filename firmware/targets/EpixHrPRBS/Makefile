@@ -1,8 +1,8 @@
 # Define if you want to check GIT build tagging
-export GIT_BYPASS = 1
+export GIT_BYPASS = 0
 
 # Applications must define the 32-bitFirmware Version Number
-export PRJ_VERSION = 0xFD000002
+export PRJ_VERSION = 0x00000001
 
 # COMMON_NAME is defined by application
 export COMMON_NAME = PRBS
