@@ -5,13 +5,13 @@ export GIT_BYPASS = 1
 export PRJ_VERSION = 0x00000001
 
 # COMM_TYPE is defined by application
-export COMM_TYPE = pgp3
+export COMM_TYPE = pgp2b
 
 # COMMON_NAME is defined by application
 export COMMON_NAME = Empty
 
 # Define the Microblaze source path
-export SDK_SRC_PATH = $(PROJ_DIR)/../../common/$(COMMON_NAME)/src
+export SDK_SRC_PATH = $(PROJ_DIR)/../../../common/$(COMMON_NAME)/src
 
 # Define if you want to build the user Microblaze core
 export BUILD_MB_CORE = 1
@@ -25,11 +25,15 @@ export PROM_FSBL = 1
 # Define if you want to remove unused source code
 export REMOVE_UNUSED_CODE = 0
 
+# Using a non-standard target directory structure, 
+# which requires me to define the TOP_DIR path
+export TOP_DIR = $(abspath $(PWD)/../../..)
+
 # Define target output
 target: prom
 
 # Define target part
-export PRJ_PART = XCKU035-SFVA784-1-C
+export PRJ_PART = XCKU040-FFVA1156-2-E
 
 # Use top level makefile
-include ../../submodules/ruckus/system_vivado.mk
+include $(TOP_DIR)/submodules/ruckus/system_vivado.mk
