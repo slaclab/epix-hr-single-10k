@@ -19,51 +19,87 @@
 # copied, modified, propagated, or distributed except according to the terms 
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
-import rogue.hardware.pgp
-import pyrogue.utilities.prbs
-import pyrogue.utilities.fileio
-import pyrogue.gui
-import surf
-import surf.axi
-import surf.protocols.ssi
+
 import threading
 import signal
 import atexit
 import yaml
 import time
 import sys
-#import testBridge
+import argparse
+
 import PyQt4.QtGui
 import PyQt4.QtCore
+import pyrogue.utilities.prbs
+import pyrogue.utilities.fileio
+import pyrogue.gui
+import rogue.hardware.pgp
+import rogue.hardware.data
+
+import surf
+import surf.axi
+import surf.protocols.ssi
+
 import ePixViewer as vi
 import ePixFpga as fpga
 
-#############################################
-# Define if the GUI is started (1 starts it)
-START_GUI = True
-START_VIEWER = False
-#############################################
-#print debug info
-PRINT_VERBOSE = False
-#############################################
+# Set the argument parser
+parser = argparse.ArgumentParser()
 
-# Create the PGP interfaces for ePix camera
-pgpVc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,0) # Data & cmds
-pgpVc1 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,1) # Registers for ePix board
-pgpVc2 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,2) # PseudoScope
-pgpVc3 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,3) # Monitoring (Slow ADC)
+# Add arguments
+parser.add_argument(
+    "--type", 
+    type     = str,
+    required = True,
+    help     = "define the PCIe card type (either pgp-gen3 or kcu1500)",
+)  
 
-print("")
-print("PGP Card Version: %x" % (pgpVc0.getInfo().version))
+parser.add_argument(
+    "--start_gui", 
+    type     = bool,
+    required = False,
+    default  = True,
+    help     = "true to show gui",
+)  
 
+parser.add_argument(
+    "--verbose", 
+    type     = bool,
+    required = False,
+    default  = True,
+    help     = "true for verbose printout",
+)  
 
-# Add data stream to file as channel 1
-# File writer
-dataWriter = pyrogue.utilities.fileio.StreamWriter('dataWriter')
+# Get the arguments
+args = parser.parse_args()
+
+# Add PGP virtual channels
+if ( args.type == 'pgp-gen3' ):
+
+    # Create the PGP interfaces for ePix camera
+    pgpVc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,0) # Data & cmds
+    pgpVc1 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,1) # Registers for ePix board
+    pgpVc2 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,2) # PseudoScope
+    pgpVc3 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',1,3) # Monitoring (Slow ADC)
+
+    print("")
+    print("PGP Card Version: %x" % (pgpVc0.getInfo().version))
+
+    
+elif ( args.type == 'kcu1500' ):
+    
+    # Create the PGP interfaces for ePix camera
+    pgpVc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*16)+0) # Data & cmds
+    pgpVc1 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*16)+1) # Registers for ePix board
+    pgpVc2 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*16)+2) # PseudoScope
+    pgpVc3 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*16)+3) # Monitoring (Slow ADC)
+    
+else:
+    raise ValueError("Invalid type (%s)" % (args.type) )
+
+# Add data stream to file as channel 1 File writer
+dataWriter = pyrogue.utilities.fileio.StreamWriter(name='dataWriter')
 pyrogue.streamConnect(pgpVc0, dataWriter.getChannel(0x1))
-# Add pseudoscope to file writer
-#pyrogue.streamConnect(pgpVc2, dataWriter.getChannel(0x2))
-#pyrogue.streamConnect(pgpVc3, dataWriter.getChannel(0x3))
 
 cmd = rogue.protocols.srp.Cmd()
 pyrogue.streamConnect(cmd, pgpVc0)
@@ -71,32 +107,6 @@ pyrogue.streamConnect(cmd, pgpVc0)
 # Create and Connect SRP to VC1 to send commands
 srp = rogue.protocols.srp.SrpV3()
 pyrogue.streamConnectBiDir(pgpVc1,srp)
-
-# Add configuration stream to file as channel 0
-# Removed to reduce amount of data going to file
-#pyrogue.streamConnect(ePixBoard,dataWriter.getChannel(0x0))
-
-## Add microblaze console stream to file as channel 2
-#pyrogue.streamConnect(pgpVc3,dataWriter.getChannel(0x2))
-
-# PRBS Receiver as secdonary receiver for VC1
-#prbsRx = pyrogue.utilities.prbs.PrbsRx('prbsRx')
-#pyrogue.streamTap(pgpVc1,prbsRx)
-#ePixBoard.add(prbsRx)
-
-# Microblaze console monitor add secondary tap
-#mbcon = MbDebug()
-#pyrogue.streamTap(pgpVc3,mbcon)
-
-#br = testBridge.Bridge()
-#br._setSlave(srp)
-
-#ePixBoard.add(surf.SsiPrbsTx.create(memBase=srp1,offset=0x00000000*4))
-
-# Create epics node
-#epics = pyrogue.epics.EpicsCaServer('rogueTest',ePixBoard)
-#epics.start()
-
 
 #############################################
 # Microblaze console printout
@@ -146,15 +156,13 @@ class MyRunControl(pyrogue.RunControl):
             if self._last != int(time.time()): 
                 self._last = int(time.time()) 
                 self.runCount._updated() 
-
-
-            
+                
 ##############################
 # Set base
 ##############################
 class EpixBoard(pyrogue.Root):
     def __init__(self, guiTop, cmd, dataWriter, srp, **kwargs):
-        super().__init__('ePixHRGen1','ePix HR No ASIC', pollEn=True, **kwargs)
+        super().__init__(name='ePixHRGen1',description='ePix HR No ASIC', **kwargs)
         #self.add(MyRunControl('runControl'))
         self.add(dataWriter)
         self.guiTop = guiTop
@@ -167,57 +175,25 @@ class EpixBoard(pyrogue.Root):
         self.add(fpga.EpixHRGenEmpty(name='EpixHRGen1', offset=0, memBase=srp, hidden=False, enabled=True))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller ePix HR Gen1 No ASIC', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
         
-
-        
-
-
-# debug
-#mbcon = MbDebug()
-#pyrogue.streamTap(pgpVc0,mbcon)
-
-#mbcon1 = MbDebug()
-#pyrogue.streamTap(pgpVc1,mbcon)
-
-#mbcon2 = MbDebug()
-#pyrogue.streamTap(pgpVc3,mbcon)
-
-if (PRINT_VERBOSE): dbgData = rogue.interfaces.stream.Slave()
-if (PRINT_VERBOSE): dbgData.setDebug(60, "DATA[{}]".format(0))
-if (PRINT_VERBOSE): pyrogue.streamTap(pgpVc0, dbgData)
-
+if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
+if (args.verbose): dbgData.setDebug(60, "DATA[{}]".format(0))
+if (args.verbose): pyrogue.streamTap(pgpVc0, dbgData)
 
 # Create GUI
 appTop = PyQt4.QtGui.QApplication(sys.argv)
-guiTop = pyrogue.gui.GuiTop('ePixHRGEn1Gui')
+guiTop = pyrogue.gui.GuiTop(group='ePixHRGEn1Gui')
 ePixBoard = EpixBoard(guiTop, cmd, dataWriter, srp)
 ePixBoard.start(pollEn=False, pyroGroup=None, pyroHost=None)
 guiTop.addTree(ePixBoard)
 guiTop.resize(800,800)
 
-# Viewer gui
-#gui = vi.Window(cameraType = 'ePix10ka')
-#gui.eventReader.frameIndex = 0
-#gui.eventReaderImage.VIEW_DATA_CHANNEL_ID = 0
-#gui.setReadDelay(0)
-#pyrogue.streamTap(pgpVc0, gui.eventReader) 
-#pyrogue.streamTap(pgpVc2, gui.eventReaderScope)# PseudoScope
-#pyrogue.streamTap(pgpVc3, gui.eventReaderMonitoring) # Slow Monitoring
-
-# Create mesh node (this is for remote control only, no data is shared with this)
-#mNode = pyrogue.mesh.MeshNode('rogueTest',iface='eth0',root=ePixBoard)
-#mNode = pyrogue.mesh.MeshNode('rogueEpix10ka',iface='eth0',root=None)
-#mNode.setNewTreeCb(guiTop.addTree)
-#mNode.start()
-
-
-# Run gui
-if (START_GUI):
+# Create GUI
+if (args.start_gui):
     appTop.exec_()
 
 # Close window and stop polling
 def stop():
     mNode.stop()
-#    epics.stop()
     ePixBoard.stop()
     exit()
 
