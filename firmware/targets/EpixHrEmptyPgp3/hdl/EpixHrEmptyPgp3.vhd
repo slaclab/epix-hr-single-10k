@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EpixHrPRBS.vhd
+-- File       : EpixHrEmptyPgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
 -- Last update: 2017-04-24
@@ -25,7 +25,7 @@ use work.AxiStreamPkg.all;
 use work.EpixHrCorePkg.all;
 use work.AppPkg.all;
 
-entity EpixHrPRBS is
+entity EpixHrEmptyPgp3 is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -39,6 +39,7 @@ entity EpixHrPRBS is
       syncDigDcDc   : out   sl;
       syncAnaDcDc   : out   sl;
       syncDcDc      : out   slv(6 downto 0);
+      led           : out   slv(3 downto 0);
       daqTg         : in    sl;
       connTgOut     : out   sl;
       connMps       : out   sl;
@@ -146,9 +147,9 @@ entity EpixHrPRBS is
       -- SYSMON Ports
       vPIn          : in    sl;
       vNIn          : in    sl);
-end EpixHrPRBS;
+end EpixHrEmptyPgp3;
 
-architecture top_level of EpixHrPRBS is
+architecture top_level of EpixHrEmptyPgp3 is
 
    -- System Clock and Reset
    signal sysClk          : sl;
@@ -169,13 +170,11 @@ architecture top_level of EpixHrPRBS is
    -- Microblaze's Interrupt bus (sysClk domain)
    signal mbIrq           : slv(7 downto 0);
 
-
 begin
 
    U_App : entity work.Application
       generic map (
-         TPD_G => TPD_G,
-         BUILD_INFO_G => BUILD_INFO_G)
+         TPD_G => TPD_G)
       port map (
          ----------------------
          -- Top Level Interface
@@ -209,7 +208,7 @@ begin
          syncDigDcDc      => syncDigDcDc,
          syncAnaDcDc      => syncAnaDcDc,
          syncDcDc         => syncDcDc,
-         led              => open,
+         led              => led,
          daqTg            => daqTg,
          connTgOut        => connTgOut,
          connMps          => connMps,
@@ -279,6 +278,7 @@ begin
    U_Core : entity work.EpixHrCore
       generic map (
          TPD_G        => TPD_G,
+         COMM_TYPE_G  => COMM_MODE_PGP2B_C,
          BUILD_INFO_G => BUILD_INFO_G)
       port map (
          ----------------------

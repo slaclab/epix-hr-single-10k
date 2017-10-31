@@ -10,15 +10,6 @@
 #######################
 ## Application Ports ##
 #######################
-# EVAL BOARD ONLY
-
-set_property -dict {PACKAGE_PIN H27 IOSTANDARD LVCMOS18} [get_ports userSmaP]
-set_property -dict {PACKAGE_PIN G27 IOSTANDARD LVCMOS18} [get_ports userSmaN]
-set_property -dict {PACKAGE_PIN P23 IOSTANDARD LVCMOS18} [get_ports {led[0]}]
-set_property -dict {PACKAGE_PIN R23 IOSTANDARD LVCMOS18} [get_ports {led[1]}]
-set_property -dict {PACKAGE_PIN M22 IOSTANDARD LVCMOS18} [get_ports {led[2]}]
-set_property -dict {PACKAGE_PIN N22 IOSTANDARD LVCMOS18} [get_ports {led[3]}]
-
 
 ####################################
 ## Application Timing Constraints ##

@@ -28,6 +28,7 @@ build.info
 # Vivado Build
 build*
 
-# Only .bit.gz and .mcs.gz should be committed to git
+# FPGA image files (requires -f "git add" flag to add)
 *.bit
 *.mcs
+*.gz

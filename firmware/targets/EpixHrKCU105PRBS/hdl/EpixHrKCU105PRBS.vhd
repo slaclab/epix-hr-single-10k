@@ -307,7 +307,6 @@ begin
    U_Core : entity work.EpixHrCore
       generic map (
          TPD_G        => TPD_G,
-         COMM_TYPE_G  => COMM_MODE_PGP2B_C,
          BUILD_INFO_G => BUILD_INFO_G)
       port map (
          ----------------------

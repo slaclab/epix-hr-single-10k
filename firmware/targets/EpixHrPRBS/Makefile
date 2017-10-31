@@ -4,6 +4,9 @@ export GIT_BYPASS = 0
 # Applications must define the 32-bitFirmware Version Number
 export PRJ_VERSION = 0x00000002
 
+# COMM_TYPE is defined by application
+export COMM_TYPE = pgp2b
+
 # COMMON_NAME is defined by application
 export COMMON_NAME = PRBS
 

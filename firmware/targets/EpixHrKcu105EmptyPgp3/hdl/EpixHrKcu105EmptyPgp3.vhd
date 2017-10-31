@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EpixHrEmpty.vhd
+-- File       : EpixHrKcu105EmptyPgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
 -- Last update: 2017-04-24
@@ -25,11 +25,18 @@ use work.AxiStreamPkg.all;
 use work.EpixHrCorePkg.all;
 use work.AppPkg.all;
 
-entity EpixHrEmpty is
+entity EpixHrKcu105EmptyPgp3 is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
    port (
+      -----------------------
+      -- Eval board only   --
+      -----------------------
+      -- SMA
+      userSmaP      : out   sl;
+      userSmaN      : out   sl;
+      led           : out   slv(3 downto 0);
       -----------------------
       -- Application Ports --
       -----------------------
@@ -39,7 +46,6 @@ entity EpixHrEmpty is
       syncDigDcDc   : out   sl;
       syncAnaDcDc   : out   sl;
       syncDcDc      : out   slv(6 downto 0);
-      led           : out   slv(3 downto 0);
       daqTg         : in    sl;
       connTgOut     : out   sl;
       connMps       : out   sl;
@@ -147,9 +153,9 @@ entity EpixHrEmpty is
       -- SYSMON Ports
       vPIn          : in    sl;
       vNIn          : in    sl);
-end EpixHrEmpty;
+end EpixHrKcu105EmptyPgp3;
 
-architecture top_level of EpixHrEmpty is
+architecture top_level of EpixHrKcu105EmptyPgp3 is
 
    -- System Clock and Reset
    signal sysClk          : sl;
@@ -170,8 +176,27 @@ architecture top_level of EpixHrEmpty is
    -- Microblaze's Interrupt bus (sysClk domain)
    signal mbIrq           : slv(7 downto 0);
 
+   --Eval test points
+   signal userSmaPsig : sl;
+   signal userSmaNsig : sl;
+
 begin
 
+   -----------------------------
+   -- Clock reference on sma
+   -----------------------------
+   userSmaP <= userSmaPsig;
+   process (sysClk)
+   begin
+      if rising_edge(sysClk) then
+         if sysRst = '1' then
+            userSmaPsig <= '0' after TPD_G;
+         else
+            userSmaPsig <= not userSmaPsig;
+         end if;
+      end if;
+   end process;
+   
    U_App : entity work.Application
       generic map (
          TPD_G => TPD_G)
@@ -278,7 +303,6 @@ begin
    U_Core : entity work.EpixHrCore
       generic map (
          TPD_G        => TPD_G,
-         COMM_TYPE_G  => COMM_MODE_PGP2B_C,
          BUILD_INFO_G => BUILD_INFO_G)
       port map (
          ----------------------

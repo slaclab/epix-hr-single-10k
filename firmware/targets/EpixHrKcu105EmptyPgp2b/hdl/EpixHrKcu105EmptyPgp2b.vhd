@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : EpixHrPRBS.vhd
+-- File       : EpixHrKcu105EmptyPgp2b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
 -- Last update: 2017-04-24
@@ -25,11 +25,18 @@ use work.AxiStreamPkg.all;
 use work.EpixHrCorePkg.all;
 use work.AppPkg.all;
 
-entity EpixHrPRBS is
+entity EpixHrKcu105EmptyPgp2b is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
    port (
+      -----------------------
+      -- Eval board only   --
+      -----------------------
+      -- SMA
+      userSmaP      : out   sl;
+      userSmaN      : out   sl;
+      led           : out   slv(3 downto 0);
       -----------------------
       -- Application Ports --
       -----------------------
@@ -146,9 +153,9 @@ entity EpixHrPRBS is
       -- SYSMON Ports
       vPIn          : in    sl;
       vNIn          : in    sl);
-end EpixHrPRBS;
+end EpixHrKcu105EmptyPgp2b;
 
-architecture top_level of EpixHrPRBS is
+architecture top_level of EpixHrKcu105EmptyPgp2b is
 
    -- System Clock and Reset
    signal sysClk          : sl;
@@ -169,13 +176,30 @@ architecture top_level of EpixHrPRBS is
    -- Microblaze's Interrupt bus (sysClk domain)
    signal mbIrq           : slv(7 downto 0);
 
+   --Eval test points
+   signal userSmaPsig : sl;
+   signal userSmaNsig : sl;
 
 begin
 
+   -----------------------------
+   -- Clock reference on sma
+   -----------------------------
+   userSmaP <= userSmaPsig;
+   process (sysClk)
+   begin
+      if rising_edge(sysClk) then
+         if sysRst = '1' then
+            userSmaPsig <= '0' after TPD_G;
+         else
+            userSmaPsig <= not userSmaPsig;
+         end if;
+      end if;
+   end process;
+   
    U_App : entity work.Application
       generic map (
-         TPD_G => TPD_G,
-         BUILD_INFO_G => BUILD_INFO_G)
+         TPD_G => TPD_G)
       port map (
          ----------------------
          -- Top Level Interface
@@ -209,7 +233,7 @@ begin
          syncDigDcDc      => syncDigDcDc,
          syncAnaDcDc      => syncAnaDcDc,
          syncDcDc         => syncDcDc,
-         led              => open,
+         led              => led,
          daqTg            => daqTg,
          connTgOut        => connTgOut,
          connMps          => connMps,
