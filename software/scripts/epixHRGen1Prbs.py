@@ -42,6 +42,7 @@ import surf.protocols.ssi
 
 import ePixViewer as vi
 import ePixFpga as fpga
+from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3 import *
 
 # Set the argument parser
 parser = argparse.ArgumentParser()
@@ -176,6 +177,9 @@ class EpixBoard(pyrogue.Root):
             cmd.sendCmd(0, 0)
 
         # Add Devices
+        if ( args.type == 'kcu1500' ):
+            coreMap = rogue.hardware.data.DataMap('/dev/datadev_0')
+            self.add(XilinxKcu1500Pgp3(memBase=coreMap))        
         self.add(fpga.EpixHRGen1Prbs(name='EpixHRGen1Prbs', offset=0, memBase=srp, hidden=False, enabled=True))
 
 if (args.verbose): dbgData = rogue.interfaces.stream.Slave()

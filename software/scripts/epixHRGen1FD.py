@@ -42,6 +42,7 @@ import surf.protocols.ssi
 
 import ePixViewer as vi
 import ePixFpga as fpga
+from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3 import *
 
 # Set the argument parser
 parser = argparse.ArgumentParser()
@@ -178,6 +179,9 @@ class EpixBoard(pyrogue.Root):
             cmd.sendCmd(0, 0)
 
         # Add Devices
+        if ( args.type == 'kcu1500' ):
+            coreMap = rogue.hardware.data.DataMap('/dev/datadev_0')
+            self.add(XilinxKcu1500Pgp3(memBase=coreMap))        
         self.add(fpga.EpixHRGen1FD(name='EpixHRGen1', offset=0, memBase=srp, hidden=False, enabled=True))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller ePix HR Gen1 No ASIC', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
         
