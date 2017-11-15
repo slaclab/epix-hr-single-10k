@@ -466,6 +466,7 @@ begin
       generic map(         
          TPD_G                      => TPD_G,
          MASTER_AXI_PIPE_STAGES_G   => 1,
+         PRBS_SEED_SIZE_G           => 128,
          MASTER_AXI_STREAM_CONFIG_G => COMM_AXIS_CONFIG_C)
       port map(
          -- Master Port (mAxisClk)

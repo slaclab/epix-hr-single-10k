@@ -67,7 +67,7 @@ parser.add_argument(
     "--verbose", 
     type     = bool,
     required = False,
-    default  = True,
+    default  = False,
     help     = "true for verbose printout",
 )  
 
