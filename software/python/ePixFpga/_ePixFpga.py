@@ -126,14 +126,14 @@ class EpixHRGen1Prbs(pr.Device):
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
             # app registers
-            MMCM7Registers(      name='MMCM7Registers',                    offset=0x80000000, enabled=False, expand=False),
-            TriggerRegisters(    name="TriggerRegisters",                  offset=0x81000000, expand=False),
-            ssiPrbsTxRegisters(  name='ssiPrbs0PktRegisters',              offset=0x82000000, enabled=False, expand=False),
-            ssiPrbsTxRegisters(  name='ssiPrbs1PktRegisters',              offset=0x83000000, enabled=False, expand=False),
-            ssiPrbsTxRegisters(  name='ssiPrbs2PktRegisters',              offset=0x84000000, enabled=False, expand=False),
-            ssiPrbsTxRegisters(  name='ssiPrbs3PktRegisters',              offset=0x85000000, enabled=False, expand=False),
-            AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, enabled=False, expand=False),
-            axi.AxiMemTester(    name='AxiMemTester',                      offset=0x87000000, expand=False),
+            MMCM7Registers(          name='MMCM7Registers',                    offset=0x80000000, enabled=False, expand=False),
+            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, enabled=False, expand=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, enabled=False, expand=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, enabled=False, expand=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, enabled=False, expand=False),
+            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, numberLanes=4,enabled=False, expand=False),
+            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False),
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -209,7 +209,7 @@ class EpixHRGen1FD(pr.Device):
             AsicPktRegisters(name='Asic1PktRegisters',              offset=0x84000000, enabled=False, expand=False),
             AsicPktRegisters(name='Asic2PktRegisters',              offset=0x85000000, enabled=False, expand=False),
             AsicPktRegisters(name='Asic3PktRegisters',              offset=0x86000000, enabled=False, expand=False),
-            AxiStreamMonitoring(name='AxiStreamMon',               offset=0x87000000, enabled=False, expand=False),
+            axi.AxiStreamMonitoring(name='AxiStreamMon',               offset=0x87000000, enabled=False, expand=False),
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
