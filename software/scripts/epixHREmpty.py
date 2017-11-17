@@ -90,10 +90,10 @@ if ( args.type == 'pgp-gen3' ):
 elif ( args.type == 'kcu1500' ):
     
     # Create the PGP interfaces for ePix camera
-    pgpVc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*16)+0) # Data & cmds
-    pgpVc1 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*16)+1) # Registers for ePix board
-    pgpVc2 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*16)+2) # PseudoScope
-    pgpVc3 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*16)+3) # Monitoring (Slow ADC)
+    pgpVc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*32)+0) # Data & cmds
+    pgpVc1 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*32)+1) # Registers for ePix board
+    pgpVc2 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*32)+2) # PseudoScope
+    pgpVc3 = rogue.hardware.data.DataCard('/dev/datadev_0',(1*32)+3) # Monitoring (Slow ADC)
     
 else:
     raise ValueError("Invalid type (%s)" % (args.type) )

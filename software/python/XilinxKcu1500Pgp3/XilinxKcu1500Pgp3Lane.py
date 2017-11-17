@@ -15,6 +15,7 @@ import rogue.hardware.data
 
 from DataLib.DataDev import *
 from surf.protocols.pgp._Pgp3AxiL import *
+from surf.axi._AxiStreamMonitoring    import *
 
 class XilinxKcu1500Pgp3Lane(pr.Device):
     def __init__(   self,       
@@ -24,17 +25,31 @@ class XilinxKcu1500Pgp3Lane(pr.Device):
         super().__init__(name=name, description=description, **kwargs)
         
         self.add(pr.RemoteVariable( 
-            name         = "PgpRxVcBlowoff",
-            description  = "PgpRxVcBlowoff",
-            offset       = 0x8000,
+            name         = "RxVcBlowoff",
+            description  = "RxVcBlowoff",
+            offset       = 0x000,
             bitSize      = 16,
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
         ))   
+
+        self.add(AxiStreamMonitoring(            
+            name        = 'RxVcMon', 
+            offset      = 0x1000, 
+            numberLanes = 16,
+            expand      = False,
+        )) 
+        
+        self.add(AxiStreamMonitoring(            
+            name        = 'TxVcMon', 
+            offset      = 0x2000, 
+            numberLanes = 16,
+            expand      = False,
+        ))
         
         self.add(Pgp3AxiL(            
-            offset  = 0x0, 
+            offset  = 0x8000, 
             numVc   = 16, # 16 VC per lane
             writeEn = True,
             expand  = False,

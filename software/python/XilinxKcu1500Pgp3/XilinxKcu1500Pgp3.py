@@ -30,16 +30,24 @@ class XilinxKcu1500Pgp3(pr.Device):
             expand       = False,
         ))  
         
-        self.add(AxiVersion(            
-            offset       = 0x00800000, 
-            # expand       = False,
-        ))
-        
         # Add PGP Core 
         for i in range(8):
             self.add(XilinxKcu1500Pgp3Lane(            
                 name   = ('Lane[%i]' % i), 
-                offset = (0x00900000 + i*0x00010000), 
+                offset = (0x00800000 + i*0x00010000), 
                 expand = False,
             ))  
+            
+        self.add(AxiStreamMonitoring(            
+            name        = 'RxLaneMon', 
+            offset      = 0x00880000, 
+            numberLanes = 8,
+            expand      = False,
+        )) 
         
+        self.add(AxiStreamMonitoring(            
+            name        = 'TxLaneMon', 
+            offset      = 0x00890000, 
+            numberLanes = 8,
+            expand      = False,
+        ))
