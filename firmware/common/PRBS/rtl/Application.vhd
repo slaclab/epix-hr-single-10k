@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2017-04-24
+-- Last update: 2017-12-21
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -255,8 +255,8 @@ begin
 --   mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
    mAxisMasters    <= imAxisMasters;
    mbIrq           <= (others => '0');
-   digPwrEn        <= '0';
-   anaPwrEn        <= '0';
+   digPwrEn        <= '1';
+   anaPwrEn        <= '1';
    syncDigDcDc     <= '0';
    syncAnaDcDc     <= '0';
    syncDcDc        <= (others => '0');
