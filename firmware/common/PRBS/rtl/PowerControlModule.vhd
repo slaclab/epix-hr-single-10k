@@ -63,11 +63,11 @@ architecture rtl of PowerControlModule is
    end record PowerControlType;
    
    constant POWER_CONTROL_INIT_C : PowerControlType := (
-      digPwrEn         <= '0',
-      anaPwrEn         <= '0',
-      syncDigDcDc      <= '0',
-      syncAnaDcDc      <= '0',
-      syncDcDc         <= (others=>'0')
+      digPwrEn         => '0',
+      anaPwrEn         => '0',
+      syncDigDcDc      => '0',
+      syncAnaDcDc      => '0',
+      syncDcDc         => (others=>'0')
    );
    
    type RegType is record
@@ -94,7 +94,7 @@ begin
    -- AXI Lite register logic
    --------------------------------------------------
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, acqCountSync) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin

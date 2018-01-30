@@ -285,11 +285,11 @@ begin
    hsDacLoad       <= WFDacLdacL_i;     -- DAC8812C chip select
    sDacCsL         <= sDacCsL_i;        -- DACs to set static configuration
     -- shared DAC signal
-   dacClrL         <= WFDacClrL_i when WFDacCsL_i = "0" else
+   dacClrL         <= WFDacClrL_i when WFDacCsL_i = '0' else
                       '1';     
-   dacSck          <= WFDacSclk_i when WFDacCsL_i = "0" else
+   dacSck          <= WFDacSclk_i when WFDacCsL_i = '0' else
                       sDacSclk_i;
-   dacDin          <= WFDacDin_i  when WFDacCsL_i = "0" else
+   dacDin          <= WFDacDin_i  when WFDacCsL_i = '0' else
                       sDacDin_i;
    
    asicR0          <= '0';
@@ -581,8 +581,8 @@ begin
    ----------------------------------------------------------------------------
    -- Power control module instance
    ----------------------------------------------------------------------------
-   U_PowerControlModule : entity work.PowerControlModule is
-      generic (
+   U_PowerControlModule : entity work.PowerControlModule 
+      generic map (
       TPD_G              => TPD_G
    )
    port map (
@@ -618,7 +618,7 @@ begin
       MASTERS_CONFIG_G   => ssiAxiStreamConfig(4, TKEEP_COMP_C)
    )
     port map (
-      sysClk            => coreClk,
+      sysClk            => appClk,
       sysClkRst         => axiRst,
       dacDin            => WFDacDin_i,
       dacSclk           => WFDacSclk_i,
@@ -626,7 +626,7 @@ begin
       dacLdacL          => WFDacLdacL_i,
       dacClrL           => WFDacClrL_i,
       externalTrigger   => acqStart,
-      axilClk           => coreClk,
+      axilClk           => appClk,
       axilRst           => axiRst,
       sAxilWriteMaster  => mAxiWriteMasters,
       sAxilWriteSlave   => mAxiWriteSlaves,
@@ -639,7 +639,7 @@ begin
   U_DACs : entity work.AxiSpiMaster
     generic map(
       TPD_G             => TPD_G,
-      AXI_ERROR_RESP_G  => AXI_RESP_DECERR_C;
+      AXI_ERROR_RESP_G  => AXI_RESP_DECERR_C,
       ADDRESS_SIZE_G    => 0,
       DATA_SIZE_G       => 16,
       MODE_G            => "WO",  -- Or "WO" (write only),  "RO" (read only)
@@ -648,9 +648,9 @@ begin
       CLK_PERIOD_G      => 10.0E-9,
       SPI_SCLK_PERIOD_G => 100.0E-6,
       SPI_NUM_CHIPS_G   => 5
-      );
+      )
     port map(
-      axiClk => coreClk,
+      axiClk => appClk,
       axiRst => axiRst,
 
       axiReadMaster  => mAxiReadMasters(DAC_MODULE_INDEX_C), 
@@ -660,7 +660,7 @@ begin
 
       coreSclk  => sDacSclk_i,
       coreSDin  => '0',
-      coreSDout => sDacDin_i
+      coreSDout => sDacDin_i,
       coreCsb   => open,
       coreMCsb  => sDacCsL_i
       );

@@ -23,8 +23,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
---use work.EpixPkgGen2.all;
-use work.EpixHRPkg.all;
+
 
 entity Dac8812Cntrl is
    generic (

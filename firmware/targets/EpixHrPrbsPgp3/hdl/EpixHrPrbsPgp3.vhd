@@ -2,7 +2,7 @@
 -- File       : EpixHrPrbsPgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-01-29
+-- Last update: 2018-01-30
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -238,7 +238,7 @@ begin
          sDacCsL          => sDacCsL,
          hsDacCsL         => hsDacCsL,
          hsDacLoad        => hsDacLoad,
-         dacClrL          => hsDacClrL,
+         dacClrL          => dacClrL,
          dacSck           => dacSck,
          dacDin           => dacDin,
          -- ASIC Gbps Ports
