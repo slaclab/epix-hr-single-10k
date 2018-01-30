@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2017-04-21
+-- Last update: 2018-01-29
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ package AppPkg is
    constant NUMBER_OF_ASICS_C : natural := 0;   
    constant NUMBER_OF_LANES_C : natural := 4;   
    
-   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 8;
+   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 12;
    constant HR_FD_NUM_AXI_SLAVE_SLOTS_C   : natural := 1;
    
    constant PLLREGS_AXI_INDEX_C           : natural := 0;
@@ -38,6 +38,11 @@ package AppPkg is
    constant PRBS3_AXI_INDEX_C             : natural := 5;
    constant AXI_STREAM_MON_INDEX_C        : natural := 6;
    constant DDR_MEM_INDEX_C               : natural := 7;
+   constant POWER_MODULE_INDEX_C          : natural := 8;
+   constant DAC8812_REG_AXI_INDEX_C       : natural := 9;
+   constant DACWFMEM_REG_AXI_INDEX_C      : natural := 10;
+   constant DAC_MODULE_INDEX_C            : natural := 11;   
+   
    
    constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"00000000";
    constant TRIG_REG_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"01000000";
@@ -47,6 +52,10 @@ package AppPkg is
    constant PRBS3_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"05000000";
    constant AXI_STREAM_MON_BASE_ADDR_C      : slv(31 downto 0) := X"06000000";
    constant DDR_MEM_BASE_ADDR_C             : slv(31 downto 0) := X"07000000";
+   constant POWER_MODULE_BASE_ADDR_C        : slv(31 downto 0) := X"08000000";
+   constant DAC8812_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"09000000";
+   constant DACWFMEM_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"0A000000";
+   constant DAC_MODULE_ADDR_C               : slv(31 downto 0) := X"0B000000";
    
    constant HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0) := (
       PLLREGS_AXI_INDEX_C       => (
@@ -79,6 +88,22 @@ package AppPkg is
          connectivity         => x"FFFF"),
       DDR_MEM_INDEX_C          => ( 
          baseAddr             => DDR_MEM_BASE_ADDR_C,
+         addrBits             => 24,
+         connectivity         => x"FFFF"),
+      POWER_MODULE_INDEX_C    => ( 
+         baseAddr             => POWER_MODULE_BASE_ADDR_C,
+         addrBits             => 24,
+         connectivity         => x"FFFF"),
+      DAC8812_REG_AXI_INDEX_C      => ( 
+         baseAddr             => DAC8812_AXI_BASE_ADDR_C,
+         addrBits             => 24,
+         connectivity         => x"FFFF"),
+      DACWFMEM_REG_AXI_INDEX_C      => ( 
+         baseAddr             => DACWFMEM_AXI_BASE_ADDR_C,
+         addrBits             => 24,
+         connectivity         => x"FFFF"),
+      DAC_MODULE_INDEX_C            => ( 
+         baseAddr             => DAC_MODULE_ADDR_C,
          addrBits             => 24,
          connectivity         => x"FFFF")
    );

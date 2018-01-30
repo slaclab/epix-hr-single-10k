@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2017-12-21
+-- Last update: 2018-01-29
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -103,11 +103,10 @@ entity Application is
       slowAdcDrdy      : in    sl;
       slowAdcSync      : out   sl;
       -- Slow DACs Port
-      sDacCsL          : out   slv(3 downto 0);
+      sDacCsL          : out   slv(4 downto 0);
       hsDacCsL         : out   sl;
-      hsDacEn          : out   sl;
       hsDacLoad        : out   sl;
-      hsDacClrL        : out   sl;
+      dacClrL          : out   sl;
       dacSck           : out   sl;
       dacDin           : out   sl;
       -- ASIC Gbps Ports
@@ -207,6 +206,19 @@ architecture mapping of Application is
    signal adcClk               : sl;
    signal errInhibit           : sl;
 
+   -- HS DAC
+   signal WFDacDin_i    : sl;
+   signal WFDacSclk_i   : sl;
+   signal WFDacCsL_i    : sl;
+   signal WFDacLdacL_i  : sl;
+   signal WFDacClrL_i   : sl;
+
+   -- slow DACs
+   signal sDacDin_i    : sl;
+   signal sDacSclk_i   : sl;
+   signal sDacCsL_i    : slv(4 downto 0);
+
+
    -- Command interface
    signal ssiCmd               : SsiCmdMasterType;
    
@@ -255,11 +267,6 @@ begin
 --   mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
    mAxisMasters    <= imAxisMasters;
    mbIrq           <= (others => '0');
-   digPwrEn        <= '1';
-   anaPwrEn        <= '1';
-   syncDigDcDc     <= '0';
-   syncAnaDcDc     <= '0';
-   syncDcDc        <= (others => '0');
    --led             <= (others => '0');
    connTgOut       <= '0';
    connMps         <= '0';
@@ -273,13 +280,18 @@ begin
    slowAdcCsL      <= '1';
    slowAdcRefClk   <= '1';
    slowAdcSync     <= '0';
-   sDacCsL         <= (others => '1');
-   hsDacCsL        <= '1';
-   hsDacEn         <= '0';
-   hsDacLoad       <= '0';
-   hsDacClrL       <= '1';
-   dacSck          <= '1';
-   dacDin          <= '1';
+   -- routing DAC signals to external IOs
+   hsDacCsL        <= WFDacCsL_i;       -- DAC8812C chip select
+   hsDacLoad       <= WFDacLdacL_i;     -- DAC8812C chip select
+   sDacCsL         <= sDacCsL_i;        -- DACs to set static configuration
+    -- shared DAC signal
+   dacClrL         <= WFDacClrL_i when WFDacCsL_i = "0" else
+                      '1';     
+   dacSck          <= WFDacSclk_i when WFDacCsL_i = "0" else
+                      sDacSclk_i;
+   dacDin          <= WFDacDin_i  when WFDacCsL_i = "0" else
+                      sDacDin_i;
+   
    asicR0          <= '0';
    asicPpmat       <= '0';
    asicGlblRst     <= '1';
@@ -394,12 +406,22 @@ begin
 
 
 
-   --------------------------------------------
-   -- AXI Lite Crossbar for register control --
-   -- Master 0 : Clock                       --
-   -- Master 1 : App Registers               --
-   -- Master 2 : Trigger Resiters            --
-   --------------------------------------------
+   ---------------------------------------------
+   -- AXI Lite Crossbar for register control  --
+   -- Master 00 : Clock                       --
+   -- Master 01 : Trigger Resiters            --
+   -- Master 02 : PRBS                        --
+   -- Master 03 : PRBS                        --
+   -- Master 04 : PRBS                        --
+   -- Master 05 : PRBS                        --
+   -- Master 06 : Axi Stream Mon.             --
+   -- Master 07 : DDR tester                  --
+   -- Master 08 : Power                       --
+   -- Master 09 : HSDAC control               --
+   -- Master 10 : HSDAC waveform              --
+   -- Master 11 : SPI DACs                    --
+   -- Master  ? : App Registers (waveform)    --
+   ---------------------------------------------
    U_AxiLiteCrossbar : entity work.AxiLiteCrossbar
    generic map (
       NUM_SLAVE_SLOTS_G  => HR_FD_NUM_AXI_SLAVE_SLOTS_C,
@@ -458,7 +480,7 @@ begin
    --------------------------------------------   
 
 
-   G_ASIC : for i in 0 to NUMBER_OF_LANES_C-1 generate 
+   G_PRBS : for i in 0 to NUMBER_OF_LANES_C-1 generate 
       -------------------------------------------------------
       -- ASIC AXI stream framers
       -------------------------------------------------------
@@ -556,6 +578,91 @@ begin
       rstOut   => startDdrTest_n
    );
 
+   ----------------------------------------------------------------------------
+   -- Power control module instance
+   ----------------------------------------------------------------------------
+   U_PowerControlModule : entity work.PowerControlModule is
+      generic (
+      TPD_G              => TPD_G
+   )
+   port map (
+      -- Trigger outputs
+      sysClk         => appClk,
+      sysRst         => appRst,
+      -- power control
+      digPwrEn         => digPwrEn,
+      anaPwrEn         => anaPwrEn,
+      syncDigDcDc      => syncDigDcDc,
+      syncAnaDcDc      => syncAnaDcDc,
+      syncDcDc         => syncDcDc,
+      
+      -- AXI lite slave port for register access
+      axilClk         => appClk,  
+      axilRst         => axiRst,   
+      sAxilWriteMaster=> mAxiWriteMasters(POWER_MODULE_INDEX_C),
+      sAxilWriteSlave => mAxiWriteSlaves(POWER_MODULE_INDEX_C),
+      sAxilReadMaster => mAxiReadMasters(POWER_MODULE_INDEX_C),
+      sAxilReadSlave  => mAxiReadSlaves(POWER_MODULE_INDEX_C)
+   );
 
 
+  --------------------------------------------
+  -- High speed DAC (DAC8812)               --
+  --------------------------------------------
+  --U_HSDAC: entity work.Dac8812Axi
+  U_HSDAC: entity work.DacWaveformGenAxi
+    generic map (
+      TPD_G => TPD_G,
+      NUM_SLAVE_SLOTS_G  => HR_FD_NUM_AXI_SLAVE_SLOTS_C,
+      NUM_MASTER_SLOTS_G => HR_FD_NUM_AXI_MASTER_SLOTS_C,
+      MASTERS_CONFIG_G   => ssiAxiStreamConfig(4, TKEEP_COMP_C)
+   )
+    port map (
+      sysClk            => coreClk,
+      sysClkRst         => axiRst,
+      dacDin            => WFDacDin_i,
+      dacSclk           => WFDacSclk_i,
+      dacCsL            => WFDacCsL_i,
+      dacLdacL          => WFDacLdacL_i,
+      dacClrL           => WFDacClrL_i,
+      externalTrigger   => acqStart,
+      axilClk           => coreClk,
+      axilRst           => axiRst,
+      sAxilWriteMaster  => mAxiWriteMasters,
+      sAxilWriteSlave   => mAxiWriteSlaves,
+      sAxilReadMaster   => mAxiReadMasters,
+      sAxilReadSlave    => mAxiReadSlaves);
+
+  -------------------------------------------------------------------------
+  -- SPI DACs
+  -------------------------------------------------------------------------
+  U_DACs : entity work.AxiSpiMaster
+    generic map(
+      TPD_G             => TPD_G,
+      AXI_ERROR_RESP_G  => AXI_RESP_DECERR_C;
+      ADDRESS_SIZE_G    => 0,
+      DATA_SIZE_G       => 16,
+      MODE_G            => "WO",  -- Or "WO" (write only),  "RO" (read only)
+      CPHA_G            => '0',
+      CPOL_G            => '0',
+      CLK_PERIOD_G      => 10.0E-9,
+      SPI_SCLK_PERIOD_G => 100.0E-6,
+      SPI_NUM_CHIPS_G   => 5
+      );
+    port map(
+      axiClk => coreClk,
+      axiRst => axiRst,
+
+      axiReadMaster  => mAxiReadMasters(DAC_MODULE_INDEX_C), 
+      axiReadSlave   => mAxiReadSlaves(DAC_MODULE_INDEX_C),
+      axiWriteMaster => mAxiWriteMasters(DAC_MODULE_INDEX_C),
+      axiWriteSlave  => mAxiWriteSlaves(DAC_MODULE_INDEX_C),
+
+      coreSclk  => sDacSclk_i,
+      coreSDin  => '0',
+      coreSDout => sDacDin_i
+      coreCsb   => open,
+      coreMCsb  => sDacCsL_i
+      );
+      
 end mapping;

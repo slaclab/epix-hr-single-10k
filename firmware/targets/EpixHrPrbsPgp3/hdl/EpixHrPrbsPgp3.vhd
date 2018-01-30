@@ -2,7 +2,7 @@
 -- File       : EpixHrPrbsPgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2017-04-24
+-- Last update: 2018-01-29
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -65,11 +65,10 @@ entity EpixHrPrbsPgp3 is
       slowAdcDrdy   : in    sl;
       slowAdcSync   : out   sl;
       -- Slow DACs Port
-      sDacCsL       : out   slv(3 downto 0);
+      sDacCsL       : out   slv(4 downto 0);
       hsDacCsL      : out   sl;
-      hsDacEn       : out   sl;
       hsDacLoad     : out   sl;
-      hsDacClrL     : out   sl;
+      dacClrL       : out   sl;
       dacSck        : out   sl;
       dacDin        : out   sl;
       -- ASIC Gbps Ports
@@ -238,9 +237,8 @@ begin
          -- Slow DACs Port         
          sDacCsL          => sDacCsL,
          hsDacCsL         => hsDacCsL,
-         hsDacEn          => hsDacEn,
          hsDacLoad        => hsDacLoad,
-         hsDacClrL        => hsDacClrL,
+         dacClrL          => hsDacClrL,
          dacSck           => dacSck,
          dacDin           => dacDin,
          -- ASIC Gbps Ports
