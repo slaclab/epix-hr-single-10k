@@ -2,7 +2,7 @@
 -- File       : EpixHr: PowerControlModule.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/07/2017
--- Last update: 2017-12-21
+-- Last update: 2018-01-31
 -------------------------------------------------------------------------------
 -- Description: This module enable the voltage regulators on the epix boards
 -- based on saci register values. If needed syncronization modules should be
@@ -89,6 +89,11 @@ architecture rtl of PowerControlModule is
    
 begin
 
+  digPwrEn         <= powerSync.digPwrEn;
+  anaPwrEn         <= powerSync.anaPwrEn;
+  syncDigDcDc      <= powerSync.syncDigDcDc;
+  syncAnaDcDc      <= powerSync.syncAnaDcDc;
+  syncDcDc         <= powerSync.syncDcDc;
    
    --------------------------------------------------
    -- AXI Lite register logic

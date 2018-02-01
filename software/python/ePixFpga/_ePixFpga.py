@@ -134,6 +134,9 @@ class EpixHRGen1Prbs(pr.Device):
             ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, enabled=False, expand=False),
             axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, numberLanes=4,enabled=False, expand=False),
             axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False),
+            powerSupplyRegisters(    name='PowerSupply',                       offset=0x88000000, expand=False),            
+            HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
+            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, expand=False)
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -515,6 +518,88 @@ class HighSpeedDacRegisters(pr.Device):
          pr.Variable(name='samplingCounter', description='Sampling period (>269, times 1/clock ref. 156MHz)', offset=0x00000004, bitSize=12,   bitOffset=0,   base='hex', mode='RW'),
          pr.Variable(name='DacValue',        description='Set a fixed value for the DAC',               offset=0x00000008, bitSize=16,  bitOffset=0,   base='hex', mode='RW'),
          pr.Variable(name='DacChannel',      description='Select the DAC channel to use',               offset=0x00000008, bitSize=2,   bitOffset=16,  base='enum', mode='RW', enum=HsDacEnum)))
+      
+      
+      
+      #####################################
+      # Create commands
+      #####################################
+      
+      # A command has an associated function. The function can be a series of
+      # python commands in a string. Function calls are executed in the command scope
+      # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+      # A command can also be a call to a local function with local scope.
+      # The command object and the arg are passed
+   
+   @staticmethod   
+   def frequencyConverter(self):
+      def func(dev, var):         
+         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+      return func
+
+class powerSupplyRegisters(pr.Device):
+   def __init__(self, **kwargs):
+      super().__init__(description='Power Supply Registers', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables
+      
+      self.add((
+         pr.Variable(name='DigitalEn',      description='Enable asic digital supply',                offset=0x00000000, bitSize=1,   bitOffset=0,   base='bool', mode='RW'),
+         pr.Variable(name='AnalogEn',       description='Enable asic analog supply',                 offset=0x00000000, bitSize=1,   bitOffset=1,   base='bool', mode='RW')))
+      
+      
+      
+      #####################################
+      # Create commands
+      #####################################
+      
+      # A command has an associated function. The function can be a series of
+      # python commands in a string. Function calls are executed in the command scope
+      # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+      # A command can also be a call to a local function with local scope.
+      # The command object and the arg are passed
+   
+   @staticmethod   
+   def frequencyConverter(self):
+      def func(dev, var):         
+         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+      return func
+
+class sDacRegisters(pr.Device):
+   def __init__(self, **kwargs):
+      super().__init__(description='Slow DAC Registers', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables
+      
+      self.add((
+         pr.Variable(name='dac_0'  ,         description='',                  offset=0x00000000, bitSize=32,   bitOffset=0,   base='uint', mode='WO'),
+         pr.Variable(name='dac_1'  ,         description='',                  offset=0x00000004, bitSize=32,   bitOffset=0,   base='uint', mode='WO'),
+         pr.Variable(name='dac_2'  ,         description='',                  offset=0x00000008, bitSize=32,   bitOffset=0,   base='uint', mode='WO'),
+         pr.Variable(name='dac_3'  ,         description='',                  offset=0x0000000C, bitSize=32,   bitOffset=0,   base='uint', mode='WO'),
+         pr.Variable(name='dac_4'  ,         description='',                  offset=0x00000010, bitSize=32,   bitOffset=0,   base='uint', mode='WO'))
+               )
       
       
       

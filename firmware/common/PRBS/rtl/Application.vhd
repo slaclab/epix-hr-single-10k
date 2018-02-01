@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-01-29
+-- Last update: 2018-01-31
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -241,6 +241,15 @@ architecture mapping of Application is
    attribute keep of startDdrTest_n    : signal is "true";
    attribute keep of iAsicAcq          : signal is "true";
 
+   attribute keep of WFDacDin_i        : signal is "true";
+   attribute keep of WFDacSclk_i       : signal is "true";
+   attribute keep of WFDacCsL_i        : signal is "true";
+   attribute keep of WFDacLdacL_i      : signal is "true";
+   attribute keep of WFDacClrL_i       : signal is "true";
+   attribute keep of sDacDin_i         : signal is "true";
+   attribute keep of sDacSclk_i        : signal is "true";
+   attribute keep of sDacCsL_i         : signal is "true";
+
 
 
 begin
@@ -285,12 +294,12 @@ begin
    hsDacLoad       <= WFDacLdacL_i;     -- DAC8812C chip select
    sDacCsL         <= sDacCsL_i;        -- DACs to set static configuration
     -- shared DAC signal
-   dacClrL         <= WFDacClrL_i when WFDacCsL_i = '0' else
-                      '1';     
-   dacSck          <= WFDacSclk_i when WFDacCsL_i = '0' else
-                      sDacSclk_i;
-   dacDin          <= WFDacDin_i  when WFDacCsL_i = '0' else
-                      sDacDin_i;
+   dacClrL         <= WFDacClrL_i;-- when WFDacCsL_i = '0' else
+                     -- '1';     
+   dacSck          <= WFDacSclk_i;-- when WFDacCsL_i = '0' else
+                      --sDacSclk_i;
+   dacDin          <= WFDacDin_i;--  when WFDacCsL_i = '0' else
+                      --sDacDin_i;
    
    asicR0          <= '0';
    asicPpmat       <= '0';
