@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-01-31
+-- Last update: 2018-02-02
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -217,6 +217,7 @@ architecture mapping of Application is
    signal sDacDin_i    : sl;
    signal sDacSclk_i   : sl;
    signal sDacCsL_i    : slv(4 downto 0);
+   signal sDacClrb_i   : sl;
 
 
    -- Command interface
@@ -294,12 +295,12 @@ begin
    hsDacLoad       <= WFDacLdacL_i;     -- DAC8812C chip select
    sDacCsL         <= sDacCsL_i;        -- DACs to set static configuration
     -- shared DAC signal
-   dacClrL         <= WFDacClrL_i;-- when WFDacCsL_i = '0' else
-                     -- '1';     
-   dacSck          <= WFDacSclk_i;-- when WFDacCsL_i = '0' else
-                      --sDacSclk_i;
-   dacDin          <= WFDacDin_i;--  when WFDacCsL_i = '0' else
-                      --sDacDin_i;
+   dacClrL         <= WFDacClrL_i when WFDacCsL_i = '0' else
+                      sDacClrb_i;
+   dacSck          <= WFDacSclk_i when WFDacCsL_i = '0' else
+                      sDacSclk_i;
+   dacDin          <= WFDacDin_i when WFDacCsL_i = '0' else
+                      sDacDin_i;
    
    asicR0          <= '0';
    asicPpmat       <= '0';
@@ -618,7 +619,6 @@ begin
   --------------------------------------------
   -- High speed DAC (DAC8812)               --
   --------------------------------------------
-  --U_HSDAC: entity work.Dac8812Axi
   U_HSDAC: entity work.DacWaveformGenAxi
     generic map (
       TPD_G => TPD_G,
@@ -645,33 +645,25 @@ begin
   -------------------------------------------------------------------------
   -- SPI DACs
   -------------------------------------------------------------------------
-  U_DACs : entity work.AxiSpiMaster
-    generic map(
+  U_DACs : entity work.slowDacs 
+   generic map (
       TPD_G             => TPD_G,
-      AXI_ERROR_RESP_G  => AXI_RESP_DECERR_C,
-      ADDRESS_SIZE_G    => 0,
-      DATA_SIZE_G       => 16,
-      MODE_G            => "WO",  -- Or "WO" (write only),  "RO" (read only)
-      CPHA_G            => '0',
-      CPOL_G            => '0',
-      CLK_PERIOD_G      => 10.0E-9,
-      SPI_SCLK_PERIOD_G => 100.0E-6,
-      SPI_NUM_CHIPS_G   => 5
-      )
-    port map(
+      CLK_PERIOD_G      => 10.0E-9
+   )
+   port map (
+      -- Global Signals
       axiClk => appClk,
       axiRst => axiRst,
-
+      -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  => mAxiReadMasters(DAC_MODULE_INDEX_C), 
       axiReadSlave   => mAxiReadSlaves(DAC_MODULE_INDEX_C),
       axiWriteMaster => mAxiWriteMasters(DAC_MODULE_INDEX_C),
       axiWriteSlave  => mAxiWriteSlaves(DAC_MODULE_INDEX_C),
-
-      coreSclk  => sDacSclk_i,
-      coreSDin  => '0',
-      coreSDout => sDacDin_i,
-      coreCsb   => open,
-      coreMCsb  => sDacCsL_i
-      );
+      -- Guard ring DAC interfaces
+      dacSclk        => sDacSclk_i,
+      dacDin         => sDacDin_i,      
+      dacCsb         => sDacCsL_i,
+      dacClrb        => sDacClrb_i
+   );
       
 end mapping;

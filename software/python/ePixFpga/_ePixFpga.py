@@ -594,11 +594,11 @@ class sDacRegisters(pr.Device):
       #Setup registers & variables
       
       self.add((
-         pr.Variable(name='dac_0'  ,         description='',                  offset=0x00000000, bitSize=32,   bitOffset=0,   base='uint', mode='WO'),
-         pr.Variable(name='dac_1'  ,         description='',                  offset=0x00000004, bitSize=32,   bitOffset=0,   base='uint', mode='WO'),
-         pr.Variable(name='dac_2'  ,         description='',                  offset=0x00000008, bitSize=32,   bitOffset=0,   base='uint', mode='WO'),
-         pr.Variable(name='dac_3'  ,         description='',                  offset=0x0000000C, bitSize=32,   bitOffset=0,   base='uint', mode='WO'),
-         pr.Variable(name='dac_4'  ,         description='',                  offset=0x00000010, bitSize=32,   bitOffset=0,   base='uint', mode='WO'))
+         pr.Variable(name='dac_0'  ,         description='',                  offset=0x00000000, bitSize=16,   bitOffset=0,   base='uint', mode='WO'),
+         pr.Variable(name='dac_1'  ,         description='',                  offset=0x00000004, bitSize=16,   bitOffset=0,   base='uint', mode='WO'),
+         pr.Variable(name='dac_2'  ,         description='',                  offset=0x00000008, bitSize=16,   bitOffset=0,   base='uint', mode='WO'),
+         pr.Variable(name='dac_3'  ,         description='',                  offset=0x0000000C, bitSize=16,   bitOffset=0,   base='uint', mode='WO'),
+         pr.Variable(name='dac_4'  ,         description='',                  offset=0x00000010, bitSize=16,   bitOffset=0,   base='uint', mode='WO'))
                )
       
       
