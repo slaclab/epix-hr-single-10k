@@ -115,7 +115,7 @@ class EpixHRGen1Prbs(pr.Device):
         trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
         inChaEnum={0:'Off', 16:'Asic0TpsMux', 17:'Asic1TpsMux'}
         inChbEnum={0:'Off', 16:'Asic0TpsMux', 17:'Asic1TpsMux'}
-        HsDacEnum={0:'None', 1:'DAC A', 2:'DAC B', 3:'DAC A & DAC B'}
+        HsDacEnum={0:'None', 1:'DAC A (SE)', 2:'DAC B (Diff)', 3:'DAC A & DAC B'}
       
         super(self.__class__, self).__init__(**kwargs)
         self.add((
