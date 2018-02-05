@@ -136,11 +136,13 @@ class EpixHRGen1Prbs(pr.Device):
             axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False),
             powerSupplyRegisters(    name='PowerSupply',                       offset=0x88000000, expand=False),            
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
+            #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
             sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False)
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
         self.add(pr.Command(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+
 
     def fnSetWaveform(self, dev,cmd,arg):
         """SetTestBitmap command function"""
@@ -149,8 +151,7 @@ class EpixHRGen1Prbs(pr.Device):
             waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
             if waveform.shape == (1024,):
                 for x in range (0, 1024):
-                    self.waveformMem.Mem[x].set(int(waveform[x]))
-
+                    self._rawWrite(offset = (0x8A000000 + x * 4),data =  int(waveform[x]))
             else:
                 print('wrong csv file format')
 
@@ -160,7 +161,7 @@ class EpixHRGen1Prbs(pr.Device):
         if os.path.splitext(self.filename)[1] == '.csv':
             readBack = np.zeros((1024),dtype='uint16')
             for x in range (0, 1024):
-                readBack[x] = self.waveformMem.Mem[x].get()
+                readBack[x] = self._rawRead(offset = (0x8A000000 + x * 4))
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
 
 
