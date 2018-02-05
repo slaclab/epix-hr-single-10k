@@ -136,7 +136,7 @@ class EpixHRGen1Prbs(pr.Device):
             axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False),
             powerSupplyRegisters(    name='PowerSupply',                       offset=0x88000000, expand=False),            
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
-            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, expand=False)
+            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False)
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -594,11 +594,11 @@ class sDacRegisters(pr.Device):
       #Setup registers & variables
       
       self.add((
-         pr.Variable(name='dac_0'  ,         description='',                  offset=0x00000000, bitSize=16,   bitOffset=0,   base='uint', mode='WO'),
-         pr.Variable(name='dac_1'  ,         description='',                  offset=0x00000004, bitSize=16,   bitOffset=0,   base='uint', mode='WO'),
-         pr.Variable(name='dac_2'  ,         description='',                  offset=0x00000008, bitSize=16,   bitOffset=0,   base='uint', mode='WO'),
-         pr.Variable(name='dac_3'  ,         description='',                  offset=0x0000000C, bitSize=16,   bitOffset=0,   base='uint', mode='WO'),
-         pr.Variable(name='dac_4'  ,         description='',                  offset=0x00000010, bitSize=16,   bitOffset=0,   base='uint', mode='WO'))
+         pr.Variable(name='dac_0'  ,         description='',                  offset=0x00000000, bitSize=16,   bitOffset=0,   base='hex', mode='RW'),
+         pr.Variable(name='dac_1'  ,         description='',                  offset=0x00000004, bitSize=16,   bitOffset=0,   base='hex', mode='RW'),
+         pr.Variable(name='dac_2'  ,         description='',                  offset=0x00000008, bitSize=16,   bitOffset=0,   base='hex', mode='RW'),
+         pr.Variable(name='dac_3'  ,         description='',                  offset=0x0000000C, bitSize=16,   bitOffset=0,   base='hex', mode='RW'),
+         pr.Variable(name='dac_4'  ,         description='',                  offset=0x00000010, bitSize=16,   bitOffset=0,   base='hex', mode='RW'))
                )
       
       

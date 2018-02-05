@@ -12,33 +12,33 @@
 ##############################
 # Get variables and procedures
 ##############################
-#source -quiet $::env(RUCKUS_DIR)/vivado_env_var.tcl
-#source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado_env_var.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 ############################
 ## Open the synthesis design
 ############################
-#open_run synth_1
+open_run synth_1
 
 ###############################
 ## Set the name of the ILA core
 ###############################
-#set ilaName u_ila_1
+set ilaName u_ila_1
 
 ##################
 ## Create the core
 ##################
-#CreateDebugCore ${ilaName}
+CreateDebugCore ${ilaName}
 
 #######################
 ## Set the record depth
 #######################
-#set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
+set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
 
 #################################
 ## Set the clock for the ILA core
 #################################
-#SetDebugCoreClk ${ilaName} {U_App/appClk}
+SetDebugCoreClk ${ilaName} {U_App/appClk}
 #SetDebugCoreClk ${ilaName} {U_App/sysClk}
 #SetDebugCoreClk ${ilaName} {U_Core/U_DdrMem/ddrClk}
 
@@ -67,6 +67,15 @@
 #ConfigProbe ${ilaName} {U_App/U_AxiMemTester/r[address][*]}
 #ConfigProbe ${ilaName} {U_App/U_AxiMemTester/r[state][*]}
 #
+# DAC probes
+ConfigProbe ${ilaName} {U_App/WFDacDin_i}
+ConfigProbe ${ilaName} {U_App/WFDacSclk_i}
+ConfigProbe ${ilaName} {U_App/WFDacCsL_i}
+ConfigProbe ${ilaName} {U_App/WFDacLdacL_i}
+ConfigProbe ${ilaName} {U_App/WFDacClrL_i}
+ConfigProbe ${ilaName} {U_App/sDacDin_i}
+ConfigProbe ${ilaName} {U_App/sDacSclk_i}
+ConfigProbe ${ilaName} {U_App/sDacCsL_i[*]}
 
 
 #ConfigProbe ${ilaName} {U_App/iAsicAcq}
@@ -74,11 +83,11 @@
 
 
 ### Delete the last unused port
-##delete_debug_port [get_debug_ports [GetCurrentProbe ${ilaName}]]
+delete_debug_port [get_debug_ports [GetCurrentProbe ${ilaName}]]
 
 ##########################
 ## Write the port map file
 ##########################
-#WriteDebugProbes ${ilaName} ${PROJ_DIR}/images/debug_probes.ltx
+WriteDebugProbes ${ilaName} ${PROJ_DIR}/images/debug_probes.ltx
 
 

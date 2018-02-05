@@ -99,8 +99,7 @@ begin
       
       -- Reset data and strobes
       v.axiReadSlave.rdata       := (others => '0');
-
-      
+            
       -- Determine the transaction type
       axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
       
@@ -120,6 +119,9 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
+
+      axiWriteSlave   <= r.axiWriteSlave;
+      axiReadSlave    <= r.axiReadSlave;
 
    end process comb;
 
