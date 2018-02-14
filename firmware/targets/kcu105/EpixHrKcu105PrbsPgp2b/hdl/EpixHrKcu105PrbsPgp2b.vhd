@@ -72,9 +72,8 @@ entity EpixHrKcu105PrbsPgp2b is
       slowAdcDrdy   : in    sl;
       slowAdcSync   : out   sl;
       -- Slow DACs Port
-      sDacCsL       : out   slv(3 downto 0);
+      sDacCsL       : out   slv(4 downto 0);
       hsDacCsL      : out   sl;
-      hsDacEn       : out   sl;
       hsDacLoad     : out   sl;
       hsDacClrL     : out   sl;
       dacSck        : out   sl;
@@ -266,9 +265,8 @@ begin
          -- Slow DACs Port         
          sDacCsL          => sDacCsL,
          hsDacCsL         => hsDacCsL,
-         hsDacEn          => hsDacEn,
          hsDacLoad        => hsDacLoad,
-         hsDacClrL        => hsDacClrL,
+         DacClrL          => hsDacClrL,
          dacSck           => dacSck,
          dacDin           => dacDin,
          -- ASIC Gbps Ports
