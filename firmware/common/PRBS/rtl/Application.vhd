@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-02-02
+-- Last update: 2018-03-07
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ use work.AxiPkg.all;
 use work.Pgp2bPkg.all;
 use work.SsiPkg.all;
 use work.SsiCmdMasterPkg.all;
+use work.Ad9249Pkg.all;
 use work.Code8b10bPkg.all;
 
 use work.AppPkg.all;
@@ -42,7 +43,8 @@ entity Application is
       APP_CONFIG_G     : AppConfigType   := APP_CONFIG_INIT_C;
       SIMULATION_G     : boolean         := false;
       BUILD_INFO_G     : BuildInfoType;
-      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C);
+      AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
+      IODELAY_GROUP_G   : string          := "DEFAULT_GROUP");
    port (
       ----------------------
       -- Top Level Interface
@@ -156,14 +158,20 @@ architecture mapping of Application is
    signal prbsBusy            : slv(NUMBER_OF_LANES_C-1 downto 0) := (others => '0');
 
    -- clock signals
-   signal appClk      : sl;
-   signal asicClk     : sl;
-   signal byteClk     : sl;
-   signal appRst      : sl;
-   signal axiRst      : sl;
-   signal asicRst     : sl;
-   signal byteClkRst  : sl;
-   signal clkLocked   : sl;
+   signal appClk         : sl;
+   signal asicClk        : sl;
+   signal byteClk        : sl;
+   signal asicRdClk      : sl;
+   signal idelayCtrlClk  : sl;
+   signal appRst         : sl;
+   signal axiRst         : sl;
+   signal asicRst        : sl;
+   signal byteClkRst     : sl;
+   signal asicRdClkRst   : sl;
+   signal idelayCtrlRst  : sl;
+   signal idelayCtrlRst_i: sl;
+   signal clkLocked      : sl;
+     
 
    -- AXI-Lite Signals
    signal sAxiReadMaster  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_SLAVE_SLOTS_C-1 downto 0);
@@ -177,8 +185,12 @@ architecture mapping of Application is
    signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
 
    -- constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
-   signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
-
+   signal imAxisMasters           : AxiStreamMasterArray(3 downto 0);
+   signal mAxisMastersPRBSData    : AxiStreamMasterArray(3 downto 0);
+   -- signal for the stream mux slave ports
+   signal mAxisMastersMuxData    : AxiStreamMasterArray(2 downto 0);
+   signal mAxisSlavesMuxData     : AxiStreamSlaveArray(2 downto 0);
+   
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
    signal iRunTrigger        : sl := '0';
@@ -203,8 +215,11 @@ architecture mapping of Application is
    signal iAsicSync            : sl;
    signal iAsicAcq             : sl;
    signal iAsicGrst            : sl;
+   signal iSaciSelL            : slv(3 downto 0);
+   
    signal adcClk               : sl;
    signal errInhibit           : sl;
+
 
    -- HS DAC
    signal WFDacDin_i    : sl;
@@ -213,6 +228,24 @@ architecture mapping of Application is
    signal WFDacLdacL_i  : sl;
    signal WFDacClrL_i   : sl;
 
+   -- ADC signals
+   signal adcValid         : slv(3 downto 0);
+   signal adcData          : Slv16Array(3 downto 0);
+   signal adcStreams       : AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+   signal monAdc           : Ad9249SerialGroupType;
+   signal adcSpiCsL_i      : slv(1 downto 0);
+   signal adcPdwn_i        : slv(0 downto 0);
+   signal idelayRdy        : sl;
+
+   -- Power up reset to SERDES block (Monitoring ADC)
+   signal adcCardPowerUp     : sl;
+   signal adcCardPowerUpEdge : sl;
+   signal serdesReset        : sl;
+
+   -- Power signals
+   signal digPwrEn_i         : sl;
+   signal anaPwrEn_i         : sl;   
+   
    -- slow DACs
    signal sDacDin_i    : sl;
    signal sDacSclk_i   : sl;
@@ -273,23 +306,37 @@ begin
          clk => sysClk,
          o   => heartBeat
       );
-
---   mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
+   ----------------------------------------------------------------------------
+   -- axi stream routing
+   ----------------------------------------------------------------------------
    mAxisMasters    <= imAxisMasters;
+   --imAxisMasters(0) is connected to the stream mux directly
+   imAxisMasters(3 downto 1) <= mAxisMastersPRBSData(3 downto 1);
+   --mAxisMastersMuxData(1 and 2) are connected to the pseudo scope and env.   
+   mAxisMastersMuxData(0) <= mAxisMastersPRBSData(0);
+
+   ----------------------------------------------------------------------------
+   -- 
+   ----------------------------------------------------------------------------
+   digPwrEn <= digPwrEn_i;
+   anaPwrEn <= anaPwrEn_i;
+   
    mbIrq           <= (others => '0');
    --led             <= (others => '0');
    connTgOut       <= '0';
    connMps         <= '0';
-   adcSpiClk       <= '1';
-   adcSpiCsL       <= '1';
-   adcPdwn         <= '1';
-   adcClkP         <= '0';
-   adcClkM         <= '1';
-   slowAdcSclk     <= '1';
-   slowAdcDin      <= '1';
-   slowAdcCsL      <= '1';
-   slowAdcRefClk   <= '1';
-   slowAdcSync     <= '0';
+   --adcSpiClk       <= '1';
+   adcSpiCsL       <= adcSpiCsL_i(0);
+   adcPdwn         <= adcPdwn_i(0);
+   --adcClkP         <= '0';
+   --adcClkM         <= '1';
+   --slowAdcSclk     <= '1';
+   --slowAdcDin      <= '1';
+   --slowAdcCsL      <= '1';
+   --slowAdcRefClk   <= '1';
+   
+   slowAdcSync     <= '0';              -- not used, not connected to the ADC
+                                        -- via no load resistor (R67)
    -- routing DAC signals to external IOs
    hsDacCsL        <= WFDacCsL_i;       -- DAC8812C chip select
    hsDacLoad       <= WFDacLdacL_i;     -- DAC8812C chip select
@@ -311,7 +358,8 @@ begin
    asicRoClkN      <= (others => '1');
    asicSaciCmd     <= '1';
    asicSaciClk     <= '1';
-   asicSaciSel     <= (others => '1');
+   asicSaciSel     <= iSaciSelL;
+   iSaciSelL       <=  (others => '1');
    gtTxP           <= '0';
    gtTxN           <= '1';
    smaTxP          <= '0';
@@ -324,6 +372,8 @@ begin
    -- clkIn     : 156.25 MHz PGP
    -- clkOut(0) : 100.00 MHz app clock
    -- clkOut(1) : 100.00 MHz asic clock
+   -- clkOut(2) : 100.00 MHz asic clock
+   -- clkOut(3) : 300.00 MHz idelay control clock 
    U_CoreClockGen : entity work.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
@@ -331,7 +381,7 @@ begin
       INPUT_BUFG_G           => true,
       FB_BUFG_G              => true,
       RST_IN_POLARITY_G      => '1',     -- '0' for active low
-      NUM_CLOCKS_G           => 2,
+      NUM_CLOCKS_G           => 4,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
@@ -341,21 +391,35 @@ begin
       CLKOUT0_DIVIDE_F_G     => 1.0,
       CLKOUT0_DIVIDE_G       => 6,
       CLKOUT1_DIVIDE_G       => 6,
+      CLKOUT2_DIVIDE_G       => 6,
+      CLKOUT3_DIVIDE_G       => 2,
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
+      CLKOUT2_PHASE_G        => 0.0,
+      CLKOUT3_PHASE_G        => 0.0,
       CLKOUT0_DUTY_CYCLE_G   => 0.5,
       CLKOUT1_DUTY_CYCLE_G   => 0.5,
+      CLKOUT2_DUTY_CYCLE_G   => 0.5,
+      CLKOUT3_DUTY_CYCLE_G   => 0.5,
       CLKOUT0_RST_HOLD_G     => 3,
       CLKOUT1_RST_HOLD_G     => 3,
+      CLKOUT2_RST_HOLD_G     => 3,
+      CLKOUT3_RST_HOLD_G     => 3,
       CLKOUT0_RST_POLARITY_G => '1',
-      CLKOUT1_RST_POLARITY_G => '1')
+      CLKOUT1_RST_POLARITY_G => '1',
+      CLKOUT2_RST_POLARITY_G => '1',
+      CLKOUT3_RST_POLARITY_G => '1')
    port map(
       clkIn           => sysClk,
       rstIn           => sysRst,
       clkOut(0)       => appClk,
       clkOut(1)       => asicClk,
+      clkOut(2)       => asicRdClk,
+      clkOut(3)       => idelayCtrlClk,
       rstOut(0)       => appRst,
       rstOut(1)       => asicRst,
+      rstOut(2)       => asicRdClkRst,
+      rstOut(3)       => idelayCtrlRst,
       locked          => clkLocked,
       -- AXI-Lite Interface 
       axilClk         => sysClk,
@@ -367,16 +431,19 @@ begin
    );      
 
 
-   U_BUFR : BUFR
+   U_BUFGCE_DIV_0 : BUFGCE_DIV
    generic map (
-      SIM_DEVICE  => "7SERIES",
-      BUFR_DIVIDE => "5"
+      BUFGCE_DIVIDE => 5,     -- 1-8
+      -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
+      IS_CE_INVERTED => '0',  -- Optional inversion for CE
+      IS_CLR_INVERTED => '0', -- Optional inversion for CLR
+      IS_I_INVERTED => '0'    -- Optional inversion for I
    )
    port map (
-      I   => asicClk,
-      O   => byteClk,
-      CE  => '1',
-      CLR => '0'
+      O => byteClk,     -- 1-bit output: Buffer
+      CE => '1',   -- 1-bit input: Buffer enable
+      CLR => '0', -- 1-bit input: Asynchronous clear
+      I => asicClk      -- 1-bit input: Buffer
    );
 
    U_RdPwrUpRst : entity work.PwrUpRst
@@ -386,6 +453,18 @@ begin
    port map (
       clk      => byteClk,
       rstOut   => byteClkRst
+   );
+
+   idelayCtrlRst_i <= cmt_locked or idelayCtrlRst;
+   U_IDELAYCTRL_0 : IDELAYCTRL
+   generic map (
+      SIM_DEVICE => "ULTRASCALE"  -- Must be set to "ULTRASCALE" 
+   )
+   port map (
+      RDY => idelayRdy,        -- 1-bit output: Ready output
+      REFCLK => idelayCtrlClk, -- 1-bit input: Reference clock input
+      RST => idelayCtrlRst_i   -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
+                               -- REFCLK.
    );
 
 
@@ -429,7 +508,11 @@ begin
    -- Master 08 : Power                       --
    -- Master 09 : HSDAC control               --
    -- Master 10 : HSDAC waveform              --
-   -- Master 11 : SPI DACs                    --
+   -- Master 11 : Slow DACs                   --
+   -- Master 12 : PseudoScope                 --
+   -- Master 13 : Fast  ADC readout           --
+   -- Master 14 : Fast. ADC config.           --
+   -- Master 15 : Monit. ADC                  --
    -- Master  ? : App Registers (waveform)    --
    ---------------------------------------------
    U_AxiLiteCrossbar : entity work.AxiLiteCrossbar
@@ -504,7 +587,7 @@ begin
          -- Master Port (mAxisClk)
          mAxisClk        => sysClk,
          mAxisRst        => axiRst,
-         mAxisMaster     => imAxisMasters(i),
+         mAxisMaster     => mAxisMastersPRBSData(i),
          mAxisSlave      => mAxisSlaves(i),
          -- Trigger Signal (locClk domain)
          locClk          => appClk,
@@ -543,6 +626,194 @@ begin
       sAxilWriteSlave => mAxiWriteSlaves(AXI_STREAM_MON_INDEX_C),
       sAxilReadMaster => mAxiReadMasters(AXI_STREAM_MON_INDEX_C),
       sAxilReadSlave  => mAxiReadSlaves(AXI_STREAM_MON_INDEX_C)
+   );
+
+   --------------------------------------------
+   -- Virtual oscilloscope                   --
+   --------------------------------------------
+   U_PseudoScope : entity work.PseudoScopeAxi
+   generic map (
+     TPD_G                      => TPD_G,
+     MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4, TKEEP_COMP_C)      
+   )
+   port map ( 
+      
+      sysClk         => appClk,
+      sysClkRst      => axiRst,
+      adcData        => adcData,
+      adcValid       => adcValid,
+      arm            => acqStart,
+      acqStart       => acqStart,
+      asicAcq        => iAsicAcq,
+      asicR0         => iAsicSR0,
+      asicPpmat      => iAsicPpmat(0),
+      asicPpbe       => iAsicPpbe(0),
+      asicSync       => iAsicSync,
+      asicGr         => iAsicGrst,
+      asicRoClk      => asicRdClk,
+      asicSaciSel    => iSaciSelL,
+      mAxisMaster    => mAxisMastersMuxData(1),
+      mAxisSlave     => mAxisSlavesMuxData(1),
+      -- AXI lite slave port for register access
+      axilClk           => appClk,
+      axilRst           => axiRst,
+      sAxilWriteMaster  => mAxiWriteMasters(SCOPE_REG_AXI_INDEX_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(SCOPE_REG_AXI_INDEX_C),
+      sAxilReadMaster   => mAxiReadMasters(SCOPE_REG_AXI_INDEX_C),
+      sAxilReadSlave    => mAxiReadSlaves(SCOPE_REG_AXI_INDEX_C)
+
+   );
+
+   GenAdcStr : for i in 0 to 3 generate 
+      adcData(i)  <= adcStreams(i).tData(15 downto 0);
+      adcValid(i) <= adcStreams(i).tValid;
+   end generate;
+
+   monAdc.fClkP <= adcFrameClkP;
+   monAdc.fClkN <= adcFrameClkM;
+   monAdc.dClkP <= adcDoClkP;
+   monAdc.dClkN <= adcDoClkM;
+   monAdc.chP   <= adcMonDoutP(3 downto 0);
+   monAdc.chN   <= adcMonDoutP(3 downto 0);
+      
+   U_MonAdcReadout : entity work.Ad9249ReadoutGroup
+   generic map (
+      TPD_G             => TPD_G,
+      NUM_CHANNELS_G    => 4,
+      IODELAY_GROUP_G   => IODELAY_GROUP_G,
+      XIL_DEVICE_G      => "ULTRASCALE",
+      IDELAYCTRL_FREQ_G => 200.0
+   )
+   port map (
+      -- Master system clock, 100Mhz
+      axilClk           => appClk,
+      axilRst           => axiRst,
+      
+      -- Axi Interface
+      axilReadMaster    => mAxiReadMasters(ADC_RD_AXI_INDEX_C),
+      axilReadSlave     => mAxiReadSlaves(ADC_RD_AXI_INDEX_C),
+      axilWriteMaster   => mAxiWriteMasters(ADC_RD_AXI_INDEX_C),
+      axilWriteSlave    => mAxiWriteSlaves(ADC_RD_AXI_INDEX_C),
+
+      -- Reset for adc deserializer
+      adcClkRst         => serdesReset,
+
+      -- Serial Data from ADC
+      adcSerial         => monAdc,
+
+      -- Deserialized ADC Data
+      adcStreamClk      => appClk,
+      adcStreams        => adcStreams
+   );
+
+   -- Give a special reset to the SERDES blocks when power
+   -- is turned on to ADC card.
+   adcCardPowerUp <= anaPwrEn_i and digPwrEn_i;
+   U_AdcCardPowerUpRisingEdge : entity work.SynchronizerEdge
+   generic map (
+      TPD_G       => TPD_G)
+   port map (
+      clk         => appClk,
+      dataIn      => adcCardPowerUp,
+      risingEdge  => adcCardPowerUpEdge
+   );
+   U_AdcCardPowerUpReset : entity work.RstSync
+   generic map (
+      TPD_G           => TPD_G,
+      RELEASE_DELAY_G => 50
+   )
+   port map (
+      clk      => appClk,
+      asyncRst => adcCardPowerUpEdge,
+      syncRst  => serdesReset
+   );
+   
+   --------------------------------------------
+   --     Fast ADC Config                    --
+   --------------------------------------------
+   
+   U_AdcConf : entity work.Ad9249Config
+   generic map (
+      TPD_G             => TPD_G,
+      AXIL_CLK_PERIOD_G => 10.0e-9,
+      NUM_CHIPS_G       => 1,
+      AXIL_ERR_RESP_G   => AXI_RESP_OK_C
+   )
+   port map (
+      axilClk           => appClk,
+      axilRst           => axiRst,
+      
+      axilReadMaster    => mAxiReadMasters(ADC_CFG_AXI_INDEX_C),
+      axilReadSlave     => mAxiReadSlaves(ADC_CFG_AXI_INDEX_C),
+      axilWriteMaster   => mAxiWriteMasters(ADC_CFG_AXI_INDEX_C),
+      axilWriteSlave    => mAxiWriteSlaves(ADC_CFG_AXI_INDEX_C),
+
+      adcPdwn           => adcPdwn_i,
+      adcSclk           => adcSpiClk,
+      adcSdio           => adcSpiData,
+      adcCsb            => adcSpiCsL_i
+
+      );
+   
+   --------------------------------------------
+   --     Slow ADC Readout  (env. variables) --
+   -------------------------------------------- 
+   U_AdcCntrl: entity work.SlowAdcCntrlAxi
+   generic map (
+      SYS_CLK_PERIOD_G  => 10.0E-9,	-- 100MHz
+      ADC_CLK_PERIOD_G  => 200.0E-9,	-- 5MHz
+      SPI_SCLK_PERIOD_G => 2.0E-6  	-- 500kHz
+   )
+   port map ( 
+      -- Master system clock
+      sysClk            => appClk,
+      sysClkRst         => axiRst,
+      
+      -- Trigger Control
+      adcStart          => acqStart,
+      
+      -- AXI lite slave port for register access
+      axilClk           => appClk,
+      axilRst           => axiRst,
+      sAxilWriteMaster  => mAxiWriteMasters(MONADC_REG_AXI_INDEX_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(MONADC_REG_AXI_INDEX_C),
+      sAxilReadMaster   => mAxiReadMasters(MONADC_REG_AXI_INDEX_C),
+      sAxilReadSlave    => mAxiReadSlaves(MONADC_REG_AXI_INDEX_C),
+      
+      -- AXI stream output
+      axisClk           => appClk,
+      axisRst           => axiRst,
+      mAxisMaster       => mAxisMastersMuxData(2),
+      mAxisSlave        => mAxisSlavesMuxData(2),
+
+      -- ADC Control Signals
+      adcRefClk         => slowAdcRefClk,
+      adcDrdy           => slowAdcDrdy,
+      adcSclk           => slowAdcSclk,
+      adcDout           => slowAdcDout,
+      adcCsL            => slowAdcCsL,
+      adcDin            => slowAdcDin
+   );
+   
+   -------------------------------------------------------
+   -- AXI stream mux for lane 0 (shares data, pseudo scope
+   -- and env. variable stream)
+   -------------------------------------------------------
+   U_AxiStreamMux : entity work.AxiStreamMux
+   generic map(
+      NUM_SLAVES_G   => 3
+   )
+   port map(
+      -- Clock and reset
+      axisClk        => sysClk,
+      axisRst        => axiRst,
+      -- Slaves
+      sAxisMasters   => mAxisMastersMuxData,
+      sAxisSlaves    => mAxisSlavesMuxData,
+      -- Master
+      mAxisMaster    => imAxisMasters(0),
+      mAxisSlave     => mAxisSlaves(0)
+      
    );
 
 
