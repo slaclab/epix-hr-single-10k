@@ -76,7 +76,7 @@ ConfigProbe ${ilaName} {U_App/WFDacClrL_i}
 ConfigProbe ${ilaName} {U_App/sDacDin_i}
 ConfigProbe ${ilaName} {U_App/sDacSclk_i}
 ConfigProbe ${ilaName} {U_App/sDacCsL_i[*]}
-
+ 
 
 #ConfigProbe ${ilaName} {U_App/iAsicAcq}
 
