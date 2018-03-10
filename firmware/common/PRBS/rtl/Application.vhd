@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-03-07
+-- Last update: 2018-03-09
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -187,6 +187,7 @@ architecture mapping of Application is
    -- constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters           : AxiStreamMasterArray(3 downto 0);
    signal mAxisMastersPRBSData    : AxiStreamMasterArray(3 downto 0);
+   signal mAxisSlavesPRBSData     : AxiStreamSlaveArray(3 downto 0);   
    -- signal for the stream mux slave ports
    signal mAxisMastersMuxData    : AxiStreamMasterArray(2 downto 0);
    signal mAxisSlavesMuxData     : AxiStreamSlaveArray(2 downto 0);
@@ -373,7 +374,8 @@ begin
    -- clkOut(0) : 100.00 MHz app clock
    -- clkOut(1) : 100.00 MHz asic clock
    -- clkOut(2) : 100.00 MHz asic clock
-   -- clkOut(3) : 300.00 MHz idelay control clock 
+   -- clkOut(3) : 300.00 MHz idelay control clock
+   -- clkOut(4) :  50.00 MHz monitoring adc
    U_CoreClockGen : entity work.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
@@ -381,7 +383,7 @@ begin
       INPUT_BUFG_G           => true,
       FB_BUFG_G              => true,
       RST_IN_POLARITY_G      => '1',     -- '0' for active low
-      NUM_CLOCKS_G           => 4,
+      NUM_CLOCKS_G           => 5,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
@@ -393,22 +395,27 @@ begin
       CLKOUT1_DIVIDE_G       => 6,
       CLKOUT2_DIVIDE_G       => 6,
       CLKOUT3_DIVIDE_G       => 2,
+      CLKOUT4_DIVIDE_G       => 12,
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
       CLKOUT3_PHASE_G        => 0.0,
+      CLKOUT4_PHASE_G        => 0.0,
       CLKOUT0_DUTY_CYCLE_G   => 0.5,
       CLKOUT1_DUTY_CYCLE_G   => 0.5,
       CLKOUT2_DUTY_CYCLE_G   => 0.5,
       CLKOUT3_DUTY_CYCLE_G   => 0.5,
+      CLKOUT4_DUTY_CYCLE_G   => 0.5,
       CLKOUT0_RST_HOLD_G     => 3,
       CLKOUT1_RST_HOLD_G     => 3,
       CLKOUT2_RST_HOLD_G     => 3,
       CLKOUT3_RST_HOLD_G     => 3,
+      CLKOUT4_RST_HOLD_G     => 3,
       CLKOUT0_RST_POLARITY_G => '1',
       CLKOUT1_RST_POLARITY_G => '1',
       CLKOUT2_RST_POLARITY_G => '1',
-      CLKOUT3_RST_POLARITY_G => '1')
+      CLKOUT3_RST_POLARITY_G => '1',
+      CLKOUT4_RST_POLARITY_G => '1')
    port map(
       clkIn           => sysClk,
       rstIn           => sysRst,
@@ -416,10 +423,12 @@ begin
       clkOut(1)       => asicClk,
       clkOut(2)       => asicRdClk,
       clkOut(3)       => idelayCtrlClk,
+      clkOut(4)       => adcClk,
       rstOut(0)       => appRst,
       rstOut(1)       => asicRst,
       rstOut(2)       => asicRdClkRst,
       rstOut(3)       => idelayCtrlRst,
+      rstOut(4)       => open,
       locked          => clkLocked,
       -- AXI-Lite Interface 
       axilClk         => sysClk,
@@ -455,7 +464,7 @@ begin
       rstOut   => byteClkRst
    );
 
-   idelayCtrlRst_i <= cmt_locked or idelayCtrlRst;
+   idelayCtrlRst_i <= idelayCtrlRst;    --cmt_locked or
    U_IDELAYCTRL_0 : IDELAYCTRL
    generic map (
       SIM_DEVICE => "ULTRASCALE"  -- Must be set to "ULTRASCALE" 
@@ -466,6 +475,9 @@ begin
       RST => idelayCtrlRst_i   -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
                                -- REFCLK.
    );
+
+   -- ADC Clock outputs
+   U_AdcClk2 : OBUFDS port map ( I => adcClk, O => adcClkP, OB => adcClkM );
 
 
    U_AxiLiteAsync : entity work.AxiLiteAsync 
@@ -588,7 +600,7 @@ begin
          mAxisClk        => sysClk,
          mAxisRst        => axiRst,
          mAxisMaster     => mAxisMastersPRBSData(i),
-         mAxisSlave      => mAxisSlaves(i),
+         mAxisSlave      => mAxisSlavesPRBSData(i),
          -- Trigger Signal (locClk domain)
          locClk          => appClk,
          locRst          => axiRst,
@@ -673,8 +685,8 @@ begin
    monAdc.fClkN <= adcFrameClkM;
    monAdc.dClkP <= adcDoClkP;
    monAdc.dClkN <= adcDoClkM;
-   monAdc.chP   <= adcMonDoutP(3 downto 0);
-   monAdc.chN   <= adcMonDoutP(3 downto 0);
+   monAdc.chP(3 downto 0)   <= adcMonDoutP(3 downto 0);
+   monAdc.chN(3 downto 0)   <= adcMonDoutN(3 downto 0);
       
    U_MonAdcReadout : entity work.Ad9249ReadoutGroup
    generic map (
@@ -815,7 +827,8 @@ begin
       mAxisSlave     => mAxisSlaves(0)
       
    );
-
+   mAxisSlavesPRBSData(0) <= mAxisSlavesMuxData(0);
+   mAxisSlavesPRBSData(3 downto 1 ) <= mAxisSlaves(3 downto 1);
 
    --------------------
    -- DDR memory tester

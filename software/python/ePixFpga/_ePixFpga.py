@@ -138,6 +138,7 @@ class EpixHRGen1Prbs(pr.Device):
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
             #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
             sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False)
+            MonAdcRegisters(         name='MonitoringADCsDebug',               offset=0x8F000000, enabled=False, expand=False)
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -440,6 +441,70 @@ class TriggerRegisters(pr.Device):
       def func(dev, var):         
          return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
       return func
+
+
+class MonAdcRegisters(pr.Device):
+   def __init__(self,  **kwargs):
+      super().__init__(description='Virtual Oscilloscope Registers', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables
+      
+      self.add(pr.Variable(name='DelayAdc0',          description='Data ADC Idelay3 value',               offset=0x00000000, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
+      self.add(pr.Variable(name='WRDelay0',           description='Pulse this reg to write new delay',    offset=0x00000000, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
+      self.add(pr.Variable(name='DelayAdc1',          description='Data ADC Idelay3 value',               offset=0x00000004, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
+      self.add(pr.Variable(name='WRDelay1',           description='Pulse this reg to write new delay',    offset=0x00000004, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
+      self.add(pr.Variable(name='DelayAdc2',          description='Data ADC Idelay3 value',               offset=0x00000008, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
+      self.add(pr.Variable(name='WRDelay2',           description='Pulse this reg to write new delay',    offset=0x00000008, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
+      self.add(pr.Variable(name='DelayAdc3',          description='Data ADC Idelay3 value',               offset=0x0000000C, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
+      self.add(pr.Variable(name='WRDelay3',           description='Pulse this reg to write new delay',    offset=0x0000000C, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
+      self.add(pr.Variable(name='DelayFrame',         description='Frame ADC Idelay3 value',              offset=0x00000020, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
+      self.add(pr.Variable(name='WRFrDelay',          description='Pulse this reg to write new delay',    offset=0x00000020, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
+
+      self.add(pr.Variable(name='lockedFallCount',    description='Frame ADC Idelay3 value',              offset=0x00000030, bitSize=16, bitOffset=0,  base='uint', mode='RO'))
+      self.add(pr.Variable(name='lockedSync',         description='Frame ADC Idelay3 value',              offset=0x00000030, bitSize=1,  bitOffset=16, base='bool', mode='RO'))
+      self.add(pr.Variable(name='AdcFrameSync',       description='Frame ADC Idelay3 value',              offset=0x00000034, bitSize=14, bitOffset=0,  base='uint', mode='RO'))
+      self.add(pr.Variable(name='lockedCountRst',     description='Frame ADC Idelay3 value',              offset=0x00000038, bitSize=1,  bitOffset=0,  base='bool', mode='RO'))
+
+      self.add(pr.Variable(name='Adc0_0',             description='ADC data  value',                      offset=0x00000080, bitSize=16,  bitOffset=0, base='hex', mode='RO'))
+      self.add(pr.Variable(name='Adc0_1',             description='ADC data  value',                      offset=0x00000080, bitSize=16,  bitOffset=16,base='hex', mode='RO'))
+      self.add(pr.Variable(name='Adc1_0',             description='ADC data  value',                      offset=0x00000084, bitSize=16,  bitOffset=0, base='hex', mode='RO'))
+      self.add(pr.Variable(name='Adc1_1',             description='ADC data  value',                      offset=0x00000084, bitSize=16,  bitOffset=16,base='hex', mode='RO'))
+      self.add(pr.Variable(name='Adc2_0',             description='ADC data  value',                      offset=0x00000088, bitSize=16,  bitOffset=0, base='hex', mode='RO'))
+      self.add(pr.Variable(name='Adc2_1',             description='ADC data  value',                      offset=0x00000088, bitSize=16,  bitOffset=16,base='hex', mode='RO'))
+      self.add(pr.Variable(name='Adc3_0',             description='ADC data  value',                      offset=0x0000008C, bitSize=16,  bitOffset=0, base='hex', mode='RO'))
+      self.add(pr.Variable(name='Adc3_1',             description='ADC data  value',                      offset=0x0000008C, bitSize=16,  bitOffset=16,base='hex', mode='RO'))
+      
+      self.add(pr.Variable(name='FreezeDebug',     description='',                                        offset=0x000000A0, bitSize=1,  bitOffset=0,  base='bool', mode='RW'))
+      
+      #####################################
+      # Create commands
+      #####################################
+      
+      # A command has an associated function. The function can be a series of
+      # python commands in a string. Function calls are executed in the command scope
+      # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+      # A command can also be a call to a local function with local scope.
+      # The command object and the arg are passed
+   
+   @staticmethod   
+   def frequencyConverter(self):
+      def func(dev, var):         
+         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+      return func
+
+
+
       
 class OscilloscopeRegisters(pr.Device):
    def __init__(self, trigChEnum, inChaEnum, inChbEnum, **kwargs):
