@@ -137,8 +137,8 @@ class EpixHRGen1Prbs(pr.Device):
             powerSupplyRegisters(    name='PowerSupply',                       offset=0x88000000, expand=False),            
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
             #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
-            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False)
-            MonAdcRegisters(         name='MonitoringADCsDebug',               offset=0x8F000000, enabled=False, expand=False)
+            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False),
+            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8D000000, enabled=False, expand=False)
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))

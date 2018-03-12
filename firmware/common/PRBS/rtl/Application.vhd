@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-03-09
+-- Last update: 2018-03-12
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -184,14 +184,13 @@ architecture mapping of Application is
    signal mAxiReadMasters  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
 
-   -- constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters           : AxiStreamMasterArray(3 downto 0);
-   signal mAxisMastersPRBSData    : AxiStreamMasterArray(3 downto 0);
-   signal mAxisSlavesPRBSData     : AxiStreamSlaveArray(3 downto 0);   
-   -- signal for the stream mux slave ports
-   signal mAxisMastersMuxData    : AxiStreamMasterArray(2 downto 0);
-   signal mAxisSlavesMuxData     : AxiStreamSlaveArray(2 downto 0);
-   
+   signal mAxisMasterPSData       : AxiStreamMasterType;
+   signal mAxisSlavePSData        : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
+   signal mAxisMasterSlowMonData  : AxiStreamMasterType;
+   signal mAxisSlaveSlowMonData   : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
+
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
    signal iRunTrigger        : sl := '0';
@@ -276,15 +275,7 @@ architecture mapping of Application is
    attribute keep of startDdrTest_n    : signal is "true";
    attribute keep of iAsicAcq          : signal is "true";
 
-   attribute keep of WFDacDin_i        : signal is "true";
-   attribute keep of WFDacSclk_i       : signal is "true";
-   attribute keep of WFDacCsL_i        : signal is "true";
-   attribute keep of WFDacLdacL_i      : signal is "true";
-   attribute keep of WFDacClrL_i       : signal is "true";
-   attribute keep of sDacDin_i         : signal is "true";
-   attribute keep of sDacSclk_i        : signal is "true";
-   attribute keep of sDacCsL_i         : signal is "true";
-
+   attribute keep of adcStreams        : signal is "true";
 
 
 begin
@@ -312,9 +303,7 @@ begin
    ----------------------------------------------------------------------------
    mAxisMasters    <= imAxisMasters;
    --imAxisMasters(0) is connected to the stream mux directly
-   imAxisMasters(3 downto 1) <= mAxisMastersPRBSData(3 downto 1);
-   --mAxisMastersMuxData(1 and 2) are connected to the pseudo scope and env.   
-   mAxisMastersMuxData(0) <= mAxisMastersPRBSData(0);
+
 
    ----------------------------------------------------------------------------
    -- 
@@ -599,8 +588,8 @@ begin
          -- Master Port (mAxisClk)
          mAxisClk        => sysClk,
          mAxisRst        => axiRst,
-         mAxisMaster     => mAxisMastersPRBSData(i),
-         mAxisSlave      => mAxisSlavesPRBSData(i),
+         mAxisMaster     => imAxisMasters(i),
+         mAxisSlave      => mAxisSlaves(i),
          -- Trigger Signal (locClk domain)
          locClk          => appClk,
          locRst          => axiRst,
@@ -664,8 +653,8 @@ begin
       asicGr         => iAsicGrst,
       asicRoClk      => asicRdClk,
       asicSaciSel    => iSaciSelL,
-      mAxisMaster    => mAxisMastersMuxData(1),
-      mAxisSlave     => mAxisSlavesMuxData(1),
+      mAxisMaster    => mAxisMasterPSData,
+      mAxisSlave     => mAxisSlavePSData,
       -- AXI lite slave port for register access
       axilClk           => appClk,
       axilRst           => axiRst,
@@ -795,8 +784,8 @@ begin
       -- AXI stream output
       axisClk           => appClk,
       axisRst           => axiRst,
-      mAxisMaster       => mAxisMastersMuxData(2),
-      mAxisSlave        => mAxisSlavesMuxData(2),
+      mAxisMaster       => mAxisMasterSlowMonData,
+      mAxisSlave        => mAxisSlaveSlowMonData,
 
       -- ADC Control Signals
       adcRefClk         => slowAdcRefClk,
@@ -807,28 +796,6 @@ begin
       adcDin            => slowAdcDin
    );
    
-   -------------------------------------------------------
-   -- AXI stream mux for lane 0 (shares data, pseudo scope
-   -- and env. variable stream)
-   -------------------------------------------------------
-   U_AxiStreamMux : entity work.AxiStreamMux
-   generic map(
-      NUM_SLAVES_G   => 3
-   )
-   port map(
-      -- Clock and reset
-      axisClk        => sysClk,
-      axisRst        => axiRst,
-      -- Slaves
-      sAxisMasters   => mAxisMastersMuxData,
-      sAxisSlaves    => mAxisSlavesMuxData,
-      -- Master
-      mAxisMaster    => imAxisMasters(0),
-      mAxisSlave     => mAxisSlaves(0)
-      
-   );
-   mAxisSlavesPRBSData(0) <= mAxisSlavesMuxData(0);
-   mAxisSlavesPRBSData(3 downto 1 ) <= mAxisSlaves(3 downto 1);
 
    --------------------
    -- DDR memory tester
