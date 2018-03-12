@@ -42,7 +42,7 @@ set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
 
 #SetDebugCoreClk ${ilaName} {U_App/sysClk}
 #SetDebugCoreClk ${ilaName} {U_Core/U_DdrMem/ddrClk}
-SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkR}
+SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}
 
 #######################
 ## Set the debug Probes
@@ -80,8 +80,9 @@ SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249
 #ConfigProbe ${ilaName} {U_App/sDacCsL_i[*]}
 #fast adc probes
 
-ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcR[*]}
-ConfigProbe ${ilaName} {U_App/adcStreams[*]}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcFrame}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/adcDV4R[*]}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/loadDelaySync}
 
 #ConfigProbe ${ilaName} {U_App/iAsicAcq}
 
