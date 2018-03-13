@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-03-12
+-- Last update: 2018-03-13
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -61,6 +61,10 @@ entity Application is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       mAxisMasters     : out   AxiStreamMasterArray(3 downto 0);
       mAxisSlaves      : in    AxiStreamSlaveArray(3 downto 0);
+      -- Auxiliary AXI Stream, (sysClk domain)
+      -- 0 is pseudo scope, 1 is slow adc monitoring
+      sAuxAxisMasters  : out   AxiStreamMasterArray(1 downto 0);
+      sAuxAxisSlaves   : in    AxiStreamSlaveArray(1 downto 0);
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       mAxiReadMaster   : out   AxiReadMasterType;
@@ -186,10 +190,6 @@ architecture mapping of Application is
 
    constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters           : AxiStreamMasterArray(3 downto 0);
-   signal mAxisMasterPSData       : AxiStreamMasterType;
-   signal mAxisSlavePSData        : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
-   signal mAxisMasterSlowMonData  : AxiStreamMasterType;
-   signal mAxisSlaveSlowMonData   : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
 
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
@@ -653,8 +653,8 @@ begin
       asicGr         => iAsicGrst,
       asicRoClk      => asicRdClk,
       asicSaciSel    => iSaciSelL,
-      mAxisMaster    => mAxisMasterPSData,
-      mAxisSlave     => mAxisSlavePSData,
+      mAxisMaster    => sAuxAxisMasters(0),
+      mAxisSlave     => sAuxAxisSlaves(0),
       -- AXI lite slave port for register access
       axilClk           => appClk,
       axilRst           => axiRst,
@@ -784,8 +784,8 @@ begin
       -- AXI stream output
       axisClk           => appClk,
       axisRst           => axiRst,
-      mAxisMaster       => mAxisMasterSlowMonData,
-      mAxisSlave        => mAxisSlaveSlowMonData,
+      mAxisMaster       => sAuxAxisMasters(1),
+      mAxisSlave        => sAuxAxisSlaves(1),
 
       -- ADC Control Signals
       adcRefClk         => slowAdcRefClk,

@@ -2,7 +2,7 @@
 -- File       : EpixHrPrbsPgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-01-30
+-- Last update: 2018-03-13
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -191,6 +191,9 @@ begin
          -- AXI Stream, one per QSFP lane (sysClk domain)
          mAxisMasters     => axisMasters,
          mAxisSlaves      => axisSlaves,
+         -- Auxiliary AXI Stream, (sysClk domain)
+         sAuxAxisMasters  => sAuxAxisMasters,
+         sAuxAxisSlaves   => sAuxAxisSlaves,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          mAxiReadMaster   => axiReadMaster,
@@ -294,6 +297,9 @@ begin
          -- AXI Stream, one per QSFP lane (sysClk domain)
          sAxisMasters     => axisMasters,
          sAxisSlaves      => axisSlaves,
+         -- Auxiliary AXI Stream, (sysClk domain)
+         sAuxAxisMasters  => sAuxAxisMasters,
+         sAuxAxisSlaves   => sAuxAxisSlaves,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          sAxiReadMaster   => axiReadMaster,
