@@ -138,7 +138,8 @@ class EpixHRGen1Prbs(pr.Device):
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
             #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
             sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False),
-            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8D000000, enabled=False, expand=False)
+            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8D000000, enabled=False, expand=False),
+            SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x8F000000, expand=False),
             ))
 
         self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -473,7 +474,7 @@ class MonAdcRegisters(pr.Device):
 
       self.add(pr.Variable(name='lockedFallCount',    description='Frame ADC Idelay3 value',              offset=0x00000030, bitSize=16, bitOffset=0,  base='uint', mode='RO'))
       self.add(pr.Variable(name='lockedSync',         description='Frame ADC Idelay3 value',              offset=0x00000030, bitSize=1,  bitOffset=16, base='bool', mode='RO'))
-      self.add(pr.Variable(name='AdcFrameSync',       description='Frame ADC Idelay3 value',              offset=0x00000034, bitSize=14, bitOffset=0,  base='uint', mode='RO'))
+      self.add(pr.Variable(name='AdcFrameSync',       description='Frame ADC Idelay3 value',              offset=0x00000034, bitSize=14, bitOffset=0,  base='hex', mode='RO'))
       self.add(pr.Variable(name='lockedCountRst',     description='Frame ADC Idelay3 value',              offset=0x00000038, bitSize=1,  bitOffset=0,  base='bool', mode='RO'))
 
       self.add(pr.Variable(name='Adc0_0',             description='ADC data  value',                      offset=0x00000080, bitSize=16,  bitOffset=0, base='hex', mode='RO'))

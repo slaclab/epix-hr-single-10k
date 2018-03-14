@@ -39,10 +39,10 @@ set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
 ## Set the clock for the ILA core
 #################################
 #SetDebugCoreClk ${ilaName} {U_App/appClk}
-
 #SetDebugCoreClk ${ilaName} {U_App/sysClk}
 #SetDebugCoreClk ${ilaName} {U_Core/U_DdrMem/ddrClk}
-SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}
+#SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}
+SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkIo}
 
 #######################
 ## Set the debug Probes
@@ -82,14 +82,18 @@ SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249
                         
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcFrame[*]}
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/adcDV4R[*]}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/sData_i}
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/loadDelaySync}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkR}
+
 
 #ConfigProbe ${ilaName} {U_App/iAsicAcq}
 
 
 
 ### Delete the last unused port
-delete_debug_port [get_debug_ports [GetCurrentProbe ${ilaName}]]
+#delete_debug_port [get_debug_ports [GetCurrentProbe ${ilaName}]]
 
 ##########################
 ## Write the port map file

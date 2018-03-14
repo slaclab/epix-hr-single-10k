@@ -160,6 +160,9 @@ architecture top_level of EpixHrPrbsPgp3 is
    -- AXI Stream, one per QSFP lane (sysClk domain)
    signal axisMasters     : AxiStreamMasterArray(3 downto 0);
    signal axisSlaves      : AxiStreamSlaveArray(3 downto 0);
+   -- Auxiliary AXI Stream, (sysClk domain)
+   signal sAuxAxisMasters : AxiStreamMasterArray(1 downto 0);
+   signal sAuxAxisSlaves  : AxiStreamSlaveArray(1 downto 0);
    -- DDR's AXI Memory Interface (sysClk domain)
    signal axiReadMaster   : AxiReadMasterType;
    signal axiReadSlave    : AxiReadSlaveType;
