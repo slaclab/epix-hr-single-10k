@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-03-13
+-- Last update: 2018-03-15
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -416,7 +416,7 @@ begin
       rstOut(0)       => appRst,
       rstOut(1)       => asicRst,
       rstOut(2)       => asicRdClkRst,
-      rstOut(3)       => idelayCtrlRst,
+      rstOut(3)       => open,
       rstOut(4)       => open,
       locked          => clkLocked,
       -- AXI-Lite Interface 
@@ -727,6 +727,17 @@ begin
       clk      => appClk,
       asyncRst => adcCardPowerUpEdge,
       syncRst  => serdesReset
+   );
+
+   U_IdelayCtrlReset : entity work.RstSync
+   generic map (
+      TPD_G           => TPD_G,
+      RELEASE_DELAY_G => 250
+   )
+   port map (
+      clk      => idelayCtrlClk,
+      asyncRst => serdesReset,
+      syncRst  => idelayCtrlRst
    );
    
    --------------------------------------------
