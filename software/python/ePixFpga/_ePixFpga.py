@@ -138,6 +138,7 @@ class EpixHRGen1Prbs(pr.Device):
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
             #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
             sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False),
+            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8C000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8D000000, enabled=False, expand=False),
             SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x8F000000, expand=False),
             ))
@@ -460,17 +461,16 @@ class MonAdcRegisters(pr.Device):
       
       
       #Setup registers & variables
-      
-      self.add(pr.Variable(name='DelayAdc0',          description='Data ADC Idelay3 value',               offset=0x00000000, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
-      self.add(pr.Variable(name='WRDelay0',           description='Pulse this reg to write new delay',    offset=0x00000000, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
-      self.add(pr.Variable(name='DelayAdc1',          description='Data ADC Idelay3 value',               offset=0x00000004, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
-      self.add(pr.Variable(name='WRDelay1',           description='Pulse this reg to write new delay',    offset=0x00000004, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
-      self.add(pr.Variable(name='DelayAdc2',          description='Data ADC Idelay3 value',               offset=0x00000008, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
-      self.add(pr.Variable(name='WRDelay2',           description='Pulse this reg to write new delay',    offset=0x00000008, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
-      self.add(pr.Variable(name='DelayAdc3',          description='Data ADC Idelay3 value',               offset=0x0000000C, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
-      self.add(pr.Variable(name='WRDelay3',           description='Pulse this reg to write new delay',    offset=0x0000000C, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
-      self.add(pr.Variable(name='DelayFrame',         description='Frame ADC Idelay3 value',              offset=0x00000020, bitSize=9,  bitOffset=0,  base='uint', mode='RW'))
-      self.add(pr.Variable(name='WRFrDelay',          description='Pulse this reg to write new delay',    offset=0x00000020, bitSize=1,  bitOffset=9,  base='bool', mode='WO'))
+      self.add(pr.RemoteVariable(name='DelayAdc0_', description='Data ADC Idelay3 value', offset=0x00000000, bitSize=10,  bitOffset=0,  base=pr.UInt, verify=False, mode='RW', hidden=True))
+      self.add(pr.RemoteVariable(name='DelayAdc1_', description='Data ADC Idelay3 value', offset=0x00000004, bitSize=10,  bitOffset=0,  base=pr.UInt, verify=False, mode='RW', hidden=True))
+      self.add(pr.RemoteVariable(name='DelayAdc2_', description='Data ADC Idelay3 value', offset=0x00000008, bitSize=10,  bitOffset=0,  base=pr.UInt, verify=False, mode='RW', hidden=True))
+      self.add(pr.RemoteVariable(name='DelayAdc3_', description='Data ADC Idelay3 value', offset=0x0000000C, bitSize=10,  bitOffset=0,  base=pr.UInt, verify=False, mode='RW', hidden=True))
+      self.add(pr.RemoteVariable(name='DelayAdcF_', description='Data ADC Idelay3 value', offset=0x00000020, bitSize=10,  bitOffset=0,  base=pr.UInt, verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='DelayAdc0',      description='Data ADC Idelay3 value',       linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.DelayAdc0_]))
+      self.add(pr.LinkVariable(  name='DelayAdc1',      description='Data ADC Idelay3 value',       linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.DelayAdc1_]))
+      self.add(pr.LinkVariable(  name='DelayAdc2',      description='Data ADC Idelay3 value',       linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.DelayAdc2_]))
+      self.add(pr.LinkVariable(  name='DelayAdc3',      description='Data ADC Idelay3 value',       linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.DelayAdc3_]))
+      self.add(pr.LinkVariable(  name='DelayAdcFrame',  description='Data ADC Idelay3 value',       linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.DelayAdcF_]))
 
       self.add(pr.Variable(name='lockedFallCount',    description='Frame ADC Idelay3 value',              offset=0x00000030, bitSize=16, bitOffset=0,  base='uint', mode='RO'))
       self.add(pr.Variable(name='lockedSync',         description='Frame ADC Idelay3 value',              offset=0x00000030, bitSize=1,  bitOffset=16, base='bool', mode='RO'))
@@ -503,6 +503,16 @@ class MonAdcRegisters(pr.Device):
       def func(dev, var):         
          return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
       return func
+
+   @staticmethod   
+   def setDelay(var, value, write):
+      iValue = value + 512
+      var.dependencies[0].set(iValue, write)
+      var.dependencies[0].set(value, write)
+
+   @staticmethod   
+   def getDelay(var, read):
+      return var.dependencies[0].get(read)
 
 
 
