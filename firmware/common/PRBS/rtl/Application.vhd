@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-03-15
+-- Last update: 2018-03-19
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -683,7 +683,9 @@ begin
       NUM_CHANNELS_G    => 4,
       IODELAY_GROUP_G   => IODELAY_GROUP_G,
       XIL_DEVICE_G      => "ULTRASCALE",
-      IDELAYCTRL_FREQ_G => 200.0
+      IDELAYCTRL_FREQ_G => 200.0,
+      DEFAULT_DELAY_G   => (others => '0'),
+      ADC_INVERT_CH_G   => "00000010"
    )
    port map (
       -- Master system clock, 100Mhz

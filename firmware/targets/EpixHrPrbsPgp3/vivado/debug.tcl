@@ -81,8 +81,13 @@ SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249
 #fast adc probes
                         
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcFrame[*]}
+# frame channel
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/adcDV4R[*]}
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/adcDV7R[*]}
+# data channel
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/GenData[0].U_DATA_DESERIALIZER/adcDV4R[*]}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/GenData[0].U_DATA_DESERIALIZER/adcDV7R[*]}
+#
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/sData_i}
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/loadDelaySync}
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}

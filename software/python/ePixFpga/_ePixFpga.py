@@ -140,6 +140,8 @@ class EpixHRGen1Prbs(pr.Device):
             sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False),
             OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8C000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8D000000, enabled=False, expand=False),
+            #analog_devices.Ad9249ReadoutGroup(name = 'Ad9249Rdout[0].Adc[0]',  offset=0x8D000000, channels=4, enabled=False, expand=False),
+            analog_devices.Ad9249ConfigGroup(name='Ad9249Config[0].Adc[0]',    offset=0x8E000000, enabled=False, expand=False),
             SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x8F000000, expand=False),
             ))
 
