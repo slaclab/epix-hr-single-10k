@@ -39,7 +39,7 @@ from matplotlib.figure import Figure
 import pdb
 
 
-PRINT_VERBOSE = 0
+PRINT_VERBOSE = 1
 
 ################################################################################
 ################################################################################
@@ -632,7 +632,7 @@ class EventReader(rogue.interfaces.stream.Slave):
         p = bytearray(self.lastFrame.getPayload())
         self.lastFrame.read(p,0)
         if (PRINT_VERBOSE): print('_accepted p[',self.numAcceptedFrames, ']: ', p[0:10])
-        ##if (PRINT_VERBOSE): print('_accepted type' , type(p)) 
+        if (PRINT_VERBOSE): print('Length of accpeted frame: ' , len(p)) 
         self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
         self.numAcceptedFrames += 1
 
@@ -646,10 +646,13 @@ class EventReader(rogue.interfaces.stream.Slave):
             self.busyTimeout = 0
 
         if ((VcNum == self.VIEW_PSEUDOSCOPE_ID) and (not self.busy)):
+            if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
             self.parent.processPseudoScopeFrameTrigger.emit()
         elif (VcNum == self.VIEW_MONITORING_DATA_ID and (not self.busy)):
+            if (PRINT_VERBOSE): print('Decoding Monitoring Data')
             self.parent.processMonitoringFrameTrigger.emit()
         elif (VcNum == 0):
+            if (PRINT_VERBOSE): print('Decoding ASIC Data')
             if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
                 self.parent.processFrameTrigger.emit()
 

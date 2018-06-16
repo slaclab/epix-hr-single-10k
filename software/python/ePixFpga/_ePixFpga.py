@@ -46,8 +46,8 @@ class EpixHRGenEmpty(pr.Device):
             kwargs['description'] = "HR Gen1 FPGA"
       
         trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
-        inChaEnum={0:'Off', 16:'Asic0TpsMux', 17:'Asic1TpsMux'}
-        inChbEnum={0:'Off', 16:'Asic0TpsMux', 17:'Asic1TpsMux'}
+        inChaEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
+        inChbEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
         HsDacEnum={0:'None', 1:'DAC A', 2:'DAC B', 3:'DAC A & DAC B'}
       
         super(self.__class__, self).__init__(**kwargs)
@@ -95,8 +95,8 @@ class EpixHRGen1Prbs(pr.Device):
             kwargs['description'] = "HR Gen1 FPGA"
       
         trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
-        inChaEnum={0:'Off', 16:'Asic0TpsMux', 17:'Asic1TpsMux'}
-        inChbEnum={0:'Off', 16:'Asic0TpsMux', 17:'Asic1TpsMux'}
+        inChaEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
+        inChbEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
         HsDacEnum={0:'None', 1:'DAC A (SE)', 2:'DAC B (Diff)', 3:'DAC A & DAC B'}
       
         super(self.__class__, self).__init__(**kwargs)
@@ -167,8 +167,8 @@ class EpixHRGen1FD(pr.Device):
             kwargs['description'] = "HR Gen1 FPGA"
       
         trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
-        inChaEnum={0:'Off', 16:'Asic0TpsMux', 17:'Asic1TpsMux'}
-        inChbEnum={0:'Off', 16:'Asic0TpsMux', 17:'Asic1TpsMux'}
+        inChaEnum={0:'Off', 0:'Asic0TpsMux', 0:'Asic1TpsMux'}
+        inChbEnum={0:'Off', 0:'Asic0TpsMux', 0:'Asic1TpsMux'}
         HsDacEnum={0:'None', 1:'DAC A', 2:'DAC B', 3:'DAC A & DAC B'}
       
         super(self.__class__, self).__init__(**kwargs)
@@ -489,8 +489,8 @@ class OscilloscopeRegisters(pr.Device):
       
       #Setup registers & variables
       
-      self.add(pr.RemoteVariable(name='ArmReg',          description='Arm',               offset=0x00000000, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-      self.add(pr.RemoteVariable(name='TrigReg',         description='Trig',              offset=0x00000004, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='ArmReg',          description='Arm',               offset=0x00000000, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW', verify=False, pollInterval = 1))
+      self.add(pr.RemoteVariable(name='TrigReg',         description='Trig',              offset=0x00000004, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW', verify=False, pollInterval = 1))
       self.add((
          pr.RemoteVariable(name='ScopeEnable',     description='Setting1', offset=0x00000008, bitSize=1,  bitOffset=0,  base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='TriggerEdge',     description='Setting1', offset=0x00000008, bitSize=1,  bitOffset=1,  mode='RW', enum={0:'Falling', 1:'Rising'}),
@@ -504,8 +504,8 @@ class OscilloscopeRegisters(pr.Device):
          pr.RemoteVariable(name='TraceLength',     description='Setting3', offset=0x00000010, bitSize=13, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'),
          pr.RemoteVariable(name='SkipSamples',     description='Setting3', offset=0x00000010, bitSize=13, bitOffset=13, base=pr.UInt, disp = '{}', mode='RW')))
       self.add((
-         pr.RemoteVariable(name='InputChannelA',   description='Setting4', offset=0x00000014, bitSize=5,  bitOffset=0,  mode='RW', enum=inChaEnum),
-         pr.RemoteVariable(name='InputChannelB',   description='Setting4', offset=0x00000014, bitSize=5,  bitOffset=5,  mode='RW', enum=inChbEnum)))
+         pr.RemoteVariable(name='InputChannelA',   description='Setting4', offset=0x00000014, bitSize=2,  bitOffset=0,  mode='RW', enum=inChaEnum),       
+         pr.RemoteVariable(name='InputChannelB',   description='Setting4', offset=0x00000014, bitSize=2,  bitOffset=5,  mode='RW', enum=inChbEnum)))
       self.add(pr.RemoteVariable(name='TriggerDelay',    description='TriggerDelay',      offset=0x00000018, bitSize=13, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       
       
