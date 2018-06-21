@@ -83,6 +83,76 @@ class EpixHRGenEmpty(pr.Device):
                 readBack[x] = self.waveformMem.Mem[x].get()
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
 
+
+#######################################################
+#
+# cryo Tx target
+#
+#######################################################
+
+class EpixHRGen1Cryo(pr.Device):
+    def __init__(self, **kwargs):
+        if 'description' not in kwargs:
+            kwargs['description'] = "HR Gen1 FPGA"
+      
+        trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
+        inChaEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
+        inChbEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
+        HsDacEnum={0:'None', 1:'DAC A (SE)', 2:'DAC B (Diff)', 3:'DAC A & DAC B'}
+      
+        super(self.__class__, self).__init__(**kwargs)
+        self.add((
+            # core registers
+            axi.AxiVersion(offset=0x00000000),          
+            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane0', offset=0x05000000, enabled=True, expand=False),
+            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane1', offset=0x05010000, enabled=True, expand=False),
+            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
+            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
+            # app registers
+            MMCM7Registers(          name='MMCM7Registers',                    offset=0x80000000, enabled=False, expand=False),
+            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, enabled=False, expand=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, enabled=False, expand=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, enabled=False, expand=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, enabled=False, expand=False),
+            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, numberLanes=4,enabled=False, expand=False),
+            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False),
+            powerSupplyRegisters(    name='PowerSupply',                       offset=0x88000000, expand=False),            
+            HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
+            #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
+            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False),
+            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8C000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
+            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8D000000, enabled=False, expand=False),
+            analog_devices.Ad9249ConfigGroup(name='Ad9249Config[0].Adc[0]',    offset=0x8E000000, enabled=False, expand=False),
+            SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x8F000000, expand=False),
+            ))
+
+        self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
+        self.add(pr.Command(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+
+
+    def fnSetWaveform(self, dev,cmd,arg):
+        """SetTestBitmap command function"""
+        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+        if os.path.splitext(self.filename)[1] == '.csv':
+            waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
+            if waveform.shape == (1024,):
+                for x in range (0, 1024):
+                    self._rawWrite(offset = (0x8A000000 + x * 4),data =  int(waveform[x]))
+            else:
+                print('wrong csv file format')
+
+    def fnGetWaveform(self, dev,cmd,arg):
+        """GetTestBitmap command function"""
+        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+        if os.path.splitext(self.filename)[1] == '.csv':
+            readBack = np.zeros((1024),dtype='uint16')
+            for x in range (0, 1024):
+                readBack[x] = self._rawRead(offset = (0x8A000000 + x * 4))
+            np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
+
+
+
 #######################################################
 #
 # PRBS Tx target
