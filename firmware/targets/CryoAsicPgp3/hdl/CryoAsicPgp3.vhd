@@ -2,7 +2,7 @@
 -- File       : CryoAsicPgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-06-11
+-- Last update: 2018-06-22
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -72,8 +72,8 @@ entity CryoAsicPgp3 is
       dacSck        : out   sl;
       dacDin        : out   sl;
       -- ASIC Gbps Ports
-      asicDataP     : in    slv(23 downto 0);
-      asicDataN     : in    slv(23 downto 0);
+      asicDataP     : inout slv(23 downto 0);
+      asicDataN     : inout slv(23 downto 0);
       -- ASIC Control Ports
       asicR0        : out   sl;
       asicPpmat     : out   sl;

@@ -1,17 +1,18 @@
 -------------------------------------------------------------------------------
 -- Title      : 
 -------------------------------------------------------------------------------
--- File       : ProgrammablePowerSupply
+-- File       : Programable Power supply
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 04/26/2016
+-- Last update: 2018-06-22
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Change log:
 -- 
 -------------------------------------------------------------------------------
--- Description: EpixHR register controller
+-- Description: cryo ASIC adapter board registers for the Programable Power
+-- Supply.
 -------------------------------------------------------------------------------
 -- This file is part of 'EpixHR Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -36,8 +37,8 @@ use unisim.vcomponents.all;
 
 entity ProgrammablePowerSupply is
    generic (
-      TPD_G             : time               := 1 ns;
-      CLK_PERIOD_G      : real            := 10.0e-9
+      TPD_G             : time := 1 ns;
+      CLK_PERIOD_G      : real := 10.0e-9
    );
    port (
       -- Global Signals
@@ -53,7 +54,7 @@ entity ProgrammablePowerSupply is
       -- DAC interfaces
       dacSclk        : out sl;
       dacDin         : out sl;
-      dacCsb         : out slv(4 downto 0);
+      dacCsb         : out slv(1 downto 0);
       dacClrb        : out sl
    );
 end ProgrammablePowerSupply;

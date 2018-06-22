@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-06-15
+-- Last update: 2018-06-22
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -116,8 +116,8 @@ entity Application is
       dacSck           : out   sl;
       dacDin           : out   sl;
       -- ASIC Gbps Ports
-      asicDataP        : in    slv(23 downto 0);
-      asicDataN        : in    slv(23 downto 0);
+      asicDataP        : inout slv(23 downto 0);
+      asicDataN        : inout slv(23 downto 0);
       -- ASIC Control Ports
       asicR0           : out   sl;
       asicPpmat        : out   sl;
@@ -216,6 +216,8 @@ architecture mapping of Application is
    signal iAsicAcq             : sl;
    signal iAsicGrst            : sl;
    signal iSaciSelL            : slv(3 downto 0);
+   signal iSaciClk             : sl;
+   signal iSaciCmd             : sl;
    
    signal adcClk               : sl;
    signal errInhibit           : sl;
@@ -271,6 +273,26 @@ architecture mapping of Application is
    constant START_ADDR_C : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '0');
    constant STOP_ADDR_C  : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '1');
 
+   -- Equalizer signals
+   signal EqualizerLosIn : slv(5 downto 0);
+   -- Programmable power supply signals
+   signal enableLDOOut        : slv(1 downto 0);
+   signal dacSclkProgSupplyOut: sl;
+   signal dacDinProgSupplyOut : sl;
+   signal dacCsbProgSupplyOut : slv(1 downto 0);
+   signal dacClrbProgSupplyOut: sl;
+   -- CJC
+   signal cjcRst            : sl;
+   signal cjcDec            : sl;
+   signal cjcInc            : sl;
+   signal cjcFrqtbl         : sl;
+   signal cjcRate           : slv(1 downto 0);
+   signal cjcBwSel          : slv(1 downto 0);
+   signal cjcFrqSel         : slv(1 downto 0);
+   signal cjcSfout          : slv(1 downto 0);
+   signal cjcLos            : sl;
+   signal cjcLol            : sl;
+
    attribute keep of appClk            : signal is "true";
    attribute keep of startDdrTest_n    : signal is "true";
    attribute keep of iAsicAcq          : signal is "true";
@@ -280,13 +302,59 @@ architecture mapping of Application is
 
 begin
 
+  -----------------------------------------------------------------------------
+  -- remaps data lines into adapter board control/status lines
+  -----------------------------------------------------------------------------
+  -----------------------------------------------------------------------------
+  -- Programmable power supply IOBUF & MAPPING
+  -----------------------------------------------------------------------------
+  IOBUF_DATAP_19 : IOBUF port map (O => open, I => enableLDOOut(0), IO => asicDataP(19), T => '0');
+  --
+  IOBUF_DATAN_19 : IOBUF port map (O => open, I => enableLDOOut(1), IO => asicDataN(19), T => '0');
+  --
+  IOBUF_SPARE_HPP_0 : IOBUF port map (O => open, I => dacDinProgSupplyOut,    IO => spareHpP(0), T => '0');
+  IOBUF_SPARE_HPP_1 : IOBUF port map (O => open, I => dacSclkProgSupplyOut,   IO => spareHpP(1), T => '0');
+  IOBUF_SPARE_HPP_2 : IOBUF port map (O => open, I => dacClrbProgSupplyOut,   IO => spareHpP(2), T => '0');
+  --
+  IOBUF_SPARE_HPN_0 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(0), IO => spareHpN(0), T => '0');
+  IOBUF_SPARE_HPN_1 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(1), IO => spareHpN(1), T => '0');
+  --
+  -----------------------------------------------------------------------------
+  -- Equalizer IOBUF & MAPPING
+  -----------------------------------------------------------------------------
+  -- EqualizerLosIn(5 downto 3) <= asicDataN(18 downto 16);
+  -- EqualizerLosIn(2 downto 0) <= asicDataP(18 downto 16);
+  --
+  IOBUF_DATAP_16 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataP(16), T => '1');
+  IOBUF_DATAP_17 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataP(17), T => '1');
+  IOBUF_DATAP_18 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataP(18), T => '1');
+  --
+  IOBUF_DATAN_16 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataN(16), T => '1');
+  IOBUF_DATAN_17 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataN(17), T => '1');
+  IOBUF_DATAN_18 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataN(18), T => '1');
 
-   led(0)          <= clkLocked;
-   led(1)          <= prbsBusy(0) or prbsBusy(1) or prbsBusy(2) or prbsBusy(3);
-   led(2)          <= '0';
-   led(3)          <= not heartBeat;
-
-   axiRst <= appRst;
+  -----------------------------------------------------------------------------
+  -- Clock Jitter Cleaner IOBUF & MAPPING
+  -----------------------------------------------------------------------------
+  IOBUF_DATAP_6 : IOBUF port map (O => open,   I => cjcFrqtbl,    IO => asicDataP(6),  T => '0');
+  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcDec,       IO => asicDataP(7),  T => '0');
+  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcInc,       IO => asicDataP(8),  T => '0');
+  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(9),  T => '0');
+  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(10), T => '0');
+  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(11), T => '0');
+  IOBUF_DATAP_12: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(12), T => '0');
+  IOBUF_DATAP_13: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataN(13), T => '1');
+  --
+  IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(6),  T => '0');
+  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(7),  T => '0');
+  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(8),  T => '0');
+  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(9),  T => '0');
+  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(10), T => '0');
+  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(11), T => '0');
+  IOBUF_DATAN_12: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(12), T => '0');
+  IOBUF_DATAN_13: IOBUF port map (O => cjcLol, I => '0',          IO => asicDataN(13), T => '1');
+    
+  
    ---------------------
    -- Heart beat LED  --
    ---------------------
@@ -298,47 +366,63 @@ begin
          clk => sysClk,
          o   => heartBeat
       );
+   
+   ----------------------------------------------------------------------------
+   -- Signal routing
+   ----------------------------------------------------------------------------
+   led(0)          <= clkLocked;
+   led(1)          <= prbsBusy(0) or prbsBusy(1) or prbsBusy(2) or prbsBusy(3);
+   led(2)          <= '0';
+   led(3)          <= not heartBeat;
+   axiRst <= appRst;
+
    ----------------------------------------------------------------------------
    -- axi stream routing
    ----------------------------------------------------------------------------
    mAxisMasters    <= imAxisMasters;
    --imAxisMasters(0) is connected to the stream mux directly
 
-
    ----------------------------------------------------------------------------
-   -- 
+   -- power enable routing
    ----------------------------------------------------------------------------
    digPwrEn <= digPwrEn_i;
    anaPwrEn <= anaPwrEn_i;
    
-   mbIrq           <= (others => '0');
-   --led             <= (others => '0');
-   connTgOut       <= '0';
-   connMps         <= '0';
-   --adcSpiClk       <= '1';
+   ----------------------------------------------------------------------------
+   -- ADC routing
+   ----------------------------------------------------------------------------
    adcSpiCsL       <= adcSpiCsL_i(0);
    adcPdwn         <= adcPdwn_i(0);
-   --adcClkP         <= '0';
-   --adcClkM         <= '1';
-   --slowAdcSclk     <= '1';
-   --slowAdcDin      <= '1';
-   --slowAdcCsL      <= '1';
-   --slowAdcRefClk   <= '1';
-   
    slowAdcSync     <= '0';              -- not used, not connected to the ADC
                                         -- via no load resistor (R67)
+   ----------------------------------------------------------------------------
    -- routing DAC signals to external IOs
+   ----------------------------------------------------------------------------
    hsDacCsL        <= WFDacCsL_i;       -- DAC8812C chip select
    hsDacLoad       <= WFDacLdacL_i;     -- DAC8812C chip select
    sDacCsL         <= sDacCsL_i;        -- DACs to set static configuration
-    -- shared DAC signal
+   -- shared DAC signal
    dacClrL         <= WFDacClrL_i when WFDacCsL_i = '0' else
                       sDacClrb_i;
    dacSck          <= WFDacSclk_i when WFDacCsL_i = '0' else
                       sDacSclk_i;
    dacDin          <= WFDacDin_i when WFDacCsL_i = '0' else
                       sDacDin_i;
-   
+
+   ----------------------------------------------------------------------------
+   -- SACI signals
+   ----------------------------------------------------------------------------
+   asicSaciCmd     <= iSaciCmd;
+   asicSaciClk     <= iSaciClk;
+   asicSaciSel     <= iSaciSelL;
+   iSaciSelL(3 downto 1) <=  (others => '1');
+
+   -------------------------------------------------------------------------------
+   -- unasigned signals
+   ----------------------------------------------------------------------------
+   mbIrq           <= (others => '0');  
+   connTgOut       <= '0';
+   connMps         <= '0';
    asicR0          <= '0';
    asicPpmat       <= '0';
    asicGlblRst     <= '1';
@@ -346,10 +430,6 @@ begin
    asicAcq         <= '0';
    asicRoClkP      <= (others => '0');
    asicRoClkN      <= (others => '1');
-   asicSaciCmd     <= '1';
-   asicSaciClk     <= '1';
-   asicSaciSel     <= iSaciSelL;
-   iSaciSelL       <=  (others => '1');
    gtTxP           <= '0';
    gtTxN           <= '1';
    smaTxP          <= '0';
@@ -464,11 +544,10 @@ begin
       RST => idelayCtrlRst_i   -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
                                -- REFCLK.
    );
-
-   -- ADC Clock outputs
-   U_AdcClk2 : OBUFDS port map ( I => adcClk, O => adcClkP, OB => adcClkM );
-
-
+   
+   ---------------------------------------------
+   -- AXI Lite Async - cross clock domain     --
+   ---------------------------------------------
    U_AxiLiteAsync : entity work.AxiLiteAsync 
    generic map(
       TPD_G            => 1 ns,
@@ -494,27 +573,9 @@ begin
     );
 
 
-
-
    ---------------------------------------------
    -- AXI Lite Crossbar for register control  --
-   -- Master 00 : Clock                       --
-   -- Master 01 : Trigger Resiters            --
-   -- Master 02 : PRBS                        --
-   -- Master 03 : PRBS                        --
-   -- Master 04 : PRBS                        --
-   -- Master 05 : PRBS                        --
-   -- Master 06 : Axi Stream Mon.             --
-   -- Master 07 : DDR tester                  --
-   -- Master 08 : Power                       --
-   -- Master 09 : HSDAC control               --
-   -- Master 10 : HSDAC waveform              --
-   -- Master 11 : Slow DACs                   --
-   -- Master 12 : PseudoScope                 --
-   -- Master 13 : Fast  ADC readout           --
-   -- Master 14 : Fast. ADC config.           --
-   -- Master 15 : Monit. ADC                  --
-   -- Master  ? : App Registers (waveform)    --
+   -- Check AppPkg.vhd for addresses          --
    ---------------------------------------------
    U_AxiLiteCrossbar : entity work.AxiLiteCrossbar
    generic map (
@@ -570,63 +631,29 @@ begin
    );
 
    --------------------------------------------
-   --     Master Register Controllers        --
-   --------------------------------------------   
-
-
-   G_PRBS : for i in 0 to NUMBER_OF_LANES_C-1 generate 
-      -------------------------------------------------------
-      -- ASIC AXI stream framers
-      -------------------------------------------------------
-      U_AXI_PRBS : entity work.SsiPrbsTx 
-      generic map(         
-         TPD_G                      => TPD_G,
-         MASTER_AXI_PIPE_STAGES_G   => 1,
-         PRBS_SEED_SIZE_G           => 128,
-         MASTER_AXI_STREAM_CONFIG_G => COMM_AXIS_CONFIG_C)
-      port map(
-         -- Master Port (mAxisClk)
-         mAxisClk        => sysClk,
-         mAxisRst        => axiRst,
-         mAxisMaster     => imAxisMasters(i),
-         mAxisSlave      => mAxisSlaves(i),
-         -- Trigger Signal (locClk domain)
-         locClk          => appClk,
-         locRst          => axiRst,
-         trig            => acqStart,
-         packetLength    => X"FFFFFFFF",
-         forceEofe       => '0',
-         busy            => prbsBusy(i),
-         tDest           => X"00",
-         tId             => X"00",
-         -- Optional: Axi-Lite Register Interface (locClk domain)
-         axilReadMaster  => mAxiReadMasters(PRBS0_AXI_INDEX_C+i),
-         axilReadSlave   => mAxiReadSlaves(PRBS0_AXI_INDEX_C+i),
-         axilWriteMaster => mAxiWriteMasters(PRBS0_AXI_INDEX_C+i),
-         axilWriteSlave  => mAxiWriteSlaves(PRBS0_AXI_INDEX_C+i));
-   end generate;
-
-
-   U_AxiSMonitor : entity work.AxiStreamMonAxiL 
-   generic map(
-      TPD_G           => 1 ns,
-      COMMON_CLK_G    => false,  -- true if axisClk = statusClk
-      AXIS_CLK_FREQ_G => 156.25E+6,  -- units of Hz
-      AXIS_NUM_SLOTS_G=> 4,
-      AXIS_CONFIG_G   => COMM_AXIS_CONFIG_C)
-   port map(
-      -- AXIS Stream Interface
-      axisClk         => sysClk,
-      axisRst         => axiRst,
-      axisMaster      => imAxisMasters,
-      axisSlave       => mAxisSlaves,
-      -- AXI lite slave port for register access
-      axilClk         => appClk,  
-      axilRst         => axiRst,   
-      sAxilWriteMaster=> mAxiWriteMasters(AXI_STREAM_MON_INDEX_C),
-      sAxilWriteSlave => mAxiWriteSlaves(AXI_STREAM_MON_INDEX_C),
-      sAxilReadMaster => mAxiReadMasters(AXI_STREAM_MON_INDEX_C),
-      sAxilReadSlave  => mAxiReadSlaves(AXI_STREAM_MON_INDEX_C)
+   -- SACI interface controller              --
+   -------------------------------------------- 
+   U_AxiLiteSaciMaster : entity work.AxiLiteSaciMaster
+   generic map (
+      AXIL_CLK_PERIOD_G  => 10.0E-9, -- In units of seconds
+      AXIL_TIMEOUT_G     => 1.0E-3,  -- In units of seconds
+      SACI_CLK_PERIOD_G  => 0.25E-6, -- In units of seconds
+      SACI_CLK_FREERUN_G => false,
+      SACI_RSP_BUSSED_G  => true,
+      SACI_NUM_CHIPS_G   => NUMBER_OF_ASICS_C)
+   port map (
+      -- SACI interface
+      saciClk           => iSaciClk,
+      saciCmd           => iSaciCmd,
+      saciSelL          => iSaciSelL(0),
+      saciRsp(0)        => asicSaciRsp,
+      -- AXI-Lite Register Interface
+      axilClk           => appClk,
+      axilRst           => axiRst,
+      axilReadMaster    => mAxiReadMasters(SACIREGS_AXI_INDEX_C),
+      axilReadSlave     => mAxiReadSlaves(SACIREGS_AXI_INDEX_C),
+      axilWriteMaster   => mAxiWriteMasters(SACIREGS_AXI_INDEX_C),
+      axilWriteSlave    => mAxiWriteSlaves(SACIREGS_AXI_INDEX_C)
    );
 
    --------------------------------------------
@@ -665,6 +692,12 @@ begin
 
    );
 
+   --------------------------------------------
+   -- Fast ADC for Virtual oscilloscope      --
+   --------------------------------------------
+   -- ADC Clock outputs
+   U_AdcClk2 : OBUFDS port map ( I => adcClk, O => adcClkP, OB => adcClkM );
+   
    GenAdcStr : for i in 0 to 3 generate 
       adcData(i)  <= adcStreams(i).tData(15 downto 0);
       adcValid(i) <= adcStreams(i).tValid;
@@ -745,7 +778,6 @@ begin
    --------------------------------------------
    --     Fast ADC Config                    --
    --------------------------------------------
-   
    U_AdcConf : entity work.Ad9249Config
    generic map (
       TPD_G             => TPD_G,
@@ -770,7 +802,7 @@ begin
       );
    
    --------------------------------------------
-   --     Slow ADC Readout  (env. variables) --
+   --  Slow ADC Readout  (env. variables)    --
    -------------------------------------------- 
    U_AdcCntrl: entity work.SlowAdcCntrlAxi
    generic map (
@@ -809,48 +841,6 @@ begin
       adcDin            => slowAdcDin
    );
    
-
-   --------------------
-   -- DDR memory tester
-   --------------------
-   -- in order to desable the mem tester, the followint two signasl need to be wired
-   --   mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
-   --   mAxiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
-
-   U_AxiMemTester : entity work.AxiMemTester
-   generic map (
-      TPD_G        => TPD_G,
-      START_ADDR_G => START_ADDR_C,
-      STOP_ADDR_G  => STOP_ADDR_C,
-      AXI_CONFIG_G => DDR_AXI_CONFIG_C)
-   port map (
-      -- AXI-Lite Interface
-      axilClk         => appClk,
-      axilRst         => axiRst,
-      axilReadMaster  => mAxiReadMasters(DDR_MEM_INDEX_C),
-      axilReadSlave   => mAxiReadSlaves(DDR_MEM_INDEX_C),
-      axilWriteMaster => mAxiWriteMasters(DDR_MEM_INDEX_C),
-      axilWriteSlave  => mAxiWriteSlaves(DDR_MEM_INDEX_C),
-      memReady        => open,  -- status bits
-      memError        => open, -- status bits
-      -- DDR Memory Interface
-      axiClk          => sysClk,
-      axiRst          => axiRst,
-      start           => not startDdrTest_n, -- input signal that starts the test (not possible to use axil at the current version)
-      axiWriteMaster  => mAxiWriteMaster,
-      axiWriteSlave   => mAxiWriteSlave,
-      axiReadMaster   => mAxiReadMaster,
-      axiReadSlave    => mAxiReadSlave
-   );
-
-   U_StartDdrTest : entity work.PwrUpRst
-   generic map (
-      DURATION_G => 10000000
-   )
-   port map (
-      clk      => appClk,
-      rstOut   => startDdrTest_n
-   );
 
    ----------------------------------------------------------------------------
    -- Power control module instance
@@ -906,9 +896,9 @@ begin
       sAxilReadMaster   => mAxiReadMasters,
       sAxilReadSlave    => mAxiReadSlaves);
 
-  -------------------------------------------------------------------------
-  -- SPI DACs
-  -------------------------------------------------------------------------
+  --------------------------------------------
+  -- ePix HR analog board SPI DACs          --
+  --------------------------------------------
   U_DACs : entity work.slowDacs 
    generic map (
       TPD_G             => TPD_G,
@@ -929,5 +919,185 @@ begin
       dacCsb         => sDacCsL_i,
       dacClrb        => sDacClrb_i
    );
-      
+
+
+   --------------------------------------------
+   --     Master Register Controllers        --
+   --------------------------------------------   
+   G_PRBS : for i in 0 to NUMBER_OF_LANES_C-1 generate 
+      -------------------------------------------------------
+      -- ASIC AXI stream framers
+      -------------------------------------------------------
+      U_AXI_PRBS : entity work.SsiPrbsTx 
+      generic map(         
+         TPD_G                      => TPD_G,
+         MASTER_AXI_PIPE_STAGES_G   => 1,
+         PRBS_SEED_SIZE_G           => 128,
+         MASTER_AXI_STREAM_CONFIG_G => COMM_AXIS_CONFIG_C)
+      port map(
+         -- Master Port (mAxisClk)
+         mAxisClk        => sysClk,
+         mAxisRst        => axiRst,
+         mAxisMaster     => imAxisMasters(i),
+         mAxisSlave      => mAxisSlaves(i),
+         -- Trigger Signal (locClk domain)
+         locClk          => appClk,
+         locRst          => axiRst,
+         trig            => acqStart,
+         packetLength    => X"FFFFFFFF",
+         forceEofe       => '0',
+         busy            => prbsBusy(i),
+         tDest           => X"00",
+         tId             => X"00",
+         -- Optional: Axi-Lite Register Interface (locClk domain)
+         axilReadMaster  => mAxiReadMasters(PRBS0_AXI_INDEX_C+i),
+         axilReadSlave   => mAxiReadSlaves(PRBS0_AXI_INDEX_C+i),
+         axilWriteMaster => mAxiWriteMasters(PRBS0_AXI_INDEX_C+i),
+         axilWriteSlave  => mAxiWriteSlaves(PRBS0_AXI_INDEX_C+i));
+   end generate;
+
+   -------------------------------------------------------
+   -- AXI stream monitoring                             --
+   -------------------------------------------------------
+   U_AxiSMonitor : entity work.AxiStreamMonAxiL 
+   generic map(
+      TPD_G           => 1 ns,
+      COMMON_CLK_G    => false,  -- true if axisClk = statusClk
+      AXIS_CLK_FREQ_G => 156.25E+6,  -- units of Hz
+      AXIS_NUM_SLOTS_G=> 4,
+      AXIS_CONFIG_G   => COMM_AXIS_CONFIG_C)
+   port map(
+      -- AXIS Stream Interface
+      axisClk         => sysClk,
+      axisRst         => axiRst,
+      axisMaster      => imAxisMasters,
+      axisSlave       => mAxisSlaves,
+      -- AXI lite slave port for register access
+      axilClk         => appClk,  
+      axilRst         => axiRst,   
+      sAxilWriteMaster=> mAxiWriteMasters(AXI_STREAM_MON_INDEX_C),
+      sAxilWriteSlave => mAxiWriteSlaves(AXI_STREAM_MON_INDEX_C),
+      sAxilReadMaster => mAxiReadMasters(AXI_STREAM_MON_INDEX_C),
+      sAxilReadSlave  => mAxiReadSlaves(AXI_STREAM_MON_INDEX_C)
+   );
+
+
+   --------------------------------------------
+   -- DDR memory tester                      --
+   --------------------------------------------
+   -- in order to desable the mem tester, the followint two signasl need to be wired
+   --   mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
+   --   mAxiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
+
+   U_AxiMemTester : entity work.AxiMemTester
+   generic map (
+      TPD_G        => TPD_G,
+      START_ADDR_G => START_ADDR_C,
+      STOP_ADDR_G  => STOP_ADDR_C,
+      AXI_CONFIG_G => DDR_AXI_CONFIG_C)
+   port map (
+      -- AXI-Lite Interface
+      axilClk         => appClk,
+      axilRst         => axiRst,
+      axilReadMaster  => mAxiReadMasters(DDR_MEM_INDEX_C),
+      axilReadSlave   => mAxiReadSlaves(DDR_MEM_INDEX_C),
+      axilWriteMaster => mAxiWriteMasters(DDR_MEM_INDEX_C),
+      axilWriteSlave  => mAxiWriteSlaves(DDR_MEM_INDEX_C),
+      memReady        => open,  -- status bits
+      memError        => open, -- status bits
+      -- DDR Memory Interface
+      axiClk          => sysClk,
+      axiRst          => axiRst,
+      start           => not startDdrTest_n, -- input signal that starts the test 
+      axiWriteMaster  => mAxiWriteMaster,
+      axiWriteSlave   => mAxiWriteSlave,
+      axiReadMaster   => mAxiReadMaster,
+      axiReadSlave    => mAxiReadSlave
+   );
+
+   U_StartDdrTest : entity work.PwrUpRst
+   generic map (
+      DURATION_G => 10000000
+   )
+   port map (
+      clk      => appClk,
+      rstOut   => startDdrTest_n
+   );
+
+   --------------------------------------------
+   -- Equalizer monitoring                   --
+   --------------------------------------------
+   U_EqualizerStatus : entity work.EqualizerModules
+     generic map(
+      TPD_G               => TPD_G,
+      NUN_OF_EQUALIZER_IC => 6)
+   port map(
+      sysClk            => appClk,
+      sysRst            => axiRst,
+      -- IO signals
+      EqualizerLOS      => EqualizerLosIn,
+      EqualizerLOSSynced=> open,
+      -- AXI lite slave port for register access
+      axilClk           => appClk,
+      axilRst           => appRst,
+      sAxilWriteMaster  => mAxiWriteMasters(EQUALIZER_AXI_INDEX_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(EQUALIZER_AXI_INDEX_C),
+      sAxilReadMaster   => mAxiReadMasters(EQUALIZER_AXI_INDEX_C),
+      sAxilReadSlave    => mAxiReadSlaves(EQUALIZER_AXI_INDEX_C)
+   );
+
+   --------------------------------------------
+   -- Programmable power supply              --
+   --------------------------------------------
+   U_ProgPowerSup : entity work.ProgrammablePowerSupply 
+     generic map(
+       TPD_G         => TPD_G
+       )
+   port map(
+      axiClk         => appClk,
+      axiRst         => appRst,
+      -- AXI-Lite Register Interface (axiClk domain)    
+      axiReadMaster  => mAxiReadMasters(PROG_SUPPLY_REG_AXI_ADDR_C),
+      axiReadSlave   => mAxiReadSlaves(PROG_SUPPLY_REG_AXI_ADDR_C),
+      axiWriteMaster => mAxiWriteMasters(PROG_SUPPLY_REG_AXI_ADDR_C),
+      axiWriteSlave  => mAxiWriteSlaves(PROG_SUPPLY_REG_AXI_ADDR_C),
+      -- Static control IO interface
+      enableLDO      => enableLDOOut, 
+      -- DAC interfaces
+      dacSclk        => dacSclkProgSupplyOut,
+      dacDin         => dacDinProgSupplyOut,
+      dacCsb         => dacCsbProgSupplyOut,
+      dacClrb        => dacClrbProgSupplyOut
+   );
+   --------------------------------------------
+   -- Clock Jitter Cleaner                   --
+   --------------------------------------------
+  U_CJC : entity work.ClockJitterCleaner
+   generic map (
+      TPD_G              => TPD_G
+   )
+   port map(
+      sysClk            => appClk,
+      sysRst            => appRst,
+      -- CJC control
+      cjcRst            => cjcRst,
+      cjcDec            => cjcDec,
+      cjcInc            => cjcInc,
+      cjcFrqtbl         => cjcFrqtbl,
+      cjcRate           => cjcRate,
+      cjcBwSel          => cjcBwSel,
+      cjcFrqSel         => cjcFrqSel,
+      cjcSfout          => cjcSfout,
+      -- CJC Status
+      cjcLos            => cjcLos,
+      cjcLol            => cjcLol,
+      -- AXI lite slave port for register access
+      axilClk           => appClk,
+      axilRst           => appRst,
+      sAxilWriteMaster  => mAxiWriteMasters(CLK_JIT_CLR_REG_AXI_ADDR_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(CLK_JIT_CLR_REG_AXI_ADDR_C),
+      sAxilReadMaster   => mAxiReadMasters(CLK_JIT_CLR_REG_AXI_ADDR_C),
+      sAxilReadSlave    => mAxiReadSlaves(CLK_JIT_CLR_REG_AXI_ADDR_C)
+   );  
+   
 end mapping;
