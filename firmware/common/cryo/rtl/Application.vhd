@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-06-22
+-- Last update: 2018-06-26
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -288,7 +288,7 @@ architecture mapping of Application is
    signal cjcFrqtbl         : sl;
    signal cjcRate           : slv(1 downto 0);
    signal cjcBwSel          : slv(1 downto 0);
-   signal cjcFrqSel         : slv(1 downto 0);
+   signal cjcFrqSel         : slv(3 downto 0);
    signal cjcSfout          : slv(1 downto 0);
    signal cjcLos            : sl;
    signal cjcLol            : sl;
@@ -326,12 +326,12 @@ begin
   -- EqualizerLosIn(2 downto 0) <= asicDataP(18 downto 16);
   --
   IOBUF_DATAP_16 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataP(16), T => '1');
-  IOBUF_DATAP_17 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataP(17), T => '1');
-  IOBUF_DATAP_18 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataP(18), T => '1');
+  IOBUF_DATAP_17 : IOBUF port map (O => EqualizerLosIn(1), I => '0', IO => asicDataP(17), T => '1');
+  IOBUF_DATAP_18 : IOBUF port map (O => EqualizerLosIn(2), I => '0', IO => asicDataP(18), T => '1');
   --
-  IOBUF_DATAN_16 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataN(16), T => '1');
-  IOBUF_DATAN_17 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataN(17), T => '1');
-  IOBUF_DATAN_18 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataN(18), T => '1');
+  IOBUF_DATAN_16 : IOBUF port map (O => EqualizerLosIn(3), I => '0', IO => asicDataN(16), T => '1');
+  IOBUF_DATAN_17 : IOBUF port map (O => EqualizerLosIn(4), I => '0', IO => asicDataN(17), T => '1');
+  IOBUF_DATAN_18 : IOBUF port map (O => EqualizerLosIn(5), I => '0', IO => asicDataN(18), T => '1');
 
   -----------------------------------------------------------------------------
   -- Clock Jitter Cleaner IOBUF & MAPPING
@@ -343,7 +343,7 @@ begin
   IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(10), T => '0');
   IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(11), T => '0');
   IOBUF_DATAP_12: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(12), T => '0');
-  IOBUF_DATAP_13: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataN(13), T => '1');
+  IOBUF_DATAP_13: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(13), T => '1');
   --
   IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(6),  T => '0');
   IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(7),  T => '0');
@@ -645,7 +645,7 @@ begin
       -- SACI interface
       saciClk           => iSaciClk,
       saciCmd           => iSaciCmd,
-      saciSelL          => iSaciSelL(0),
+      saciSelL          => iSaciSelL(0 downto 0),
       saciRsp(0)        => asicSaciRsp,
       -- AXI-Lite Register Interface
       axilClk           => appClk,
@@ -1040,10 +1040,10 @@ begin
       -- AXI lite slave port for register access
       axilClk           => appClk,
       axilRst           => appRst,
-      sAxilWriteMaster  => mAxiWriteMasters(EQUALIZER_AXI_INDEX_C),
-      sAxilWriteSlave   => mAxiWriteSlaves(EQUALIZER_AXI_INDEX_C),
-      sAxilReadMaster   => mAxiReadMasters(EQUALIZER_AXI_INDEX_C),
-      sAxilReadSlave    => mAxiReadSlaves(EQUALIZER_AXI_INDEX_C)
+      sAxilWriteMaster  => mAxiWriteMasters(EQUALIZER_REG_AXI_INDEX_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(EQUALIZER_REG_AXI_INDEX_C),
+      sAxilReadMaster   => mAxiReadMasters(EQUALIZER_REG_AXI_INDEX_C),
+      sAxilReadSlave    => mAxiReadSlaves(EQUALIZER_REG_AXI_INDEX_C)
    );
 
    --------------------------------------------
@@ -1057,10 +1057,10 @@ begin
       axiClk         => appClk,
       axiRst         => appRst,
       -- AXI-Lite Register Interface (axiClk domain)    
-      axiReadMaster  => mAxiReadMasters(PROG_SUPPLY_REG_AXI_ADDR_C),
-      axiReadSlave   => mAxiReadSlaves(PROG_SUPPLY_REG_AXI_ADDR_C),
-      axiWriteMaster => mAxiWriteMasters(PROG_SUPPLY_REG_AXI_ADDR_C),
-      axiWriteSlave  => mAxiWriteSlaves(PROG_SUPPLY_REG_AXI_ADDR_C),
+      axiReadMaster  => mAxiReadMasters(PROG_SUPPLY_REG_AXI_INDEX_C),
+      axiReadSlave   => mAxiReadSlaves(PROG_SUPPLY_REG_AXI_INDEX_C),
+      axiWriteMaster => mAxiWriteMasters(PROG_SUPPLY_REG_AXI_INDEX_C),
+      axiWriteSlave  => mAxiWriteSlaves(PROG_SUPPLY_REG_AXI_INDEX_C),
       -- Static control IO interface
       enableLDO      => enableLDOOut, 
       -- DAC interfaces
@@ -1094,10 +1094,10 @@ begin
       -- AXI lite slave port for register access
       axilClk           => appClk,
       axilRst           => appRst,
-      sAxilWriteMaster  => mAxiWriteMasters(CLK_JIT_CLR_REG_AXI_ADDR_C),
-      sAxilWriteSlave   => mAxiWriteSlaves(CLK_JIT_CLR_REG_AXI_ADDR_C),
-      sAxilReadMaster   => mAxiReadMasters(CLK_JIT_CLR_REG_AXI_ADDR_C),
-      sAxilReadSlave    => mAxiReadSlaves(CLK_JIT_CLR_REG_AXI_ADDR_C)
+      sAxilWriteMaster  => mAxiWriteMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(CLK_JIT_CLR_REG_AXI_INDEX_C),
+      sAxilReadMaster   => mAxiReadMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
+      sAxilReadSlave    => mAxiReadSlaves(CLK_JIT_CLR_REG_AXI_INDEX_C)
    );  
    
 end mapping;

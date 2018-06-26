@@ -2,7 +2,7 @@
 -- File       : Cryo ASIC: ClockJitterCleaner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/07/2017
--- Last update: 2018-06-21
+-- Last update: 2018-06-26
 -------------------------------------------------------------------------------
 -- Description: This module enables to set all registers asssociated with the
 -- clock jitter clean part at the cryo adapter board.
@@ -40,7 +40,7 @@ entity ClockJitterCleaner is
       cjcFrqtbl         : out   sl;
       cjcRate           : out   slv(1 downto 0);
       cjcBwSel          : out   slv(1 downto 0);
-      cjcFrqSel         : out   slv(1 downto 0);
+      cjcFrqSel         : out   slv(3 downto 0);
       cjcSfout          : out   slv(1 downto 0);
       -- CJC Status
       cjcLos            : in    sl;
@@ -69,7 +69,7 @@ architecture rtl of ClockJitterCleaner is
       Lol            : sl;
       Rate           : slv(1 downto 0);
       BwSel          : slv(1 downto 0);
-      FrqSel         : slv(1 downto 0);
+      FrqSel         : slv(3 downto 0);
       Sfout          : slv(1 downto 0);
    end record ClockJitterCleanerType;
    
@@ -93,7 +93,7 @@ architecture rtl of ClockJitterCleaner is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      cjc               => CLK_JITTER_CLEANER_INIT_C,
+      cjcReg            => CLK_JITTER_CLEANER_INIT_C,
       sAxilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C
    );
@@ -118,7 +118,7 @@ begin
    -- AXI Lite register logic
    --------------------------------------------------
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, cjcLol, cjcLos) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin

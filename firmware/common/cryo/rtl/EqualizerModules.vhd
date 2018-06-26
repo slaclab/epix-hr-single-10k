@@ -28,8 +28,8 @@ use work.AxiLitePkg.all;
 entity EqualizerModules is
    generic (
       TPD_G               : time             := 1 ns;
-      AXIL_ERR_RESP_G     : slv(1 downto 0)  := AXI_RESP_DECERR_C,
-      NUN_OF_EQUALIZER_IC : natural          := 6;
+      AXIL_ERR_RESP_G     : slv(1 downto 0)  := AXI_RESP_DECERR_C;
+      NUN_OF_EQUALIZER_IC : natural          := 6
    );
    port (
       sysClk            : in  sl;
@@ -81,13 +81,13 @@ begin
    -------------------------------------------------
    -- output wiring
    -------------------------------------------------
-   EqualizerLOSSynced <= EqualizerSync;
+   EqualizerLOSSynced <= EqualizerSync.EqLOS;
    
    --------------------------------------------------
    -- AXI Lite register logic
    --------------------------------------------------
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, EqualizerLOS) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
@@ -97,7 +97,7 @@ begin
       axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
 
       -- update read only registers
-      v.EqStatus.EqualizerLOS <= EqualizerLOS;
+      v.EqStatus.EqLOS := EqualizerLOS;
 
       -- all registers for the present module
       axiSlaveRegisterR(regCon, x"00", 0, r.EqStatus.EqLOS);

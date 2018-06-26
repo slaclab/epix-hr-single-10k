@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-06-22
+-- Last update: 2018-06-25
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ use work.AxiLitePkg.all;
 package AppPkg is
 
 
-   constant NUMBER_OF_ASICS_C : natural := 1   
+   constant NUMBER_OF_ASICS_C : natural := 1;   
    constant NUMBER_OF_LANES_C : natural := 4;   
    
    constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 20;
