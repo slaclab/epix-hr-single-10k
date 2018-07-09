@@ -96,6 +96,6 @@ begin
         adcStreamClk      => adcStreamClk,
         adcStreams        => adcStreams
         );
-  end generate GEN_ULTRASCALE_HR_ADC;
+  end generate GEN_ULTRASCALE_HRADC;
 end rtl;
 

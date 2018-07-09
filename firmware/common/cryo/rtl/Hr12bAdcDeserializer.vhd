@@ -2,7 +2,7 @@
 -- File       : Hr12bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-07-06
+-- Last update: 2018-07-09
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -407,7 +407,7 @@ begin
      --16 bit data assembly logic
      if adcDv4R.DWByte = '1' then
        v.masterDataDW(7 downto 0)  := adcDv4R.masterData_1;
-       v.masterDataDW(15 downto 8) := adcDv4R.masterData;     
+       v.masterDataDW(15 downto 8) := adcDv4R.masterData;
        v.masterDataDW_1 := adcDv4R.masterDataDW; 
      end if;
      
@@ -487,35 +487,67 @@ begin
       v.dataAligned := '0';
     end if;
 
-    case (adcDv7R.gearboxSeq) is
-      when "000" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn(15 downto 2);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "001" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn(13 downto 0);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "010" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn(11 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto 14);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "011" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 9 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto 12);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "100" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 7 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  10);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "101" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 5 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  8);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "110" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 3 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  6);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when "111" =>
-        v.masterPixData   := adcDv7R.pixDataGearboxIn( 1 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  4);
-        v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
-      when others =>
-        v.masterPixData   := (others => '0');
-        v.gearboxCounter  := (others => '0');
-    end case;
+    if BIT_REV_G = '1' then
+      case (adcDv7R.gearboxSeq) is
+        when "000" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn(15 downto 2);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "001" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn(13 downto 0);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "010" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn(11 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto 14);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "011" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 9 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto 12);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "100" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 7 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  10);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "101" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 5 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  8);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "110" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 3 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  6);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "111" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 1 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  4);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when others =>
+          v.masterPixData   := (others => '0');
+          v.gearboxCounter  := (others => '0');
+      end case;
+    else
+      case (adcDv7R.gearboxSeq) is
+        when "000" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn(13 downto 0);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "001" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn(11 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto 14);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "010" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 9 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto 12);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "011" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 7 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  10);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "100" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 5 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  8);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "101" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 3 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  6);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "110" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn( 1 downto 0) & adcDv7R.pixDataGearboxIn_1(15 downto  4);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when "111" =>
+          v.masterPixData   := adcDv7R.pixDataGearboxIn_1(15 downto  2);
+          v.gearboxCounter  := adcDv7R.gearboxCounter + 1;
+        when others =>
+          v.masterPixData   := (others => '0');
+          v.gearboxCounter  := (others => '0');
+      end case;
+    end if;
 
     adcDv7Rin <= v;
          

@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-07-06
+-- Last update: 2018-07-09
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ use work.AxiPkg.all;
 use work.Pgp2bPkg.all;
 use work.SsiPkg.all;
 use work.SsiCmdMasterPkg.all;
-use work.Ad9249Pkg.all;
+use work.HrAdcPkg.all;
 use work.Code8b10bPkg.all;
 
 use work.AppPkg.all;
@@ -133,7 +133,7 @@ architecture cryo_tb_arch of cryo_tb is
   signal axilReadMaster  : AxiLiteReadMasterType;
   signal axilReadSlave   : AxiLiteReadSlaveType;
   signal registerValue   : slv(31 downto 0);    
-  signal adcSerial       : Ad9249SerialGroupType;
+  signal adcSerial       : HrAdcSerialGroupType;
   signal adcStreams      : AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0);
 
 
@@ -162,21 +162,76 @@ begin  --
       readyOut => EncReadyOut,
       dataOut  => EncDataOut);
 
-  U_serializer :  entity work.serializerSim is
+  U_serializer :  entity work.serializerSim 
     generic map(
         g_dwidth => 14 
     )
     port map(
         clk_i     => dClkP,
         reset_n_i => not sysClkRst,
-        data_i    => EncDataOut,
+        data_i    => EncDataOut,        -- "00"&EncDataIn, --
         data_o    => serialDataOut
     );
 
   -- DUT is the deserializer using iserdes3 for ultrascale devices
   -- DUT enables data synchronization based on a channel data pattern or on frame clock.
+
+  sDataP <=     serialDataOut;
+  sDataN <= not serialDataOut;
+
+  adcSerial.fClkP <= fClkP;
+  adcSerial.fClkN <= fClkN;
+  adcSerial.dClkP <= dClkP;
+  adcSerial.dClkN <= dClkN;
+
+  adcSerial.chP(0) <= sDataP;
+  adcSerial.chN(0) <= sDataN;
+  adcSerial.chP(1) <= sDataP;
+  adcSerial.chN(1) <= sDataN;
+  adcSerial.chP(2) <= sDataP;
+  adcSerial.chN(2) <= sDataN;
+  adcSerial.chP(3) <= sDataP;
+  adcSerial.chN(3) <= sDataN;
+  adcSerial.chP(4) <= sDataP;
+  adcSerial.chN(4) <= sDataN;
+  adcSerial.chP(5) <= sDataP;
+  adcSerial.chN(5) <= sDataN;
+  adcSerial.chP(6) <= sDataP;
+  adcSerial.chN(6) <= sDataN;
+  adcSerial.chP(7) <= sDataP;
+  adcSerial.chN(7) <= sDataN;
+
+  DUT0: entity work.HrAdcReadoutGroup
+      generic map (
+        TPD_G             => TPD_G,
+        NUM_CHANNELS_G    => 8,
+        IODELAY_GROUP_G   => "DEFAULT_GROUP",
+        XIL_DEVICE_G      => "ULTRASCALE",
+        DEFAULT_DELAY_G   => (others => '0'),
+        ADC_INVERT_CH_G   => "00000000")
+      port map (
+        -- Master system clock, 125Mhz
+        axilClk => sysClk,
+        axilRst => sysClkRst,
+
+        -- Reset for adc deserializer
+        adcClkRst => sysClkRst,
+
+        -- Axi Interface
+        axilWriteMaster => axilWriteMaster,
+        axilWriteSlave  => axilWriteSlave,
+        axilReadMaster  => axilReadMaster,
+        axilReadSlave   => axilReadSlave,
+ 
+        -- Serial Data from ADC
+        adcSerial => adcSerial,
+
+        -- Deserialized ADC Data
+        adcStreamClk => sysClk,
+        adcStreams   => adcStreams      
+        );
   
-  U_decoder : entity work.SspDecoder12b14b 
+  U_decoder_deserdata : entity work.SspDecoder12b14b 
     generic map(
       TPD_G          => TPD_G,
       RST_POLARITY_G => '1',
@@ -184,8 +239,8 @@ begin  --
    port map(
       clk       => fClkP,
       rst       => sysClkRst,
-      validIn   => EncValidOut,
-      dataIn    => EncDataOut,
+      validIn   => adcStreams(0).tValid,
+      dataIn    => adcStreams(0).tData(13 downto 0),
       validOut  => DecValidOut,
       dataOut   => DecDataOut,
       valid     => DecValid,
@@ -194,6 +249,26 @@ begin  --
       eofe      => DecEofe,
       codeError => DecCodeError,
       dispError => DecDispError);
+
+-- use the code below to bypass serializer/deserializer
+--  U_decoder : entity work.SspDecoder12b14b 
+--    generic map(
+--      TPD_G          => TPD_G,
+--      RST_POLARITY_G => '1',
+--      RST_ASYNC_G    => false)
+--   port map(
+--      clk       => fClkP,
+--      rst       => sysClkRst,
+--      validIn   => EncValidOut,
+--      dataIn    => EncDataOut,
+--      validOut  => DecValidOut,
+--      dataOut   => DecDataOut,
+--      valid     => DecValid,
+--      sof       => DecSof,
+--      eof       => DecEof,
+--      eofe      => DecEofe,
+--      codeError => DecCodeError,
+--      dispError => DecDispError);
   
   
   -- clock generation
@@ -253,14 +328,14 @@ begin  --
     -- change to axil register command
     wait until sysClk = '0';
     --loadDelay <= '0';
-    --axiLiteBusSimRead (sysClk, axilReadMaster, axilReadSlave, x"00000020", registerData, true);
+    axiLiteBusSimRead (sysClk, axilReadMaster, axilReadSlave, x"00000020", registerData, true);
     registerValue <= registerData;
     wait for 1 us;
     
-    --axiLiteBusSimWrite (sysClk, axilWriteMaster, axilWriteSlave, x"00000020", x"00000F55", true);
+    axiLiteBusSimWrite (sysClk, axilWriteMaster, axilWriteSlave, x"00000020", x"00000000", true);
     wait for 10 us;    
     
-    --axiLiteBusSimRead (sysClk, axilReadMaster, axilReadSlave, x"00000020", registerData, true);
+    axiLiteBusSimRead (sysClk, axilReadMaster, axilReadSlave, x"00000020", registerData, true);
     registerValue <= registerData;
     wait for 1 us;
 
