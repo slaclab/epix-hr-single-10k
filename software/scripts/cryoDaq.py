@@ -97,19 +97,25 @@ elif ( args.type == 'kcu1500' ):
     #pgpL1Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(0*32)+0) # Data (when using all four lanes it should be swapped back with L0)
     pgpL2Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(2*32)+0) # Data
     pgpL3Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(3*32)+0) # Data
+elif ( args.type == 'dataFile' ):
+    print("Bypassing hardware.")
+
 else:
     raise ValueError("Invalid type (%s)" % (args.type) )
 
 # Add data stream to file as channel 1 File writer
 dataWriter = pyrogue.utilities.fileio.StreamWriter(name='dataWriter')
-pyrogue.streamConnect(pgpL2Vc0, dataWriter.getChannel(0x1))
+if ( args.type != 'dataFile' ):
+    pyrogue.streamConnect(pgpL2Vc0, dataWriter.getChannel(0x1))
 
 cmd = rogue.protocols.srp.Cmd()
-pyrogue.streamConnect(cmd, pgpL0Vc0)
+if ( args.type != 'dataFile' ):
+    pyrogue.streamConnect(cmd, pgpL0Vc0)
 
 # Create and Connect SRP to VC1 to send commands
 srp = rogue.protocols.srp.SrpV3()
-pyrogue.streamConnectBiDir(pgpL0Vc1,srp)
+if ( args.type != 'dataFile' ):
+    pyrogue.streamConnectBiDir(pgpL0Vc1,srp)
 
 #############################################
 # Microblaze console printout
@@ -200,7 +206,10 @@ if (args.verbose): pyrogue.streamTap(pgpL3Vc0, dbgData)
 appTop = PyQt4.QtGui.QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='cryoAsicGui')
 cryoAsicBoard = Board(guiTop, cmd, dataWriter, srp)
-cryoAsicBoard.start(pollEn=True, pyroGroup=None)
+if ( args.type == 'dataFile' ):
+    cryoAsicBoard.start(pollEn=False, pyroGroup=None)
+else:
+    cryoAsicBoard.start(pollEn=True, pyroGroup=None)
 guiTop.addTree(cryoAsicBoard)
 guiTop.resize(800,800)
 
@@ -209,7 +218,8 @@ onlineViewer = vi.Window(cameraType='HrAdc32x32')
 onlineViewer.eventReader.frameIndex = 0
 onlineViewer.setReadDelay(0)
 #pyrogue.streamTap(pgpL0Vc0, onlineViewer.eventReader)
-pyrogue.streamTap(pgpL0Vc2, onlineViewer.eventReaderScope)# PseudoScope
+if ( args.type != 'dataFile' ):
+    pyrogue.streamTap(pgpL0Vc2, onlineViewer.eventReaderScope)# PseudoScope
 #pyrogue.streamTap(pgpL0Vc3, onlineViewer.eventReaderMonitoring) # Slow Monitoring
 
 # Create GUI
