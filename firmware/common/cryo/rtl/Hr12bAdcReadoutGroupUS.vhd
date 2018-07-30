@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-07-06
+-- Last update: 2018-07-10
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -393,7 +393,8 @@ begin
         DEFAULT_DELAY_G   => (others => '0'),
         FRAME_PATTERN_G   => FRAME_PATTERN_C,
         ADC_INVERT_CH_G   => '1',
-        BIT_REV_G         => '0')
+        BIT_REV_G         => '0',
+        MSB_LSB_G         => '0')
       port map (
         adcClkRst     => adcBitRst,
         idelayCtrlRdy => axilR.idelayCtrlRdy,
@@ -425,7 +426,8 @@ begin
         DEFAULT_DELAY_G   => (others => '0'),
         FRAME_PATTERN_G   => FRAME_PATTERN_C,
         ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
-        BIT_REV_G         => '0')
+        BIT_REV_G         => '0',
+        MSB_LSB_G         => '0')
       port map (
         adcClkRst     => adcBitRst,
         idelayCtrlRdy => axilR.idelayCtrlRdy,

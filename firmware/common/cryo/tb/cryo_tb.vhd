@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-07-09
+-- Last update: 2018-07-30
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ begin  --
         adcSerial => adcSerial,
 
         -- Deserialized ADC Data
-        adcStreamClk => sysClk,
+        adcStreamClk => fClkP,--sysClk,
         adcStreams   => adcStreams      
         );
   

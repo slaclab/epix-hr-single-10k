@@ -2,7 +2,7 @@
 -- File       : Hr12bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-07-09
+-- Last update: 2018-07-10
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -43,7 +43,10 @@ entity Hr12bAdcDeserializerUS is
       DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
       FRAME_PATTERN_G   : slv(13 downto 0)     := "11111110000000";
       ADC_INVERT_CH_G   : sl                   := '0';
-      BIT_REV_G         : sl                   := '0');
+      BIT_REV_G         : sl                   := '0';
+      MSB_LSB_G         : sl                   := '0' -- '0' for "MSB_FIRST"
+                                                      -- and '1' for "LSB_FIRST"
+                                                      );
    port (
       -- Reset for adc deserializer
       adcClkRst : in sl;
@@ -487,7 +490,7 @@ begin
       v.dataAligned := '0';
     end if;
 
-    if BIT_REV_G = '1' then
+    if MSB_LSB_G = '1' then
       case (adcDv7R.gearboxSeq) is
         when "000" =>
           v.masterPixData   := adcDv7R.pixDataGearboxIn(15 downto 2);
