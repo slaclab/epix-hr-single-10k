@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-07-30
+-- Last update: 2018-08-06
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -62,6 +62,7 @@ architecture cryo_tb_arch of cryo_tb is
   constant TPD_G : time := 1 ns;
   constant NUM_CHANNELS_G : integer := 8;
   constant IDLE_PATTERN_C : slv(11 downto 0) := x"03F";
+  constant STREAMS_PER_ASIC_C : natural := 2;
 
   --file definitions
   constant DATA_BITS   : natural := 12;
@@ -88,7 +89,8 @@ architecture cryo_tb_arch of cryo_tb is
   end function;
 
   -- waveform signal
-  signal ramWaveform    : ram_t    := readWaveFile(FILENAME_C);
+  signal ramWaveform      : ram_t    := readWaveFile(FILENAME_C);
+  signal ramTestWaveform  : ram_t    := readWaveFile(FILENAME_C);
   
   -- component ports
   signal sysClkRst : std_logic := '1';
@@ -128,10 +130,14 @@ architecture cryo_tb_arch of cryo_tb is
 
 
   -- axilite
-  signal axilWriteMaster : AxiLiteWriteMasterType;
-  signal axilWriteSlave  : AxiLiteWriteSlaveType;
-  signal axilReadMaster  : AxiLiteReadMasterType;
-  signal axilReadSlave   : AxiLiteReadSlaveType;
+  -- 0 deserializer
+  -- 1 framers
+  signal sAxilReadMaster  : AxiLiteReadMasterArray(1 downto 0);
+  signal sAxilReadSlave   : AxiLiteReadSlaveArray(1 downto 0);
+  signal sAxilWriteMaster : AxiLiteWriteMasterArray(1 downto 0);
+  signal sAxilWriteSlave  : AxiLiteWriteSlaveArray(1 downto 0);
+  
+  --
   signal registerValue   : slv(31 downto 0);    
   signal adcSerial       : HrAdcSerialGroupType;
   signal adcStreams      : AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0);
@@ -139,6 +145,18 @@ architecture cryo_tb_arch of cryo_tb is
 
   -- clock
   signal sysClk    : std_logic := '1';
+
+  -- automatic test
+  signal testOk : sl := '0';
+
+  -- framer test
+  signal acqNo             : slv(31 downto 0) := (others=>'0');
+
+  -- axistream
+  -- AXI Stream, one per QSFP lane (sysClk domain)
+  signal mAxisMasters     : AxiStreamMasterArray(0 downto 0);
+  signal mAxisSlaves      : AxiStreamSlaveArray(0 downto 0) := (others=>AXI_STREAM_SLAVE_FORCE_C); --
+                                                                      --AXI_STREAM_SLAVE_INIT_C
 
 
 begin  --
@@ -218,10 +236,10 @@ begin  --
         adcClkRst => sysClkRst,
 
         -- Axi Interface
-        axilWriteMaster => axilWriteMaster,
-        axilWriteSlave  => axilWriteSlave,
-        axilReadMaster  => axilReadMaster,
-        axilReadSlave   => axilReadSlave,
+        axilWriteMaster => sAxilWriteMaster(0),
+        axilWriteSlave  => sAxilWriteSlave(0),
+        axilReadMaster  => sAxilReadMaster(0),
+        axilReadSlave   => sAxilReadSlave(0),
  
         -- Serial Data from ADC
         adcSerial => adcSerial,
@@ -230,7 +248,9 @@ begin  --
         adcStreamClk => fClkP,--sysClk,
         adcStreams   => adcStreams      
         );
-  
+-------------------------------------------------------------------------------
+-- decodes a single stream
+-------------------------------------------------------------------------------  
   U_decoder_deserdata : entity work.SspDecoder12b14b 
     generic map(
       TPD_G          => TPD_G,
@@ -249,8 +269,9 @@ begin  --
       eofe      => DecEofe,
       codeError => DecCodeError,
       dispError => DecDispError);
-
+-------------------------------------------------------------------------------
 -- use the code below to bypass serializer/deserializer
+-------------------------------------------------------------------------------
 --  U_decoder : entity work.SspDecoder12b14b 
 --    generic map(
 --      TPD_G          => TPD_G,
@@ -270,6 +291,49 @@ begin  --
 --      codeError => DecCodeError,
 --      dispError => DecDispError);
   
+-------------------------------------------------------------------------------
+-- generate stream frames
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+  U_Framers : entity work.DigitalAsicStreamAxi 
+   generic map(
+      TPD_G           	  => TPD_G,
+      VC_NO_G             => "0000",
+      LANE_NO_G           => "0000",
+      ASIC_NO_G           => "000",
+      STREAMS_PER_ASIC_G  => STREAMS_PER_ASIC_C,
+      ASIC_DATA_G         => (32*32)-1,
+      ASIC_WIDTH_G        => 32,
+      ASIC_DATA_PADDING_G => "LSB",
+      AXIL_ERR_RESP_G     => AXI_RESP_DECERR_C
+   )
+   port map( 
+      -- Deserialized data port
+      rxClk             => fClkP,
+      rxRst             => sysClkRst,
+      adcStreams        => adcStreams(1 downto 0),
+      
+      -- AXI lite slave port for register access
+      axilClk           => sysClk,
+      axilRst           => sysClkRst,
+      sAxilWriteMaster  => sAxilWriteMaster(1),
+      sAxilWriteSlave   => sAxilWriteSlave(1),
+      sAxilReadMaster   => sAxilReadMaster(1),
+      sAxilReadSlave    => sAxilReadSlave(1),
+      
+      -- AXI data stream output
+      axisClk           => sysClk,
+      axisRst           => sysClkRst,
+      mAxisMaster       => mAxisMasters(0),
+      mAxisSlave        => mAxisSlaves(0),
+      
+      -- acquisition number input to the header
+      acqNo             => acqNo,
+      
+      -- optional readout trigger for test mode
+      testTrig          => '0',
+      errInhibit        => '0'      
+   );
   
   -- clock generation
   sysClk <= not sysClk after 4 ns;
@@ -294,6 +358,24 @@ begin  --
       EncDataIn <= IDLE_PATTERN_C;
     end if;
   end process;
+
+  AutomaticTestCheck_Proc: process
+    variable dataIndex : integer := 0;
+  begin
+    wait until fClkP = '1';
+    if DecValidOut = '1' then
+      if DecDataOut = ramTestWaveform(dataIndex) then
+        testOk <= '1';
+        dataIndex := dataIndex + 1;
+        if dataIndex = DEPTH_C then
+          dataIndex := 0;
+        end if;
+      else
+        testOk <= '0';
+      end if;
+    end if;
+  end process;
+
   
   -- waveform generation
   WaveGen_Proc: process
@@ -320,6 +402,12 @@ begin  --
     wait for 10 us;
     EncValidIn <= '1';                  -- starts sending realData
 
+    wait for 200 us;
+    EncValidIn <= '0';                  -- starts sending realData
+
+    wait for 10 us;
+    EncValidIn <= '1';                  -- starts sending realData
+
     ---------------------------------------------------------------------------
     -- load axilite registers
     ---------------------------------------------------------------------------
@@ -327,15 +415,15 @@ begin  --
     wait until sysClk = '1';
     -- change to axil register command
     wait until sysClk = '0';
-    --loadDelay <= '0';
-    axiLiteBusSimRead (sysClk, axilReadMaster, axilReadSlave, x"00000020", registerData, true);
+    
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(0), sAxilReadSlave(0), x"00000020", registerData, true);
     registerValue <= registerData;
     wait for 1 us;
     
-    axiLiteBusSimWrite (sysClk, axilWriteMaster, axilWriteSlave, x"00000020", x"00000000", true);
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(0), sAxilWriteSlave(0), x"00000020", x"00000000", true);
     wait for 10 us;    
     
-    axiLiteBusSimRead (sysClk, axilReadMaster, axilReadSlave, x"00000020", registerData, true);
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(0), sAxilReadSlave(0), x"00000020", registerData, true);
     registerValue <= registerData;
     wait for 1 us;
 
