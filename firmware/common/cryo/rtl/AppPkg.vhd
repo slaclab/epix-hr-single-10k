@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-06-25
+-- Last update: 2018-08-06
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -27,29 +27,33 @@ package AppPkg is
    constant NUMBER_OF_ASICS_C : natural := 1;   
    constant NUMBER_OF_LANES_C : natural := 4;   
    
-   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 20;
+   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 22;
    constant HR_FD_NUM_AXI_SLAVE_SLOTS_C   : natural := 1;
    
-   constant PLLREGS_AXI_INDEX_C           : natural := 0;
-   constant TRIG_REG_AXI_INDEX_C          : natural := 1;
-   constant PRBS0_AXI_INDEX_C             : natural := 2;
-   constant PRBS1_AXI_INDEX_C             : natural := 3;
-   constant PRBS2_AXI_INDEX_C             : natural := 4;
-   constant PRBS3_AXI_INDEX_C             : natural := 5;
-   constant AXI_STREAM_MON_INDEX_C        : natural := 6;
-   constant DDR_MEM_INDEX_C               : natural := 7;
-   constant SACIREGS_AXI_INDEX_C          : natural := 8;
-   constant POWER_MODULE_INDEX_C          : natural := 9;
-   constant DAC8812_REG_AXI_INDEX_C       : natural := 10;
-   constant DACWFMEM_REG_AXI_INDEX_C      : natural := 11;
-   constant DAC_MODULE_INDEX_C            : natural := 12;
-   constant SCOPE_REG_AXI_INDEX_C         : natural := 13;
-   constant ADC_RD_AXI_INDEX_C            : natural := 14;   
-   constant ADC_CFG_AXI_INDEX_C           : natural := 15;   
-   constant MONADC_REG_AXI_INDEX_C        : natural := 16;
-   constant EQUALIZER_REG_AXI_INDEX_C     : natural := 17;
-   constant PROG_SUPPLY_REG_AXI_INDEX_C   : natural := 18;
-   constant CLK_JIT_CLR_REG_AXI_INDEX_C   : natural := 19;
+   constant PLLREGS_AXI_INDEX_C            : natural := 0;
+   constant TRIG_REG_AXI_INDEX_C           : natural := 1;
+   constant PRBS0_AXI_INDEX_C              : natural := 2;
+   constant PRBS1_AXI_INDEX_C              : natural := 3;
+   constant PRBS2_AXI_INDEX_C              : natural := 4;
+   constant PRBS3_AXI_INDEX_C              : natural := 5;
+   constant AXI_STREAM_MON_INDEX_C         : natural := 6;
+   constant DDR_MEM_INDEX_C                : natural := 7;
+   constant SACIREGS_AXI_INDEX_C           : natural := 8;
+   constant POWER_MODULE_INDEX_C           : natural := 9;
+   constant DAC8812_REG_AXI_INDEX_C        : natural := 10;
+   constant DACWFMEM_REG_AXI_INDEX_C       : natural := 11;
+   constant DAC_MODULE_INDEX_C             : natural := 12;
+   constant SCOPE_REG_AXI_INDEX_C          : natural := 13;
+   constant ADC_RD_AXI_INDEX_C             : natural := 14;   
+   constant ADC_CFG_AXI_INDEX_C            : natural := 15;   
+   constant MONADC_REG_AXI_INDEX_C         : natural := 16;
+   constant EQUALIZER_REG_AXI_INDEX_C      : natural := 17;
+   constant PROG_SUPPLY_REG_AXI_INDEX_C    : natural := 18;
+   constant CLK_JIT_CLR_REG_AXI_INDEX_C    : natural := 19;
+   constant CRYO_ASIC0_READOUT_AXI_INDEX_C : natural := 20;
+   --constant CRYO_ASIC0_READOUT_AXI_INDEX_C : natural := 20;
+   constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 21;
+   --constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 21;
    
    constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"00000000";--0
    constant TRIG_REG_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"01000000";--1
@@ -71,6 +75,10 @@ package AppPkg is
    constant EQUALIZER_REG_AXI_ADDR_C        : slv(31 downto 0) := X"09000000";--17
    constant PROG_SUPPLY_REG_AXI_ADDR_C      : slv(31 downto 0) := X"09100000";--18
    constant CLK_JIT_CLR_REG_AXI_ADDR_C      : slv(31 downto 0) := X"09200000";--19
+   constant CRYO_ASIC0_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"0A000000";--20
+   --constant CRYO_ASIC1_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"0A100000";--20
+   constant DIG_ASIC0_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"0B000000";--21
+   --constant DIG_ASIC1_STREAM_AXI_ADDR_C      : slv(31 downto 0) := X"0B000000";--21
    
    
    constant HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0) := (
@@ -152,6 +160,14 @@ package AppPkg is
          connectivity         => x"FFFF"),
       CLK_JIT_CLR_REG_AXI_INDEX_C        => ( 
          baseAddr             => CLK_JIT_CLR_REG_AXI_ADDR_C,
+         addrBits             => 20,
+         connectivity         => x"FFFF"),
+      CRYO_ASIC0_READOUT_AXI_INDEX_C     => ( 
+         baseAddr             => CRYO_ASIC0_READOUT_AXI_ADDR_C,
+         addrBits             => 20,
+         connectivity         => x"FFFF"),
+      DIG_ASIC0_STREAM_AXI_INDEX_C       => ( 
+         baseAddr             => DIG_ASIC0_STREAM_AXI_ADDR_C,
          addrBits             => 20,
          connectivity         => x"FFFF")
    );

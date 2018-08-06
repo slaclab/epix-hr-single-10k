@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-06-26
+-- Last update: 2018-08-06
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ use work.SsiPkg.all;
 use work.SsiCmdMasterPkg.all;
 use work.Ad9249Pkg.all;
 use work.Code8b10bPkg.all;
+use work.HrAdcPkg.all;
 
 use work.AppPkg.all;
 
@@ -188,8 +189,12 @@ architecture mapping of Application is
    signal mAxiReadMasters  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
 
-   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
-   signal imAxisMasters           : AxiStreamMasterArray(3 downto 0);
+   --constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+   signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
+   signal mAxisMastersPRBS : AxiStreamMasterArray(3 downto 0);
+   signal mAxisSlavesPRBS  : AxiStreamSlaveArray(3 downto 0);
+   signal mAxisMastersASIC : AxiStreamMasterArray(3 downto 0);
+   signal mAxisSlavesASIC  : AxiStreamSlaveArray(3 downto 0);
 
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
@@ -218,6 +223,7 @@ architecture mapping of Application is
    signal iSaciSelL            : slv(3 downto 0);
    signal iSaciClk             : sl;
    signal iSaciCmd             : sl;
+   signal acqNo                : slv(31 downto 0) := (others=> '0');
    
    signal adcClk               : sl;
    signal errInhibit           : sl;
@@ -292,6 +298,12 @@ architecture mapping of Application is
    signal cjcSfout          : slv(1 downto 0);
    signal cjcLos            : sl;
    signal cjcLol            : sl;
+
+   -- ASIC signals
+   constant STREAMS_PER_ASIC_C : natural := 2;
+   --
+   signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
+   signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);   
 
    attribute keep of appClk            : signal is "true";
    attribute keep of startDdrTest_n    : signal is "true";
@@ -922,7 +934,7 @@ begin
 
 
    --------------------------------------------
-   --     Master Register Controllers        --
+   --     PRBS LOOP                          --
    --------------------------------------------   
    G_PRBS : for i in 0 to NUMBER_OF_LANES_C-1 generate 
       -------------------------------------------------------
@@ -938,8 +950,8 @@ begin
          -- Master Port (mAxisClk)
          mAxisClk        => sysClk,
          mAxisRst        => axiRst,
-         mAxisMaster     => imAxisMasters(i),
-         mAxisSlave      => mAxisSlaves(i),
+         mAxisMaster     => mAxisMastersPRBS(i),
+         mAxisSlave      => mAxisSlavesPRBS(i),
          -- Trigger Signal (locClk domain)
          locClk          => appClk,
          locRst          => axiRst,
@@ -954,7 +966,128 @@ begin
          axilReadSlave   => mAxiReadSlaves(PRBS0_AXI_INDEX_C+i),
          axilWriteMaster => mAxiWriteMasters(PRBS0_AXI_INDEX_C+i),
          axilWriteSlave  => mAxiWriteSlaves(PRBS0_AXI_INDEX_C+i));
+      
+      U_STREAM_MUX : entity work.AxiStreamMux 
+        generic map(
+          TPD_G                => TPD_G,
+          NUM_SLAVES_G         => 2,
+          PIPE_STAGES_G        => 0,
+          TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
+          ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
+          ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
+          ILEAVE_REARB_G       => 0)  -- Max number of transactions between arbitrations, 0 = unlimited
+        port map(
+          -- Clock and reset
+          axisClk      => sysClk,
+          axisRst      => sysRst,
+          -- Slaves
+          sAxisMasters(0) => mAxisMastersPRBS(i),
+          sAxisSlaves(0)  => mAxisSlavesPRBS(i),
+          sAxisMasters(1) => mAxisMastersASIC(i),
+          sAxisSlaves(1)  => mAxisSlavesASIC(i),
+          -- Master
+          mAxisMaster  => imAxisMasters(i),
+          mAxisSlave   => mAxisSlaves(i));
    end generate;
+
+
+   adcSerial(0).fClkP  <= asicDataP(2);
+   adcSerial(0).fClkN  <= asicDataN(2);
+   adcSerial(0).dClkP  <= asicDataP(1);
+   adcSerial(0).dClkN  <= asicDataN(1);
+   adcSerial(0).chP(0) <= asicDataP(0);
+   adcSerial(0).chN(0) <= asicDataN(0);
+   adcSerial(0).chP(1) <= asicDataP(3);
+   adcSerial(0).chN(1) <= asicDataN(3);
+   --
+   --adcSerial(1).fClkP  <= asicDataP(5);
+   --adcSerial(1).fClkN  <= asicDataN(5);
+   --adcSerial(1).dClkP  <= asicDataP(4);
+   --adcSerial(1).dClkN  <= asicDataN(4);
+   --adcSerial(1).chP(0) <= asicDataP(3);
+   --adcSerial(1).chN(0) <= asicDataN(3);
+   
+   --------------------------------------------
+   --     ASICS LOOP                         --
+   --------------------------------------------   
+   G_ASICS : for i in 0 to NUMBER_OF_ASICS_C-1 generate 
+     -------------------------------------------------------
+     -- ASIC AXI stream framers
+     -------------------------------------------------------
+     U_AXI_ASIC : entity work.HrAdcReadoutGroup
+      generic map (
+        TPD_G             => TPD_G,
+        NUM_CHANNELS_G    => STREAMS_PER_ASIC_C,
+        IODELAY_GROUP_G   => "DEFAULT_GROUP",
+        XIL_DEVICE_G      => "ULTRASCALE",
+        DEFAULT_DELAY_G   => (others => '0'),
+        ADC_INVERT_CH_G   => "00000000")
+      port map (
+        -- Master system clock, 125Mhz
+        axilClk => appClk,
+        axilRst => appRst,
+
+        -- Reset for adc deserializer
+        adcClkRst => sysRst,
+
+        -- Axi Interface
+        axilWriteMaster => mAxiWriteMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
+        axilWriteSlave  => mAxiWriteSlaves(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
+        axilReadMaster  => mAxiReadMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
+        axilReadSlave   => mAxiReadSlaves(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
+ 
+        -- Serial Data from ADC
+        adcSerial => adcSerial(i),
+
+        -- Deserialized ADC Data
+        adcStreamClk => asicRdClk,--fClkP,--sysClk,
+        adcStreams   => asicStreams      
+        );
+
+     -------------------------------------------------------------------------------
+     -- generate stream frames
+     -------------------------------------------------------------------------------
+     U_Framers : entity work.DigitalAsicStreamAxi 
+       generic map(
+         TPD_G               => TPD_G,
+         VC_NO_G             => "0000",
+         LANE_NO_G           => toSlv(i, 4),
+         ASIC_NO_G           => toSlv(i, 3),
+         STREAMS_PER_ASIC_G  => STREAMS_PER_ASIC_C,
+         ASIC_DATA_G         => (32*32)-1,
+         ASIC_WIDTH_G        => 32,
+         ASIC_DATA_PADDING_G => "LSB",
+         AXIL_ERR_RESP_G     => AXI_RESP_DECERR_C
+         )
+       port map( 
+         -- Deserialized data port
+         rxClk             => asicRdClk, --fClkP,    --use frame clock
+         rxRst             => sysRst,
+         adcStreams        => asicStreams(STREAMS_PER_ASIC_C downto 0),
+      
+         -- AXI lite slave port for register access
+         axilClk           => appClk,
+         axilRst           => appRst,
+         sAxilWriteMaster  => mAxiWriteMasters(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
+         sAxilWriteSlave   => mAxiWriteSlaves(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
+         sAxilReadMaster   => mAxiReadMasters(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
+         sAxilReadSlave    => mAxiReadSlaves(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
+      
+         -- AXI data stream output
+         axisClk           => sysClk,
+         axisRst           => sysRst,
+         mAxisMaster       => mAxisMastersASIC(i),
+         mAxisSlave        => mAxisSlavesASIC(i),
+      
+         -- acquisition number input to the header
+         acqNo             => acqNo,
+      
+         -- optional readout trigger for test mode
+         testTrig          => acqStart,
+         errInhibit        => '0'      
+         );       
+   end generate;
+
 
    -------------------------------------------------------
    -- AXI stream monitoring                             --
@@ -1098,6 +1231,6 @@ begin
       sAxilWriteSlave   => mAxiWriteSlaves(CLK_JIT_CLR_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
       sAxilReadSlave    => mAxiReadSlaves(CLK_JIT_CLR_REG_AXI_INDEX_C)
-   );  
-   
+   );
+  
 end mapping;
