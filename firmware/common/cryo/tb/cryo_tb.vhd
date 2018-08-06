@@ -63,6 +63,9 @@ architecture cryo_tb_arch of cryo_tb is
   constant NUM_CHANNELS_G : integer := 8;
   constant IDLE_PATTERN_C : slv(11 downto 0) := x"03F";
   constant STREAMS_PER_ASIC_C : natural := 2;
+  -- Axilite constants
+  constant READOUT_GROUP_ID   : integer := 0;
+  constant AXISTREAM_GROUP_ID : integer := 1;
 
   --file definitions
   constant DATA_BITS   : natural := 12;
@@ -148,6 +151,9 @@ architecture cryo_tb_arch of cryo_tb is
 
   -- automatic test
   signal testOk : sl := '0';
+
+  -- test trigger
+  signal testTrig          : sl := '0';
 
   -- framer test
   signal acqNo             : slv(31 downto 0) := (others=>'0');
@@ -236,10 +242,10 @@ begin  --
         adcClkRst => sysClkRst,
 
         -- Axi Interface
-        axilWriteMaster => sAxilWriteMaster(0),
-        axilWriteSlave  => sAxilWriteSlave(0),
-        axilReadMaster  => sAxilReadMaster(0),
-        axilReadSlave   => sAxilReadSlave(0),
+        axilWriteMaster => sAxilWriteMaster(READOUT_GROUP_ID),
+        axilWriteSlave  => sAxilWriteSlave(READOUT_GROUP_ID),
+        axilReadMaster  => sAxilReadMaster(READOUT_GROUP_ID),
+        axilReadSlave   => sAxilReadSlave(READOUT_GROUP_ID),
  
         -- Serial Data from ADC
         adcSerial => adcSerial,
@@ -316,10 +322,10 @@ begin  --
       -- AXI lite slave port for register access
       axilClk           => sysClk,
       axilRst           => sysClkRst,
-      sAxilWriteMaster  => sAxilWriteMaster(1),
-      sAxilWriteSlave   => sAxilWriteSlave(1),
-      sAxilReadMaster   => sAxilReadMaster(1),
-      sAxilReadSlave    => sAxilReadSlave(1),
+      sAxilWriteMaster  => sAxilWriteMaster(AXISTREAM_GROUP_ID),
+      sAxilWriteSlave   => sAxilWriteSlave(AXISTREAM_GROUP_ID),
+      sAxilReadMaster   => sAxilReadMaster(AXISTREAM_GROUP_ID),
+      sAxilReadSlave    => sAxilReadSlave(AXISTREAM_GROUP_ID),
       
       -- AXI data stream output
       axisClk           => sysClk,
@@ -331,7 +337,7 @@ begin  --
       acqNo             => acqNo,
       
       -- optional readout trigger for test mode
-      testTrig          => '0',
+      testTrig          => testTrig,
       errInhibit        => '0'      
    );
   
@@ -388,6 +394,7 @@ begin  --
     wait until sysClk = '1';
     sysClkRst  <= '1';
     EncValidIn <= '0';
+    testTrig <= '0';
 
     wait for 1 us;
     sysClkRst <= '0';
@@ -408,6 +415,8 @@ begin  --
     wait for 10 us;
     EncValidIn <= '1';                  -- starts sending realData
 
+    wait for 100 us;
+
     ---------------------------------------------------------------------------
     -- load axilite registers
     ---------------------------------------------------------------------------
@@ -415,17 +424,72 @@ begin  --
     wait until sysClk = '1';
     -- change to axil register command
     wait until sysClk = '0';
-    
-    axiLiteBusSimRead (sysClk, sAxilReadMaster(0), sAxilReadSlave(0), x"00000020", registerData, true);
+
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(READOUT_GROUP_ID), sAxilReadSlave(READOUT_GROUP_ID), x"00000020", registerData, true);
     registerValue <= registerData;
     wait for 1 us;
     
-    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(0), sAxilWriteSlave(0), x"00000020", x"00000000", true);
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(READOUT_GROUP_ID), sAxilWriteSlave(READOUT_GROUP_ID), x"00000020", x"00000000", true);
     wait for 10 us;    
     
-    axiLiteBusSimRead (sysClk, sAxilReadMaster(0), sAxilReadSlave(0), x"00000020", registerData, true);
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(READOUT_GROUP_ID), sAxilReadSlave(READOUT_GROUP_ID), x"00000020", registerData, true);
     registerValue <= registerData;
     wait for 1 us;
+
+    wait for 100 us;
+    ---------------------------------------------------------------------------
+    -- change to stream mode
+    ---------------------------------------------------------------------------
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(AXISTREAM_GROUP_ID), sAxilReadSlave(AXISTREAM_GROUP_ID), x"00000020", registerData, true);
+    registerValue <= registerData;
+    wait for 1 us;
+    
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(AXISTREAM_GROUP_ID), sAxilWriteSlave(AXISTREAM_GROUP_ID), x"00000020", x"00000001", true);
+    wait for 10 us;    
+    
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(AXISTREAM_GROUP_ID), sAxilReadSlave(AXISTREAM_GROUP_ID), x"00000020", registerData, true);
+    registerValue <= registerData;
+    wait for 1 us;
+
+    -- run tests
+    wait for 200 us;
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+     
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(AXISTREAM_GROUP_ID), sAxilWriteSlave(AXISTREAM_GROUP_ID), x"00000020", x"00000000", true);
+    wait for 100 us;    
+
+    ---------------------------------------------------------------------------
+    -- change to test mode
+    ---------------------------------------------------------------------------
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(AXISTREAM_GROUP_ID), sAxilReadSlave(AXISTREAM_GROUP_ID), x"0000001C", registerData, true);
+    registerValue <= registerData;
+    wait for 1 us;
+    
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(AXISTREAM_GROUP_ID), sAxilWriteSlave(AXISTREAM_GROUP_ID), x"0000001C", x"00000003", true);
+    wait for 10 us;    
+    
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(AXISTREAM_GROUP_ID), sAxilReadSlave(AXISTREAM_GROUP_ID), x"0000001C", registerData, true);
+    registerValue <= registerData;
+    wait for 1 us;
+
+    ---------------------------------------------------------------------------
+    -- triggers in test mode
+    ---------------------------------------------------------------------------
+    wait for 100 us;
+    wait until sysClk = '1';
+    testTrig <= '1';
+    wait until sysClk = '1';
+    testTrig <= '0';
 
     ---------------------------------------------------------------------------
     -- start gearbox offset search

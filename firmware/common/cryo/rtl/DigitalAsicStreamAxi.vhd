@@ -95,6 +95,7 @@ architecture RTL of DigitalAsicStreamAxi is
       testRowCnt     : natural;
       testTrig       : slv(2 downto 0);
       testMode       : slv(STREAMS_PER_ASIC_G-1 downto 0);
+      streamDataMode : sl;
       stopDataTx     : sl;
       testBitFlip    : sl;
       frmSize        : slv(15 downto 0);
@@ -119,6 +120,7 @@ architecture RTL of DigitalAsicStreamAxi is
       testRowCnt     => 0,
       testTrig       => "000",
       testMode       => (others=>'0'),
+      streamDataMode => '0',
       stopDataTx     => '0',
       testBitFlip    => '0',
       frmSize        => (others=>'0'),
@@ -138,6 +140,7 @@ architecture RTL of DigitalAsicStreamAxi is
    
    type RegType is record
       testMode          : slv(STREAMS_PER_ASIC_G-1 downto 0);
+      streamDataMode    : sl;
       stopDataTx        : sl;
       frmSize           : slv(15 downto 0);
       frmMax            : slv(15 downto 0);
@@ -153,6 +156,7 @@ architecture RTL of DigitalAsicStreamAxi is
 
    constant REG_INIT_C : RegType := (
       testMode          => (others=>'0'),
+      streamDataMode    => '0',
       stopDataTx        => '0',
       frmSize           => (others=>'0'),
       frmMax            => (others=>'0'),
@@ -348,6 +352,8 @@ begin
       rv.ovError    := s.ovError;
       sv.testMode   := r.testMode;
       sv.stopDataTx := r.stopDataTx;
+      sv.streamDataMode := r.streamDataMode;
+      
       if r.rstCnt /= "000" then
          sv.rstCnt := '1';
       else
@@ -359,16 +365,17 @@ begin
       rv.sAxilReadSlave.rdata := (others => '0');
       axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, rv.sAxilWriteSlave, rv.sAxilReadSlave);
       
-      axiSlaveRegisterR(regCon, x"00", 0, r.frmCnt);
-      axiSlaveRegisterR(regCon, x"04", 0, r.frmSize);
-      axiSlaveRegisterR(regCon, x"08", 0, r.frmMax);
-      axiSlaveRegisterR(regCon, x"0C", 0, r.frmMin);
-      axiSlaveRegisterR(regCon, x"10", 0, r.sofError);
-      axiSlaveRegisterR(regCon, x"14", 0, r.eofError);
-      axiSlaveRegisterR(regCon, x"18", 0, r.ovError);
-      axiSlaveRegister (regCon, x"1C", 0, rv.testMode);
-      axiSlaveRegister (regCon, x"1C", 1, rv.stopDataTx);
-      axiSlaveRegister (regCon, x"20", 0, rv.rstCnt);
+      axiSlaveRegisterR(regCon, x"00",  0, r.frmCnt);
+      axiSlaveRegisterR(regCon, x"04",  0, r.frmSize);
+      axiSlaveRegisterR(regCon, x"08",  0, r.frmMax);
+      axiSlaveRegisterR(regCon, x"0C",  0, r.frmMin);
+      axiSlaveRegisterR(regCon, x"10",  0, r.sofError);
+      axiSlaveRegisterR(regCon, x"14",  0, r.eofError);
+      axiSlaveRegisterR(regCon, x"18",  0, r.ovError);
+      axiSlaveRegister (regCon, x"1C",  0, rv.testMode);
+      axiSlaveRegister (regCon, x"20",  0, rv.streamDataMode);
+      axiSlaveRegister (regCon, x"20",  1, rv.stopDataTx);   
+      axiSlaveRegister (regCon, x"24",  0, rv.rstCnt);
       
       axiSlaveDefault(regCon, rv.sAxilWriteSlave, rv.sAxilReadSlave, AXIL_ERR_RESP_G);
       
@@ -405,7 +412,8 @@ begin
            -- stopDataTx signal
             if (
                 ((dFifoValid(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) and dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0))
-                 or (s.testMode(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and s.testTrig(1) = '1' and s.testTrig(2) = '0'))
+                 or (s.testMode(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and s.testTrig(1) = '1' and s.testTrig(2) = '0')
+                 or (s.streamDataMode='1'))
                 and (s.stopDataTx='0'))  then
                -- start sending the header
                -- do not read the fifo yet
