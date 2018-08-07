@@ -794,8 +794,7 @@ begin
    generic map (
       TPD_G             => TPD_G,
       AXIL_CLK_PERIOD_G => 10.0e-9,
-      NUM_CHIPS_G       => 1,
-      AXIL_ERR_RESP_G   => AXI_RESP_OK_C
+      NUM_CHIPS_G       => 1
    )
    port map (
       axilClk           => appClk,
