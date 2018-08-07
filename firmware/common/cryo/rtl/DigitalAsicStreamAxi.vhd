@@ -457,7 +457,7 @@ begin
              elsif s.stCnt = 3 then
                sv.axisMaster.tData(15 downto 0) := s.acqNo(1)(31 downto 16);
              elsif s.stCnt = 4 then
-               if s.testMode /= (others => '1') then
+               if s.testMode /= VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) then
                  sv.axisMaster.tData(15 downto 0) := x"000" & '0' & ASIC_NO_G;
                else
                  sv.axisMaster.tData(15 downto 0) := x"000" & '0' & ASIC_NO_G;
@@ -506,7 +506,7 @@ begin
              else
                sv.axisMaster.tData(79 downto 64) := x"000" & '0' & ASIC_NO_G;
              end if;
-             sv.axisMaster.tData(96 downto 80) := x"0000";
+             sv.axisMaster.tData(95 downto 80) := x"0000";
              ssiSetUserSof(AXI_STREAM_CONFIG_I_C, sv.axisMaster, '1');                    
            end if;
              

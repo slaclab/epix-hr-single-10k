@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-08-06
+-- Last update: 2018-08-07
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -982,8 +982,8 @@ begin
           axisRst      => sysRst,
           -- Slaves
           sAxisMasters(0) => mAxisMastersPRBS(i),
-          sAxisSlaves(0)  => mAxisSlavesPRBS(i),
           sAxisMasters(1) => mAxisMastersASIC(i),
+          sAxisSlaves(0)  => mAxisSlavesPRBS(i),          
           sAxisSlaves(1)  => mAxisSlavesASIC(i),
           -- Master
           mAxisMaster  => imAxisMasters(i),
@@ -1063,7 +1063,7 @@ begin
          -- Deserialized data port
          rxClk             => asicRdClk, --fClkP,    --use frame clock
          rxRst             => sysRst,
-         adcStreams        => asicStreams(STREAMS_PER_ASIC_C downto 0),
+         adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
       
          -- AXI lite slave port for register access
          axilClk           => appClk,

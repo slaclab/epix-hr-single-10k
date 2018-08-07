@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-08-06
+-- Last update: 2018-08-07
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -97,6 +97,7 @@ architecture cryo_tb_arch of cryo_tb is
   
   -- component ports
   signal sysClkRst : std_logic := '1';
+  signal sysClkRst_n : sl := '0';
   signal idelayCtrlRdy : std_logic := '0';
   signal dClkP : sl := '1'; -- Data clock
   signal dClkN : sl := '0';
@@ -167,6 +168,8 @@ architecture cryo_tb_arch of cryo_tb is
 
 begin  --
 
+  sysClkRst_n <= not sysClkRst;
+
   U_encoder : entity work.SspEncoder12b14b 
    generic map (
      TPD_G          => TPD_G,
@@ -192,7 +195,7 @@ begin  --
     )
     port map(
         clk_i     => dClkP,
-        reset_n_i => not sysClkRst,
+        reset_n_i => sysClkRst_n,
         data_i    => EncDataOut,        -- "00"&EncDataIn, --
         data_o    => serialDataOut
     );
