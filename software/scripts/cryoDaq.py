@@ -106,7 +106,7 @@ else:
 # Add data stream to file as channel 1 File writer
 dataWriter = pyrogue.utilities.fileio.StreamWriter(name='dataWriter')
 if ( args.type != 'dataFile' ):
-    pyrogue.streamConnect(pgpL2Vc0, dataWriter.getChannel(0x1))
+    pyrogue.streamConnect(pgpL0Vc0, dataWriter.getChannel(0x1))
 
 cmd = rogue.protocols.srp.Cmd()
 if ( args.type != 'dataFile' ):
@@ -217,7 +217,7 @@ guiTop.resize(800,800)
 onlineViewer = vi.Window(cameraType='HrAdc32x32')
 onlineViewer.eventReader.frameIndex = 0
 onlineViewer.setReadDelay(0)
-#pyrogue.streamTap(pgpL0Vc0, onlineViewer.eventReader)
+pyrogue.streamTap(pgpL0Vc0, onlineViewer.eventReader)
 if ( args.type != 'dataFile' ):
     pyrogue.streamTap(pgpL0Vc2, onlineViewer.eventReaderScope)# PseudoScope
 #pyrogue.streamTap(pgpL0Vc3, onlineViewer.eventReaderMonitoring) # Slow Monitoring
