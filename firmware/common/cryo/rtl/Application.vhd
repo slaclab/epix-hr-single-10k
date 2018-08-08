@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-08-07
+-- Last update: 2018-08-08
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -348,7 +348,7 @@ begin
   -----------------------------------------------------------------------------
   -- Clock Jitter Cleaner IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DATAP_6 : IOBUF port map (O => open,   I => cjcFrqtbl,    IO => asicDataP(6),  T => '0');
+  IOBUF_DATAP_1 : IOBUF port map (O => open,   I => cjcFrqtbl,    IO => asicDataP(1),  T => '0');
   IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcDec,       IO => asicDataP(7),  T => '0');
   IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcInc,       IO => asicDataP(8),  T => '0');
   IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(9),  T => '0');
@@ -357,7 +357,7 @@ begin
   IOBUF_DATAP_12: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(12), T => '0');
   IOBUF_DATAP_13: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(13), T => '1');
   --
-  IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(6),  T => '0');
+  IOBUF_DATAN_1 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(1),  T => '0');
   IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(7),  T => '0');
   IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(8),  T => '0');
   IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(9),  T => '0');
@@ -992,17 +992,17 @@ begin
 
    adcSerial(0).fClkP  <= asicDataP(2);
    adcSerial(0).fClkN  <= asicDataN(2);
-   adcSerial(0).dClkP  <= asicDataP(1);
-   adcSerial(0).dClkN  <= asicDataN(1);
+   adcSerial(0).dClkP  <= asicDataP(5);
+   adcSerial(0).dClkN  <= asicDataN(5);
    adcSerial(0).chP(0) <= asicDataP(0);
    adcSerial(0).chN(0) <= asicDataN(0);
    adcSerial(0).chP(1) <= asicDataP(3);
    adcSerial(0).chN(1) <= asicDataN(3);
    --
-   --adcSerial(1).fClkP  <= asicDataP(5);
-   --adcSerial(1).fClkN  <= asicDataN(5);
-   --adcSerial(1).dClkP  <= asicDataP(4);
-   --adcSerial(1).dClkN  <= asicDataN(4);
+   --adcSerial(1).fClkP  <= asicDataP(4);
+   --adcSerial(1).fClkN  <= asicDataN(4);
+   --adcSerial(1).dClkP  <= asicDataP(6);
+   --adcSerial(1).dClkN  <= asicDataN(6);
    --adcSerial(1).chP(0) <= asicDataP(3);
    --adcSerial(1).chN(0) <= asicDataN(3);
    
