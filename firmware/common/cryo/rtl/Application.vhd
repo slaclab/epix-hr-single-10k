@@ -662,7 +662,7 @@ begin
   -----------------------------------------------------------------------------
   -- Regiester control
   -----------------------------------------------------------------------------
-  U_RegControl : entity work.RegControl
+  U_RegControl : entity work.RegisterControl
    generic map (
       TPD_G          => TPD_G,
       BUILD_INFO_G   => BUILD_INFO_G
