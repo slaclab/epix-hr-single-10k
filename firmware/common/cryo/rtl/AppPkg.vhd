@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-08-06
+-- Last update: 2018-08-09
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ package AppPkg is
    constant NUMBER_OF_ASICS_C : natural := 1;   
    constant NUMBER_OF_LANES_C : natural := 4;   
    
-   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 22;
+   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 23;
    constant HR_FD_NUM_AXI_SLAVE_SLOTS_C   : natural := 1;
    
    constant PLLREGS_AXI_INDEX_C            : natural := 0;
@@ -51,9 +51,11 @@ package AppPkg is
    constant PROG_SUPPLY_REG_AXI_INDEX_C    : natural := 18;
    constant CLK_JIT_CLR_REG_AXI_INDEX_C    : natural := 19;
    constant CRYO_ASIC0_READOUT_AXI_INDEX_C : natural := 20;
-   --constant CRYO_ASIC0_READOUT_AXI_INDEX_C : natural := 20;
+   --constant CRYO_ASIC0_READOUT_AXI_INDEX_C : natural := 2x;
    constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 21;
-   --constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 21;
+   --constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 2x;
+   constant APP_REG_AXI_INDEX_C            : natural := 22;
+   
    
    constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"00000000";--0
    constant TRIG_REG_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"01000000";--1
@@ -76,9 +78,10 @@ package AppPkg is
    constant PROG_SUPPLY_REG_AXI_ADDR_C      : slv(31 downto 0) := X"09100000";--18
    constant CLK_JIT_CLR_REG_AXI_ADDR_C      : slv(31 downto 0) := X"09200000";--19
    constant CRYO_ASIC0_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"0A000000";--20
-   --constant CRYO_ASIC1_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"0A100000";--20
+   --constant CRYO_ASIC1_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"0A100000";--2X
    constant DIG_ASIC0_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"0B000000";--21
-   --constant DIG_ASIC1_STREAM_AXI_ADDR_C      : slv(31 downto 0) := X"0B000000";--21
+   --constant DIG_ASIC1_STREAM_AXI_ADDR_C      : slv(31 downto 0) := X"0B000000";--2X
+   constant APP_REG_AXI_ADDR_C              : slv(31 downto 0) := X"0C000000";--22
    
    
    constant HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0) := (
@@ -138,11 +141,11 @@ package AppPkg is
          baseAddr             => SCOPE_REG_AXI_ADDR_C,
          addrBits             => 20,
          connectivity         => x"FFFF"),
-     ADC_RD_AXI_INDEX_C         => ( 
+      ADC_RD_AXI_INDEX_C            => ( 
          baseAddr             => ADC_RD_AXI_ADDR_C,
          addrBits             => 20,
          connectivity         => x"FFFF"),
-      ADC_CFG_AXI_INDEX_C         => ( 
+      ADC_CFG_AXI_INDEX_C           => ( 
          baseAddr             => ADC_CFG_AXI_ADDR_C,
          addrBits             => 20,
          connectivity         => x"FFFF"),
@@ -169,17 +172,37 @@ package AppPkg is
       DIG_ASIC0_STREAM_AXI_INDEX_C       => ( 
          baseAddr             => DIG_ASIC0_STREAM_AXI_ADDR_C,
          addrBits             => 20,
+         connectivity         => x"FFFF"),
+      APP_REG_AXI_INDEX_C                => ( 
+         baseAddr             => APP_REG_AXI_ADDR_C,
+         addrBits             => 20,
          connectivity         => x"FFFF")
    );
 
 
    type AppConfigType is record
       AppVersion           : slv(31 downto 0);
+      powerEnable          : slv(3 downto 0);
+      asicMask             : slv(NUMBER_OF_ASICS_C-1 downto 0);
+      acqCnt               : slv(31 downto 0);
+      requestStartupCal    : sl;
+      startupAck           : sl;
+      startupFail          : sl;
+      epixhrDbgSel1        : slv(4 downto 0);
+      epixhrDbgSel2        : slv(4 downto 0);
    end record;
 
 
    constant APP_CONFIG_INIT_C : AppConfigType := (
-      AppVersion           => (others => '0')
+      AppVersion           => (others => '0'),
+      powerEnable          => (others => '0'),
+      asicMask             => (others => '0'),
+      acqCnt               => (others => '0'),
+      requestStartupCal    => '1',
+      startupAck           => '0',
+      startupFail          => '0',
+      epixhrDbgSel1        => (others => '0'),
+      epixhrDbgSel2        => (others => '0')
    );
    
    type HR_FDConfigType is record

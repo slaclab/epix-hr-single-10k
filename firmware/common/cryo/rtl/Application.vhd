@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-08-08
+-- Last update: 2018-08-09
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -157,10 +157,10 @@ architecture mapping of Application is
    attribute keep : string;
 
    --heart beat signal
-   signal heartBeat   : sl;
+   signal heartBeat      : sl;
    
    -- prbs signals
-   signal prbsBusy            : slv(NUMBER_OF_LANES_C-1 downto 0) := (others => '0');
+   signal prbsBusy       : slv(NUMBER_OF_LANES_C-1 downto 0) := (others => '0');
 
    -- clock signals
    signal appClk         : sl;
@@ -223,7 +223,7 @@ architecture mapping of Application is
    signal iSaciSelL            : slv(3 downto 0);
    signal iSaciClk             : sl;
    signal iSaciCmd             : sl;
-   signal acqNo                : slv(31 downto 0) := (others=> '0');
+   signal boardConfig          : AppConfigType;
    
    signal adcClk               : sl;
    signal errInhibit           : sl;
@@ -429,17 +429,68 @@ begin
    asicSaciSel     <= iSaciSelL;
    iSaciSelL(3 downto 1) <=  (others => '1');
 
+   ----------------------------------------------------------------------------
+   -- Monitoring signals
+   ----------------------------------------------------------------------------
+   connTgOut <= 
+      iAsic01DM1        when boardConfig.epixhrDbgSel1 = "00000" else
+      iAsicSync         when boardConfig.epixhrDbgSel1 = "00001" else
+      --iAsicStart        when boardConfig.epixhrDbgSel1 = "00010" else
+      iAsicAcq          when boardConfig.epixhrDbgSel1 = "00011" else
+      --iAsicTpulse       when boardConfig.epixhrDbgSel1 = "00100" else
+      iAsicSR0          when boardConfig.epixhrDbgSel1 = "00101" else
+      iSaciClk          when boardConfig.epixhrDbgSel1 = "00110" else
+      iSaciCmd          when boardConfig.epixhrDbgSel1 = "00111" else
+      saciRsp           when boardConfig.epixhrDbgSel1 = "01000" else
+      iSaciSelL(0)      when boardConfig.epixhrDbgSel1 = "01001" else
+      iSaciSelL(1)      when boardConfig.epixhrDbgSel1 = "01010" else
+      asicRdClk         when boardConfig.epixhrDbgSel1 = "01011" else
+      --bitClk            when boardConfig.epixhrDbgSel1 = "01100" else
+      byteClk           when boardConfig.epixhrDbgSel1 = "01101" else
+      WFdacDin_i        when boardConfig.epixhrDbgSel1 = "01110" else
+      WFdacSclk_i       when boardConfig.epixhrDbgSel1 = "01111" else
+      WFdacCsL_i        when boardConfig.epixhrDbgSel1 = "10000" else
+      WFdacLdacL_i      when boardConfig.epixhrDbgSel1 = "10001" else
+      WFdacClrL_i       when boardConfig.epixhrDbgSel1 = "10010" else
+      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10011" else
+      '0';   
+   
+   connMps <=
+      iAsic01DM2        when boardConfig.epixhrDbgSel2 = "00000" else
+      iAsicSync         when boardConfig.epixhrDbgSel2 = "00001" else
+      --iAsicStart        when boardConfig.epixhrDbgSel2 = "00010" else
+      iAsicAcq          when boardConfig.epixhrDbgSel2 = "00011" else
+      --iAsicTpulse       when boardConfig.epixhrDbgSel2 = "00100" else
+      iAsicSR0          when boardConfig.epixhrDbgSel2 = "00101" else
+      iSaciClk          when boardConfig.epixhrDbgSel2 = "00110" else
+      iSaciCmd          when boardConfig.epixhrDbgSel2 = "00111" else
+      saciRsp           when boardConfig.epixhrDbgSel2 = "01000" else
+      iSaciSelL(0)      when boardConfig.epixhrDbgSel2 = "01001" else
+      iSaciSelL(1)      when boardConfig.epixhrDbgSel2 = "01010" else
+      asicRdClk         when boardConfig.epixhrDbgSel2 = "01011" else
+      --bitClk            when boardConfig.epixhrDbgSel2 = "01100" else
+      byteClk           when boardConfig.epixhrDbgSel2 = "01101" else
+      WFdacDin_i        when boardConfig.epixhrDbgSel2 = "01110" else
+      WFdacSclk_i       when boardConfig.epixhrDbgSel2 = "01111" else
+      WFdacCsL_i        when boardConfig.epixhrDbgSel2 = "10000" else
+      WFdacLdacL_i      when boardConfig.epixhrDbgSel2 = "10001" else
+      WFdacClrL_i       when boardConfig.epixhrDbgSel2 = "10010" else
+      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10011" else
+      '0';
+
+   -----------------------------------------------------------------------------
+   -- ASIC signal routing
+   -----------------------------------------------------------------------------
+   asicPpmat       <= iasicPpmat(0);
+   asicGlblRst     <= iasicGlblRst;
+   asicSync        <= iasicSync;
+   asicAcq         <= iasicAcq;
+
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
    mbIrq           <= (others => '0');  
-   connTgOut       <= '0';
-   connMps         <= '0';
    asicR0          <= '0';
-   asicPpmat       <= '0';
-   asicGlblRst     <= '1';
-   asicSync        <= '0';
-   asicAcq         <= '0';
    asicRoClkP      <= (others => '0');
    asicRoClkN      <= (others => '1');
    gtTxP           <= '0';
@@ -606,6 +657,45 @@ begin
       mAxiReadSlaves      => mAxiReadSlaves,
       axiClk              => appClk,
       axiClkRst           => appRst
+   );
+
+  -----------------------------------------------------------------------------
+  -- Regiester control
+  -----------------------------------------------------------------------------
+  U_RegControl : entity work.RegControl
+   generic map (
+      TPD_G          => TPD_G,
+      BUILD_INFO_G   => BUILD_INFO_G
+   )
+   port map (
+      axiClk         => appClk,
+      axiRst         => appRst,
+      sysRst         => sysRst,
+      -- AXI-Lite Register Interface (axiClk domain)
+      axiReadMaster  => mAxiReadMasters(APP_REG_AXI_INDEX_C),
+      axiReadSlave   => mAxiReadSlaves(APP_REG_AXI_INDEX_C),
+      axiWriteMaster => mAxiWriteMasters(APP_REG_AXI_INDEX_C),
+      axiWriteSlave  => mAxiWriteSlaves(APP_REG_AXI_INDEX_C),
+      -- Register Inputs/Outputs (axiClk domain)
+      boardConfig    => boardConfig,
+      -- 1-wire board ID interfaces
+      serialIdIo     => serialIdIo,
+      -- fast ADC clock
+      adcClk         => open,
+      -- ASICs acquisition signals
+      acqStart       => acqStart,
+      saciReadoutReq => saciPrepReadoutReq,
+      saciReadoutAck => saciPrepReadoutAck,
+      asicPPbe       => iAsicPpbe,
+      asicPpmat      => iAsicPpmat(0),
+      asicTpulse     => open,
+      asicStart      => open,
+      asicSR0        => iAsicSR0,
+      asicGlblRst    => iAsicGrst,
+      asicSync       => iAsicSync,
+      asicAcq        => iAsicAcq,
+      asicVid        => open,
+      errInhibit     => errInhibit
    );
 
    ---------------------
@@ -1079,11 +1169,11 @@ begin
          mAxisSlave        => mAxisSlavesASIC(i),
       
          -- acquisition number input to the header
-         acqNo             => acqNo,
+         acqNo             => boardConfig.acqCnt,
       
          -- optional readout trigger for test mode
          testTrig          => acqStart,
-         errInhibit        => '0'      
+         errInhibit        => errInhibit
          );       
    end generate;
 
