@@ -441,7 +441,7 @@ begin
       iAsicSR0          when boardConfig.epixhrDbgSel1 = "00101" else
       iSaciClk          when boardConfig.epixhrDbgSel1 = "00110" else
       iSaciCmd          when boardConfig.epixhrDbgSel1 = "00111" else
-      saciRsp           when boardConfig.epixhrDbgSel1 = "01000" else
+      asicSaciRsp       when boardConfig.epixhrDbgSel1 = "01000" else
       iSaciSelL(0)      when boardConfig.epixhrDbgSel1 = "01001" else
       iSaciSelL(1)      when boardConfig.epixhrDbgSel1 = "01010" else
       asicRdClk         when boardConfig.epixhrDbgSel1 = "01011" else
@@ -464,7 +464,7 @@ begin
       iAsicSR0          when boardConfig.epixhrDbgSel2 = "00101" else
       iSaciClk          when boardConfig.epixhrDbgSel2 = "00110" else
       iSaciCmd          when boardConfig.epixhrDbgSel2 = "00111" else
-      saciRsp           when boardConfig.epixhrDbgSel2 = "01000" else
+      asicSaciRsp       when boardConfig.epixhrDbgSel2 = "01000" else
       iSaciSelL(0)      when boardConfig.epixhrDbgSel2 = "01001" else
       iSaciSelL(1)      when boardConfig.epixhrDbgSel2 = "01010" else
       asicRdClk         when boardConfig.epixhrDbgSel2 = "01011" else
@@ -482,7 +482,7 @@ begin
    -- ASIC signal routing
    -----------------------------------------------------------------------------
    asicPpmat       <= iasicPpmat(0);
-   asicGlblRst     <= iasicGlblRst;
+   asicGlblRst     <= iAsicGrst;
    asicSync        <= iasicSync;
    asicAcq         <= iasicAcq;
 
