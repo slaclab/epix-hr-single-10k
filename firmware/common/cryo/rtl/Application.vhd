@@ -214,8 +214,8 @@ architecture mapping of Application is
    signal iAsicSR0             : sl;
    signal iAsic01DM1           : sl;
    signal iAsic01DM2           : sl;
-   signal iAsicPPbe            : slv(1 downto 0);
-   signal iAsicPpmat           : slv(1 downto 0);
+   signal iAsicPPbe            : sl;
+   signal iAsicPpmat           : sl;
    signal iAsicR0              : sl;
    signal iAsicSync            : sl;
    signal iAsicAcq             : sl;
@@ -481,7 +481,7 @@ begin
    -----------------------------------------------------------------------------
    -- ASIC signal routing
    -----------------------------------------------------------------------------
-   asicPpmat       <= iasicPpmat(0);
+   asicPpmat       <= iasicPpmat;
    asicGlblRst     <= iAsicGrst;
    asicSync        <= iasicSync;
    asicAcq         <= iasicAcq;
@@ -687,7 +687,7 @@ begin
       saciReadoutReq => saciPrepReadoutReq,
       saciReadoutAck => saciPrepReadoutAck,
       asicPPbe       => iAsicPpbe,
-      asicPpmat      => iAsicPpmat(0),
+      asicPpmat      => iAsicPpmat,
       asicTpulse     => open,
       asicStart      => open,
       asicSR0        => iAsicSR0,
@@ -776,8 +776,8 @@ begin
       triggerIn(0)   => acqStart,
       triggerIn(1)   => iAsicAcq,
       triggerIn(2)   => iAsicSR0,
-      triggerIn(3)   => iAsicPpmat(0),
-      triggerIn(4)   => iAsicPpbe(0),
+      triggerIn(3)   => iAsicPpmat,
+      triggerIn(4)   => iAsicPpbe,
       triggerIn(5)   => iAsicSync,
       triggerIn(6)   => iAsicGrst,
       triggerIn(7)   => asicRdClk,
