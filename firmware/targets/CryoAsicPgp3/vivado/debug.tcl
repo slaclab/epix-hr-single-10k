@@ -12,33 +12,33 @@
 ##############################
 # Get variables and procedures
 ##############################
-#source -quiet $::env(RUCKUS_DIR)/vivado_env_var.tcl
-#source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado_env_var.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 ############################
 ## Open the synthesis design
 ############################
-#open_run synth_1
+open_run synth_1
 
 ###############################
 ## Set the name of the ILA core
 ###############################
-#set ilaName u_ila_1
+set ilaName u_ila_1
 
 ##################
 ## Create the core
 ##################
-#CreateDebugCore ${ilaName}
+CreateDebugCore ${ilaName}
 
 #######################
 ## Set the record depth
 #######################
-#set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
+set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
 
 #################################
 ## Set the clock for the ILA core
 #################################
-#SetDebugCoreClk ${ilaName} {U_App/appClk}
+SetDebugCoreClk ${ilaName} {U_App/appClk}
 #SetDebugCoreClk ${ilaName} {U_App/sysClk}
 #SetDebugCoreClk ${ilaName} {U_Core/U_DdrMem/ddrClk}
 #SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}
@@ -94,8 +94,9 @@
 #ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkR}
 
 
-#ConfigProbe ${ilaName} {U_App/iAsicAcq}
-
+ConfigProbe ${ilaName} {U_App/iAsicAcq}
+ConfigProbe ${ilaName} {U_App/U_Framers/s[*]}
+ConfigProbe ${ilaName} {U_App/U_Framers/sAxisMaster[*]}
 
 
 ### Delete the last unused port
@@ -104,6 +105,6 @@
 ##########################
 ## Write the port map file
 ##########################
-#WriteDebugProbes ${ilaName} ${PROJ_DIR}/images/debug_probes.ltx
+WriteDebugProbes ${ilaName} ${PROJ_DIR}/images/debug_probes.ltx
 
 

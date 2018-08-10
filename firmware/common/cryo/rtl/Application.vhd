@@ -386,7 +386,7 @@ begin
    led(1)          <= prbsBusy(0) or prbsBusy(1) or prbsBusy(2) or prbsBusy(3);
    led(2)          <= '0';
    led(3)          <= not heartBeat;
-   axiRst <= appRst;
+   
 
    ----------------------------------------------------------------------------
    -- axi stream routing
@@ -669,8 +669,8 @@ begin
    )
    port map (
       axiClk         => appClk,
-      axiRst         => appRst,
-      sysRst         => sysRst,
+      axiRst         => axiRst,
+      sysRst         => appRst,
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  => mAxiReadMasters(APP_REG_AXI_INDEX_C),
       axiReadSlave   => mAxiReadSlaves(APP_REG_AXI_INDEX_C),
@@ -705,7 +705,7 @@ begin
    port map (
       -- Trigger outputs
       sysClk         => appClk,
-      sysRst         => appRst,
+      sysRst         => axiRst,
       acqStart       => acqStart,
       dataSend       => dataSend,
       
@@ -953,7 +953,7 @@ begin
    port map (
       -- Trigger outputs
       sysClk         => appClk,
-      sysRst         => appRst,
+      sysRst         => axiRst,
       -- power control
       digPwrEn         => digPwrEn,
       anaPwrEn         => anaPwrEn,
@@ -1114,10 +1114,10 @@ begin
       port map (
         -- Master system clock, 125Mhz
         axilClk => appClk,
-        axilRst => appRst,
+        axilRst => axiRst,
 
         -- Reset for adc deserializer
-        adcClkRst => sysRst,
+        adcClkRst => axiRst,
 
         -- Axi Interface
         axilWriteMaster => mAxiWriteMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
@@ -1143,7 +1143,7 @@ begin
          LANE_NO_G           => toSlv(i, 4),
          ASIC_NO_G           => toSlv(i, 3),
          STREAMS_PER_ASIC_G  => STREAMS_PER_ASIC_C,
-         ASIC_DATA_G         => (32*32)-1,
+         ASIC_DATA_G         => (64*16),
          ASIC_WIDTH_G        => 32,
          ASIC_DATA_PADDING_G => "LSB",
          AXIL_ERR_RESP_G     => AXI_RESP_DECERR_C
@@ -1151,12 +1151,12 @@ begin
        port map( 
          -- Deserialized data port
          rxClk             => asicRdClk, --fClkP,    --use frame clock
-         rxRst             => sysRst,
+         rxRst             => axiRst,
          adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
       
          -- AXI lite slave port for register access
          axilClk           => appClk,
-         axilRst           => appRst,
+         axilRst           => axiRst,
          sAxilWriteMaster  => mAxiWriteMasters(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
          sAxilWriteSlave   => mAxiWriteSlaves(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
          sAxilReadMaster   => mAxiReadMasters(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
@@ -1261,7 +1261,7 @@ begin
       EqualizerLOSSynced=> open,
       -- AXI lite slave port for register access
       axilClk           => appClk,
-      axilRst           => appRst,
+      axilRst           => axiRst,
       sAxilWriteMaster  => mAxiWriteMasters(EQUALIZER_REG_AXI_INDEX_C),
       sAxilWriteSlave   => mAxiWriteSlaves(EQUALIZER_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(EQUALIZER_REG_AXI_INDEX_C),
@@ -1277,7 +1277,7 @@ begin
        )
    port map(
       axiClk         => appClk,
-      axiRst         => appRst,
+      axiRst         => axiRst,
       -- AXI-Lite Register Interface (axiClk domain)    
       axiReadMaster  => mAxiReadMasters(PROG_SUPPLY_REG_AXI_INDEX_C),
       axiReadSlave   => mAxiReadSlaves(PROG_SUPPLY_REG_AXI_INDEX_C),
@@ -1300,7 +1300,7 @@ begin
    )
    port map(
       sysClk            => appClk,
-      sysRst            => appRst,
+      sysRst            => axiRst,
       -- CJC control
       cjcRst            => cjcRst,
       cjcDec            => cjcDec,
@@ -1315,7 +1315,7 @@ begin
       cjcLol            => cjcLol,
       -- AXI lite slave port for register access
       axilClk           => appClk,
-      axilRst           => appRst,
+      axilRst           => axiRst,
       sAxilWriteMaster  => mAxiWriteMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
       sAxilWriteSlave   => mAxiWriteSlaves(CLK_JIT_CLR_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
