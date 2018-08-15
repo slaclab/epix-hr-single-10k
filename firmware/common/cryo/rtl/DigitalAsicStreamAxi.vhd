@@ -310,6 +310,7 @@ begin
    generic map(
       GEN_SYNC_FIFO_G      => false,
       FIFO_ADDR_WIDTH_G    => 13,
+      XIL_DEVICE_G         => "ULTRASCALE",
       SLAVE_AXI_CONFIG_G   => AXI_STREAM_CONFIG_I_C,
       MASTER_AXI_CONFIG_G  => AXI_STREAM_CONFIG_O_C
    )
@@ -511,7 +512,7 @@ begin
            end if;
              
          when DATA_S =>
-            if dFifoValid /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or s.testMode /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) then
+            if dFifoValid /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or (s.testMode /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and (sAxisSlave.tReady='1')) then
                
                -- test mode row and col counters
                if s.testColCnt < (ASIC_WIDTH_G/STREAMS_PER_ASIC_G)-1 then  -- why -1 here??

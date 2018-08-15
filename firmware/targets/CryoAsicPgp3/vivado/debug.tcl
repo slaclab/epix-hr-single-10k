@@ -95,8 +95,8 @@ SetDebugCoreClk ${ilaName} {U_App/appClk}
 
 
 ConfigProbe ${ilaName} {U_App/iAsicAcq}
-ConfigProbe ${ilaName} {U_App/U_Framers/s[*]}
-ConfigProbe ${ilaName} {U_App/U_Framers/sAxisMaster[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
 
 
 ### Delete the last unused port

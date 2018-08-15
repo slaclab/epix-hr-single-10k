@@ -460,7 +460,8 @@ begin
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G = true) generate
       G_DEVICE_DNA : entity work.DeviceDna
          generic map (
-            TPD_G => TPD_G)
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => "ULTRASCALE")
          port map (
             clk      => axiClk,
             rst      => axiReset,
@@ -468,6 +469,20 @@ begin
             dnaValue( 63 downto  0) => idValues(0),
             dnaValid => idValids(0)
          );
+      G_DS2411 : for i in 0 to 1 generate
+        U_DS2411_N : entity work.DS2411Core
+          generic map (
+            TPD_G        => TPD_G,
+            CLK_PERIOD_G => CLK_PERIOD_G
+            )
+          port map (
+            clk       => axiClk,
+            rst       => chipIdRst,
+            fdSerSdio => serialIdIo(i),
+            fdValue   => idValues(i+1),
+            fdValid   => idValids(i+1)
+          );
+      end generate;
    end generate GEN_DEVICE_DNA;
    
    BYP_DEVICE_DNA : if (EN_DEVICE_DNA_G = false) generate
@@ -475,20 +490,7 @@ begin
       idValues(0) <= (others=>'0');
    end generate BYP_DEVICE_DNA;   
       
-   G_DS2411 : for i in 0 to 1 generate
-      U_DS2411_N : entity work.DS2411Core
-      generic map (
-         TPD_G        => TPD_G,
-         CLK_PERIOD_G => CLK_PERIOD_G
-      )
-      port map (
-         clk       => axiClk,
-         rst       => chipIdRst,
-         fdSerSdio => serialIdIo(i),
-         fdValue   => idValues(i+1),
-         fdValid   => idValids(i+1)
-      );
-   end generate;
+   
    
    chipIdRst <= axiReset or adcCardStartUpEdge;
 

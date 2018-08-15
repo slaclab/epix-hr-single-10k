@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-08-09
+-- Last update: 2018-08-15
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -306,6 +306,7 @@ architecture mapping of Application is
    signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);   
 
    attribute keep of appClk            : signal is "true";
+   attribute keep of asicRdClk         : signal is "true";
    attribute keep of startDdrTest_n    : signal is "true";
    attribute keep of iAsicAcq          : signal is "true";
 
@@ -564,7 +565,7 @@ begin
       locked          => clkLocked,
       -- AXI-Lite Interface 
       axilClk         => sysClk,
-      axilRst         => axiRst,
+      axilRst         => sysRst,
       axilReadMaster  => mAxiReadMasters(PLLREGS_AXI_INDEX_C),
       axilReadSlave   => mAxiReadSlaves(PLLREGS_AXI_INDEX_C),
       axilWriteMaster => mAxiWriteMasters(PLLREGS_AXI_INDEX_C),
@@ -664,8 +665,10 @@ begin
   -----------------------------------------------------------------------------
   U_RegControl : entity work.RegisterControl
    generic map (
-      TPD_G          => TPD_G,
-      BUILD_INFO_G   => BUILD_INFO_G
+      TPD_G            => TPD_G,
+      EN_DEVICE_DNA_G  => false,        -- this is causing placement errors,
+                                        -- needs fixing.
+      BUILD_INFO_G     => BUILD_INFO_G
    )
    port map (
       axiClk         => appClk,
@@ -705,7 +708,7 @@ begin
    port map (
       -- Trigger outputs
       sysClk         => appClk,
-      sysRst         => axiRst,
+      sysRst         => appRst,
       acqStart       => acqStart,
       dataSend       => dataSend,
       
@@ -725,7 +728,7 @@ begin
       
       -- AXI lite slave port for register access
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       sAxilWriteMaster  => mAxiWriteMasters(TRIG_REG_AXI_INDEX_C),
       sAxilWriteSlave   => mAxiWriteSlaves(TRIG_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(TRIG_REG_AXI_INDEX_C),
@@ -751,7 +754,7 @@ begin
       saciRsp(0)        => asicSaciRsp,
       -- AXI-Lite Register Interface
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       axilReadMaster    => mAxiReadMasters(SACIREGS_AXI_INDEX_C),
       axilReadSlave     => mAxiReadSlaves(SACIREGS_AXI_INDEX_C),
       axilWriteMaster   => mAxiWriteMasters(SACIREGS_AXI_INDEX_C),
@@ -769,7 +772,7 @@ begin
    port map ( 
       
       sysClk         => sysClk,
-      sysClkRst      => axiRst,
+      sysClkRst      => sysRst,
       adcData        => adcData,
       adcValid       => adcValid,
       arm            => acqStart,
@@ -786,7 +789,7 @@ begin
       mAxisSlave     => sAuxAxisSlaves(0),
       -- AXI lite slave port for register access
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       sAxilWriteMaster  => mAxiWriteMasters(SCOPE_REG_AXI_INDEX_C),
       sAxilWriteSlave   => mAxiWriteSlaves(SCOPE_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(SCOPE_REG_AXI_INDEX_C),
@@ -825,7 +828,7 @@ begin
    port map (
       -- Master system clock, 100Mhz
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       
       -- Axi Interface
       axilReadMaster    => mAxiReadMasters(ADC_RD_AXI_INDEX_C),
@@ -888,7 +891,7 @@ begin
    )
    port map (
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       
       axilReadMaster    => mAxiReadMasters(ADC_CFG_AXI_INDEX_C),
       axilReadSlave     => mAxiReadSlaves(ADC_CFG_AXI_INDEX_C),
@@ -914,14 +917,14 @@ begin
    port map ( 
       -- Master system clock
       sysClk            => appClk,
-      sysClkRst         => axiRst,
+      sysClkRst         => appRst,
       
       -- Trigger Control
       adcStart          => acqStart,
       
       -- AXI lite slave port for register access
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       sAxilWriteMaster  => mAxiWriteMasters(MONADC_REG_AXI_INDEX_C),
       sAxilWriteSlave   => mAxiWriteSlaves(MONADC_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(MONADC_REG_AXI_INDEX_C),
@@ -929,7 +932,7 @@ begin
       
       -- AXI stream output
       axisClk           => appClk,
-      axisRst           => axiRst,
+      axisRst           => appRst,
       mAxisMaster       => sAuxAxisMasters(1),
       mAxisSlave        => sAuxAxisSlaves(1),
 
@@ -953,7 +956,7 @@ begin
    port map (
       -- Trigger outputs
       sysClk         => appClk,
-      sysRst         => axiRst,
+      sysRst         => appRst,
       -- power control
       digPwrEn         => digPwrEn,
       anaPwrEn         => anaPwrEn,
@@ -963,7 +966,7 @@ begin
       
       -- AXI lite slave port for register access
       axilClk         => appClk,  
-      axilRst         => axiRst,   
+      axilRst         => appRst,   
       sAxilWriteMaster=> mAxiWriteMasters(POWER_MODULE_INDEX_C),
       sAxilWriteSlave => mAxiWriteSlaves(POWER_MODULE_INDEX_C),
       sAxilReadMaster => mAxiReadMasters(POWER_MODULE_INDEX_C),
@@ -983,7 +986,7 @@ begin
    )
     port map (
       sysClk            => appClk,
-      sysClkRst         => axiRst,
+      sysClkRst         => appRst,
       dacDin            => WFDacDin_i,
       dacSclk           => WFDacSclk_i,
       dacCsL            => WFDacCsL_i,
@@ -991,7 +994,7 @@ begin
       dacClrL           => WFDacClrL_i,
       externalTrigger   => acqStart,
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       sAxilWriteMaster  => mAxiWriteMasters,
       sAxilWriteSlave   => mAxiWriteSlaves,
       sAxilReadMaster   => mAxiReadMasters,
@@ -1008,7 +1011,7 @@ begin
    port map (
       -- Global Signals
       axiClk => appClk,
-      axiRst => axiRst,
+      axiRst => appRst,
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  => mAxiReadMasters(DAC_MODULE_INDEX_C), 
       axiReadSlave   => mAxiReadSlaves(DAC_MODULE_INDEX_C),
@@ -1038,12 +1041,12 @@ begin
       port map(
          -- Master Port (mAxisClk)
          mAxisClk        => sysClk,
-         mAxisRst        => axiRst,
+         mAxisRst        => sysRst,
          mAxisMaster     => mAxisMastersPRBS(i),
          mAxisSlave      => mAxisSlavesPRBS(i),
          -- Trigger Signal (locClk domain)
          locClk          => appClk,
-         locRst          => axiRst,
+         locRst          => appRst,
          trig            => acqStart,
          packetLength    => X"FFFFFFFF",
          forceEofe       => '0',
@@ -1114,10 +1117,10 @@ begin
       port map (
         -- Master system clock, 125Mhz
         axilClk => appClk,
-        axilRst => axiRst,
+        axilRst => appRst,
 
         -- Reset for adc deserializer
-        adcClkRst => axiRst,
+        adcClkRst => sysRst,
 
         -- Axi Interface
         axilWriteMaster => mAxiWriteMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
@@ -1151,12 +1154,12 @@ begin
        port map( 
          -- Deserialized data port
          rxClk             => asicRdClk, --fClkP,    --use frame clock
-         rxRst             => axiRst,
+         rxRst             => asicRdClkRst,
          adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
       
          -- AXI lite slave port for register access
          axilClk           => appClk,
-         axilRst           => axiRst,
+         axilRst           => appRst,
          sAxilWriteMaster  => mAxiWriteMasters(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
          sAxilWriteSlave   => mAxiWriteSlaves(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
          sAxilReadMaster   => mAxiReadMasters(DIG_ASIC0_STREAM_AXI_INDEX_C+i),
@@ -1191,12 +1194,12 @@ begin
    port map(
       -- AXIS Stream Interface
       axisClk         => sysClk,
-      axisRst         => axiRst,
+      axisRst         => sysRst,
       axisMaster      => imAxisMasters,
       axisSlave       => mAxisSlaves,
       -- AXI lite slave port for register access
       axilClk         => appClk,  
-      axilRst         => axiRst,   
+      axilRst         => appRst,   
       sAxilWriteMaster=> mAxiWriteMasters(AXI_STREAM_MON_INDEX_C),
       sAxilWriteSlave => mAxiWriteSlaves(AXI_STREAM_MON_INDEX_C),
       sAxilReadMaster => mAxiReadMasters(AXI_STREAM_MON_INDEX_C),
@@ -1220,7 +1223,7 @@ begin
    port map (
       -- AXI-Lite Interface
       axilClk         => appClk,
-      axilRst         => axiRst,
+      axilRst         => appRst,
       axilReadMaster  => mAxiReadMasters(DDR_MEM_INDEX_C),
       axilReadSlave   => mAxiReadSlaves(DDR_MEM_INDEX_C),
       axilWriteMaster => mAxiWriteMasters(DDR_MEM_INDEX_C),
@@ -1229,7 +1232,7 @@ begin
       memError        => open, -- status bits
       -- DDR Memory Interface
       axiClk          => sysClk,
-      axiRst          => axiRst,
+      axiRst          => sysRst,
       start           => not startDdrTest_n, -- input signal that starts the test 
       axiWriteMaster  => mAxiWriteMaster,
       axiWriteSlave   => mAxiWriteSlave,
@@ -1255,13 +1258,13 @@ begin
       NUN_OF_EQUALIZER_IC => 6)
    port map(
       sysClk            => appClk,
-      sysRst            => axiRst,
+      sysRst            => appRst,
       -- IO signals
       EqualizerLOS      => EqualizerLosIn,
       EqualizerLOSSynced=> open,
       -- AXI lite slave port for register access
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       sAxilWriteMaster  => mAxiWriteMasters(EQUALIZER_REG_AXI_INDEX_C),
       sAxilWriteSlave   => mAxiWriteSlaves(EQUALIZER_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(EQUALIZER_REG_AXI_INDEX_C),
@@ -1277,7 +1280,7 @@ begin
        )
    port map(
       axiClk         => appClk,
-      axiRst         => axiRst,
+      axiRst         => appRst,
       -- AXI-Lite Register Interface (axiClk domain)    
       axiReadMaster  => mAxiReadMasters(PROG_SUPPLY_REG_AXI_INDEX_C),
       axiReadSlave   => mAxiReadSlaves(PROG_SUPPLY_REG_AXI_INDEX_C),
@@ -1300,7 +1303,7 @@ begin
    )
    port map(
       sysClk            => appClk,
-      sysRst            => axiRst,
+      sysRst            => appRst,
       -- CJC control
       cjcRst            => cjcRst,
       cjcDec            => cjcDec,
@@ -1315,7 +1318,7 @@ begin
       cjcLol            => cjcLol,
       -- AXI lite slave port for register access
       axilClk           => appClk,
-      axilRst           => axiRst,
+      axilRst           => appRst,
       sAxilWriteMaster  => mAxiWriteMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
       sAxilWriteSlave   => mAxiWriteSlaves(CLK_JIT_CLR_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
