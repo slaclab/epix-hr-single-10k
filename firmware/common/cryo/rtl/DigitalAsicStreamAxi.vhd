@@ -223,7 +223,7 @@ begin
    rxValidCs <= adcStreams(0).tValid;   -- for chipscope
 
    mAxisMaster <= imAxisMaster;
-   mAxisSlave  <= imAxisSlave;
+   imAxisSlave <= mAxisSlave;
 
    fifoExtData_GEN : for i in 0 to STREAMS_PER_ASIC_G-1 generate
      dataExt : process(dFifoOut)
