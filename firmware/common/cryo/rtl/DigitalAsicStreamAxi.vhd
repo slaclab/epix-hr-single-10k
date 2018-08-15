@@ -193,8 +193,10 @@ architecture RTL of DigitalAsicStreamAxi is
    signal dFifoOut      : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoExtData  : slv(16*STREAMS_PER_ASIC_G-1 downto 0) := (others => '0');
    
-   signal sAxisMaster : AxiStreamMasterType;
-   signal sAxisSlave  : AxiStreamSlaveType;
+   signal sAxisMaster  : AxiStreamMasterType;
+   signal sAxisSlave   : AxiStreamSlaveType;
+   signal imAxisMaster : AxiStreamMasterType;
+   signal imAxisSlave  : AxiStreamSlaveType;
    
    signal testModeSync  : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal iRxValid      : slv(STREAMS_PER_ASIC_G-1 downto 0);
@@ -202,21 +204,26 @@ architecture RTL of DigitalAsicStreamAxi is
    signal rxDataCs   : slv(13 downto 0);                 -- for chipscope
    signal rxValidCs  : sl;                               -- for chipscope
    attribute keep : string;                              -- for chipscope
-   attribute keep of s : signal is "true";               -- for chipscope
-   attribute keep of dFifoOut : signal is "true";        -- for chipscope
-   attribute keep of dFifoSof : signal is "true";        -- for chipscope
-   attribute keep of dFifoEof : signal is "true";        -- for chipscope
-   attribute keep of dFifoEofe : signal is "true";       -- for chipscope
-   attribute keep of dFifoValid : signal is "true";      -- for chipscope
-   attribute keep of rxDataCs : signal is "true";        -- for chipscope
-   attribute keep of rxValidCs : signal is "true";       -- for chipscope
-   attribute keep of sAxisMaster : signal is "true";       -- for chipscope
+   attribute keep of s            : signal is "true";    -- for chipscope
+   attribute keep of dFifoOut     : signal is "true";    -- for chipscope
+   attribute keep of dFifoSof     : signal is "true";    -- for chipscope
+   attribute keep of dFifoEof     : signal is "true";    -- for chipscope
+   attribute keep of dFifoEofe    : signal is "true";    -- for chipscope
+   attribute keep of dFifoValid   : signal is "true";    -- for chipscope
+   attribute keep of rxDataCs     : signal is "true";    -- for chipscope
+   attribute keep of rxValidCs    : signal is "true";    -- for chipscope
+   attribute keep of sAxisMaster  : signal is "true";    -- for chipscope
+   attribute keep of imAxisMaster : signal is "true";    -- for chipscope 
+   attribute keep of imAxisSlave  : signal is "true";    -- for chipscope 
 
 
 begin
    
    rxDataCs <= adcStreams(0).tData(13 downto 0);     -- for chipscope
    rxValidCs <= adcStreams(0).tValid;   -- for chipscope
+
+   mAxisMaster <= imAxisMaster;
+   mAxisSlave  <= imAxisSlave;
 
    fifoExtData_GEN : for i in 0 to STREAMS_PER_ASIC_G-1 generate
      dataExt : process(dFifoOut)
@@ -321,8 +328,8 @@ begin
       sAxisSlave  => sAxisSlave,
       mAxisClk    => axisClk,
       mAxisRst    => axisRst,
-      mAxisMaster => mAxisMaster,
-      mAxisSlave  => mAxisSlave
+      mAxisMaster => imAxisMaster,
+      mAxisSlave  => imAxisSlave
    );
 
 
@@ -464,7 +471,7 @@ begin
                  sv.axisMaster.tData(15 downto 0) := x"000" & '0' & ASIC_NO_G;
                end if;
              else
-               sv.axisMaster.tData(15 downto 0) := x"0000";
+               sv.axisMaster.tData(15 downto 0) := toSlv(STREAMS_PER_ASIC_G, 16);
              end if;
            end if;
            ------------------------------------------------------------------
@@ -489,7 +496,7 @@ begin
                else
                  sv.axisMaster.tData(15 downto 0) := x"000" & '0' & ASIC_NO_G;
                end if;
-               sv.axisMaster.tData(31 downto 16) := x"0000";
+               sv.axisMaster.tData(31 downto 16) := toSlv(STREAMS_PER_ASIC_G, 16);
              else
                sv.axisMaster.tData(31 downto 0) := x"00000000";
              end if;

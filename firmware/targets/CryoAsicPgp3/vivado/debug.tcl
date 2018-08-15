@@ -38,8 +38,8 @@ set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
 #################################
 ## Set the clock for the ILA core
 #################################
-SetDebugCoreClk ${ilaName} {U_App/appClk}
-#SetDebugCoreClk ${ilaName} {U_App/sysClk}
+#SetDebugCoreClk ${ilaName} {U_App/appClk}
+SetDebugCoreClk ${ilaName} {U_App/sysClk}
 #SetDebugCoreClk ${ilaName} {U_Core/U_DdrMem/ddrClk}
 #SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}
 #SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkIo}
@@ -97,6 +97,8 @@ SetDebugCoreClk ${ilaName} {U_App/appClk}
 ConfigProbe ${ilaName} {U_App/iAsicAcq}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}
 
 
 ### Delete the last unused port
