@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-08-15
+-- Last update: 2018-08-16
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -1147,7 +1147,7 @@ begin
          ASIC_NO_G           => toSlv(i, 3),
          STREAMS_PER_ASIC_G  => STREAMS_PER_ASIC_C,
          ASIC_DATA_G         => (64*16),
-         ASIC_WIDTH_G        => 32,
+         ASIC_WIDTH_G        => 64,
          ASIC_DATA_PADDING_G => "LSB",
          AXIL_ERR_RESP_G     => AXI_RESP_DECERR_C
          )

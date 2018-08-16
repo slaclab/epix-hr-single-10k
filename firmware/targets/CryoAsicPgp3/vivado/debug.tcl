@@ -94,11 +94,11 @@ SetDebugCoreClk ${ilaName} {U_App/sysClk}
 #ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkR}
 
 
-ConfigProbe ${ilaName} {U_App/iAsicAcq}
+#ConfigProbe ${ilaName} {U_App/iAsicAcq}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}
 
 
 ### Delete the last unused port

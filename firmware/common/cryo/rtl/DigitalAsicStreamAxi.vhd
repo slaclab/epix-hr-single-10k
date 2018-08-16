@@ -450,7 +450,7 @@ begin
            if STREAMS_PER_ASIC_G = 1 then        
              sv.axisMaster.tValid := '1';
              if s.stCnt = 5 then
-               sv.stCnt := 0;
+               sv.stCnt := 1;
                sv.state := DATA_S;
              else
                sv.stCnt := s.stCnt + 1;
@@ -480,7 +480,7 @@ begin
            if STREAMS_PER_ASIC_G = 2 then        
              sv.axisMaster.tValid := '1';
              if s.stCnt = 2 then
-               sv.stCnt := 0;
+               sv.stCnt := 1;
                sv.state := DATA_S;
              else
                sv.stCnt := s.stCnt + 1;
@@ -547,7 +547,7 @@ begin
                sv.dFifoRd := '1';
                            
                sv.stCnt := s.stCnt + 1;
-               if ((dFifoEof /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) and s.testMode /= VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0)) or s.stCnt = ASIC_DATA_G then 
+               if ((dFifoEof /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) and s.testMode /= VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0)) or s.stCnt = (ASIC_DATA_G) then 
                   sv.frmSize := toSlv(s.stCnt, 16);
                   sv.stCnt := 0;
                   if s.frmMax <= sv.frmSize then
