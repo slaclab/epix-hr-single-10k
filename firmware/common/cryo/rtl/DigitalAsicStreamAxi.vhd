@@ -37,7 +37,7 @@ entity DigitalAsicStreamAxi is
       ASIC_NO_G         : slv(2 downto 0)  := "000";
       STREAMS_PER_ASIC_G  : natural := 2;  -- 1, 2 or 6. Number of screams per ASIC HR
                                          -- prototype has 2 final version 6
-      ASIC_DATA_G         : natural := (32*32)-1; --workds
+      ASIC_DATA_G         : natural := (32*32); --workds
       ASIC_WIDTH_G        : natural := 32; --workds
       ASIC_DATA_PADDING_G : string := "LSB";  -- or "MSB"      
       AXIL_ERR_RESP_G     : slv(1 downto 0)  := AXI_RESP_DECERR_C
@@ -106,6 +106,7 @@ architecture RTL of DigitalAsicStreamAxi is
       sofError       : slv(15 downto 0);
       eofError       : slv(15 downto 0);
       ovError        : slv(15 downto 0);
+      asicDataReq    : slv(15 downto 0);
       rstCnt         : sl;
       errInhibit     : sl;
       dFifoRd        : sl;
@@ -131,6 +132,7 @@ architecture RTL of DigitalAsicStreamAxi is
       sofError       => (others=>'0'),
       eofError       => (others=>'0'),
       ovError        => (others=>'0'),
+      asicDataReq    => (others=>'0'),
       rstCnt         => '0',
       errInhibit     => '0',
       dFifoRd        => '0',
@@ -149,6 +151,7 @@ architecture RTL of DigitalAsicStreamAxi is
       sofError          : slv(15 downto 0);
       eofError          : slv(15 downto 0);
       ovError           : slv(15 downto 0);
+      asicDataReq       : slv(15 downto 0);
       rstCnt            : slv(2 downto 0);
       sAxilWriteSlave   : AxiLiteWriteSlaveType;
       sAxilReadSlave    : AxiLiteReadSlaveType;
@@ -165,6 +168,7 @@ architecture RTL of DigitalAsicStreamAxi is
       sofError          => (others=>'0'),
       eofError          => (others=>'0'),
       ovError           => (others=>'0'),
+      asicDataReq       => toSlv(ASIC_DATA_G, 16),
       rstCnt            => (others=>'0'),
       sAxilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C
@@ -200,6 +204,7 @@ architecture RTL of DigitalAsicStreamAxi is
    
    signal testModeSync  : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal iRxValid      : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal acqNoSync     : slv(31 downto 0);
    
    signal rxDataCs   : slv(13 downto 0);                 -- for chipscope
    signal rxValidCs  : sl;                               -- for chipscope
@@ -245,6 +250,16 @@ begin
       rst     => rxRst,
       dataIn  => s.testMode,
       dataOut => testModeSync
+   );
+
+  AcqNoSync_U : entity work.SynchronizerVector
+     generic map (
+       WIDTH_G => 31)
+   port map (
+      clk     => axisClk,
+      rst     => axisRst,
+      dataIn  => acqNo,
+      dataOut => acqNoSync
    );
 
    ----------------------------------------------------------------------------
@@ -335,7 +350,7 @@ begin
 
 
    comb : process (axilRst, axisRst, sAxilReadMaster, sAxilWriteMaster, sAxisSlave, r, s, 
-      acqNo, dFifoOut, dFifoExtData, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, testTrig, errInhibit) is
+      acqNoSync, dFifoOut, dFifoExtData, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, testTrig, errInhibit) is
       variable sv       : StrType;
       variable rv       : RegType;
       variable regCon   : AxiLiteEndPointType;
@@ -361,6 +376,7 @@ begin
       sv.testMode   := r.testMode;
       sv.stopDataTx := r.stopDataTx;
       sv.streamDataMode := r.streamDataMode;
+      sv.asicDataReq := r.asicDataReq;
       
       if r.rstCnt /= "000" then
          sv.rstCnt := '1';
@@ -384,13 +400,14 @@ begin
       axiSlaveRegister (regCon, x"20",  0, rv.streamDataMode);
       axiSlaveRegister (regCon, x"20",  1, rv.stopDataTx);   
       axiSlaveRegister (regCon, x"24",  0, rv.rstCnt);
+      axiSlaveRegister (regCon, x"28",  0, rv.asicDataReq);
       
       axiSlaveDefault(regCon, rv.sAxilWriteSlave, rv.sAxilReadSlave, AXIL_ERR_RESP_G);
       
       -- axi stream logic
       
       -- sync acquisition number
-      sv.acqNo(0) := acqNo;
+      sv.acqNo(0) := acqNoSync;
       
       -- report an error when sAxisSlave.tReady is dropped (overflow)
       sv.tReady := sAxisSlave.tReady;
@@ -547,7 +564,7 @@ begin
                sv.dFifoRd := '1';
                            
                sv.stCnt := s.stCnt + 1;
-               if ((dFifoEof /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) and s.testMode /= VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0)) or s.stCnt = (ASIC_DATA_G) then 
+               if ((dFifoEof /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) and s.testMode /= VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0)) or s.stCnt = s.asicDataReq then 
                   sv.frmSize := toSlv(s.stCnt, 16);
                   sv.stCnt := 0;
                   if s.frmMax <= sv.frmSize then
@@ -557,7 +574,7 @@ begin
                      sv.frmMin := sv.frmSize;
                   end if;
                   
-                  if dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or sv.frmSize /= ASIC_DATA_G then
+                  if dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or sv.frmSize /= s.asicDataReq then
                      ssiSetUserEofe(AXI_STREAM_CONFIG_I_C, sv.axisMaster, '1');
                      sv.eofError := s.eofError + 1;
                   else
