@@ -45,6 +45,7 @@ EPIX10KA   = 4
 CPIX2      = 5
 EPIXM32    = 6
 HRADC32x32 = 7
+CRYO64XN   = 8
 
 ################################################################################
 ################################################################################
@@ -62,7 +63,7 @@ class Camera():
     sensorWidth = 0
     sensorHeight = 0
     pixelDepth = 0
-    availableCameras = {  'ePix100a':  EPIX100A, 'ePix100p' : EPIX100P, 'Tixel48x48' : TIXEL48X48, 'ePix10ka' : EPIX10KA,  'Cpix2' : CPIX2, 'ePixM32Array' : EPIXM32, 'HrAdc32x32': HRADC32x32 }
+    availableCameras = {  'ePix100a':  EPIX100A, 'ePix100p' : EPIX100P, 'Tixel48x48' : TIXEL48X48, 'ePix10ka' : EPIX10KA,  'Cpix2' : CPIX2, 'ePixM32Array' : EPIXM32, 'HrAdc32x32': HRADC32x32, 'cryo64xN':  CRYO64XN }
     
 
     def __init__(self, cameraType = 'ePix100a') :
@@ -91,6 +92,8 @@ class Camera():
             self._initEpixM32()
         if (camID == HRADC32x32):
             self._initEpixHRADC32x32()
+        if (camID == CRYO64XN):
+            self._initCRYO64XN()
 
         #creates a image processing tool for local use
         self.imgTool = imgPr.ImageProcessing(self)
@@ -122,6 +125,9 @@ class Camera():
             return self.imgTool.applyBitMask(descImg, mask = self.bitMask)
         if (camID == HRADC32x32):
             descImg = self._descrambleEpixHRADC32x32Image(rawData)
+            return self.imgTool.applyBitMask(descImg, mask = self.bitMask)
+        if (camID == CRYO64XN):
+            descImg = self._descrambleCRYO64XNImage(rawData)
             return self.imgTool.applyBitMask(descImg, mask = self.bitMask)
         if (camID == NOCAMERA):
             return Null
@@ -163,6 +169,11 @@ class Camera():
             return [frameComplete, readyForDisplay, newRawData]
         if (camID == HRADC32x32):
             [frameComplete, readyForDisplay, newRawData]  = self._buildFrameEpixHRADC32x32Image(currentRawData, newRawData)
+            return [frameComplete, readyForDisplay, newRawData]
+        if (camID == CRYO64XN):
+            # The flags are always true since each frame holds an entire image
+            frameComplete = 1
+            readyForDisplay = 1
             return [frameComplete, readyForDisplay, newRawData]
         if (camID == NOCAMERA):
             return Null
@@ -246,6 +257,14 @@ class Camera():
         self.sensorWidth  = 64 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
         self.sensorHeight = 32 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
         self.pixelDepth = 16
+        self.bitMask = np.uint16(0xFFFF)
+
+    def _initCRYO64XN(self):
+        self._NumAsicsPerSide = 1
+        self._NumChPerAsic = 64
+        self._Header_Length = 6
+        self.pixelDepth = 16
+        self.cameraModule = "Single ASIC CRYO"
         self.bitMask = np.uint16(0xFFFF)
 
     ##########################################################
@@ -870,6 +889,31 @@ class Camera():
         else:
             imgDesc = np.zeros((32,64), dtype='uint16')
             print("_descrambleEpixHRADC32x32Image: Wrong number of buffers. Returning zeros")
+        # returns final image
+        return imgDesc
+
+    def _descrambleCRYO64XNImage(self, rawData):
+        """performs a single Cryo ASIC image descrambling """
+
+        if (type(rawData != 'numpy.ndarray')):
+            img = np.frombuffer(rawData,dtype='uint16')
+                
+        print("Incoming data shape", img.shape)
+                
+        #calculate number of samples
+        samples = int((img.shape[0]-self._Header_Length)/self._NumChPerAsic)
+
+        if (samples) != ((img.shape[0]-self._Header_Length)/self._NumChPerAsic):
+            imgDesc = np.zeros((self._NumChPerAsic,self._NumChPerAsic), dtype='uint16')
+            print("_descrambleEpixHRADC32x32Image: Wrong data length, Returning zeros. Data length: ", (img.shape[0]-self._Header_Length))
+            return imgDesc
+
+        #remove header
+        img2 = img[self._Header_Length:].reshape(samples,self._NumChPerAsic)
+
+        #descramble image
+        imgDesc = np.append(img2[:,0:self._NumChPerAsic:2].transpose(), img2[:,1:self._NumChPerAsic:2].transpose()).reshape(self._NumChPerAsic,samples)
+        
         # returns final image
         return imgDesc
 

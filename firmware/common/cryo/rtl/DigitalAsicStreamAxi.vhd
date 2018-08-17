@@ -254,7 +254,7 @@ begin
 
   AcqNoSync_U : entity work.SynchronizerVector
      generic map (
-       WIDTH_G => 31)
+       WIDTH_G => 32)
    port map (
       clk     => axisClk,
       rst     => axisRst,

@@ -214,7 +214,7 @@ guiTop.addTree(cryoAsicBoard)
 guiTop.resize(800,800)
 
 # Viewer gui
-onlineViewer = vi.Window(cameraType='HrAdc32x32')
+onlineViewer = vi.Window(cameraType='cryo64xN')
 onlineViewer.eventReader.frameIndex = 0
 onlineViewer.setReadDelay(0)
 pyrogue.streamTap(pgpL0Vc0, onlineViewer.eventReader)
