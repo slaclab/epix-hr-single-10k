@@ -605,6 +605,7 @@ class EventReader(rogue.interfaces.stream.Slave):
         self.frameDataMonitoring = bytearray()
         self.readDataDone = False
         self.parent = parent
+        self.lastTime = time.clock_gettime(0)
         #############################
         # define the data type IDs
         #############################
@@ -640,21 +641,23 @@ class EventReader(rogue.interfaces.stream.Slave):
         if (self.busy): 
             self.busyTimeout = self.busyTimeout + 1
             print("Event Reader Busy: " +  str(self.busyTimeout))
-            if self.busyTimeout == 10:
+            if self.busyTimeout >  10:
                 self.busy = False
         else:
             self.busyTimeout = 0
 
-        if ((VcNum == self.VIEW_PSEUDOSCOPE_ID) and (not self.busy)):
-            if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
-            self.parent.processPseudoScopeFrameTrigger.emit()
-        elif (VcNum == self.VIEW_MONITORING_DATA_ID and (not self.busy)):
-            if (PRINT_VERBOSE): print('Decoding Monitoring Data')
-            self.parent.processMonitoringFrameTrigger.emit()
-        elif (VcNum == 0):
-            if (PRINT_VERBOSE): print('Decoding ASIC Data')
-            if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
-                self.parent.processFrameTrigger.emit()
+        if (time.clock_gettime(0)-self.lastTime)>1:
+            self.lastTime = time.clock_gettime(0)
+            if ((VcNum == self.VIEW_PSEUDOSCOPE_ID) and (not self.busy)):
+                if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
+                self.parent.processPseudoScopeFrameTrigger.emit()
+            elif (VcNum == self.VIEW_MONITORING_DATA_ID and (not self.busy)):
+                if (PRINT_VERBOSE): print('Decoding Monitoring Data')
+                self.parent.processMonitoringFrameTrigger.emit()
+            elif (VcNum == 0):
+                if (PRINT_VERBOSE): print('Decoding ASIC Data')
+                if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
+                    self.parent.processFrameTrigger.emit()
 
 
     def _processFrame(self):
