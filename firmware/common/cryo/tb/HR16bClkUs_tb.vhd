@@ -76,7 +76,7 @@ architecture arch of HR16bClkUs_tb is
   signal slaveDelayValue  : slv(8 downto 0);
   signal dataDelayValue   : slv(8 downto 0);
   signal gearboxOffset : slv(1 downto 0) := "00";
-  signal bitSlip       : slv(3 downto 0) := "0101";
+  signal bitSlip       : slv(2 downto 0) := "101";
   signal pixData       : slv20Array(2-1 downto 0);
 
   -- clock
@@ -167,7 +167,7 @@ begin  -- Dac8812Cntrl_arch
     -- start gearbox offset search
     ---------------------------------------------------------------------------
     gearboxOffset <= "00";
-    bitSlip <= "0000";
+    bitSlip <= "000";
 
     for i in 0 to 15 loop
       
@@ -181,8 +181,8 @@ begin  -- Dac8812Cntrl_arch
     ---------------------------------------------------------------------------
     -- start gearbox offset search
     ---------------------------------------------------------------------------
-    gearboxOffset <= "11";
-    bitSlip <= "0000";
+    gearboxOffset <= "10";
+    bitSlip <= "000";
 
     for i in 0 to 15 loop
 
@@ -196,8 +196,8 @@ begin  -- Dac8812Cntrl_arch
     ---------------------------------------------------------------------------
     -- start gearbox offset search
     ---------------------------------------------------------------------------
-    gearboxOffset <= "00";
-    bitSlip <= "0000";
+    gearboxOffset <= "10";
+    bitSlip <= "010";
 
     for i in 0 to 15 loop
 
@@ -206,7 +206,7 @@ begin  -- Dac8812Cntrl_arch
 
     end loop;
 
-    bitSlip <= "1011";
+    bitSlip <= "010";
 
 
     

@@ -62,7 +62,7 @@ entity Hr16bAdcDeserializer is
       loadDelay       : in sl;
       delay           : in slv(8 downto 0) := "000000000";
       delayValueOut   : out slv(8 downto 0);
-      bitSlip         : in slv(3 downto 0) := "0000";
+      bitSlip         : in slv(2 downto 0) := "000";
       gearboxOffset   : in slv(1 downto 0) := "00";
       pixData         : out slv(19 downto 0)     
       );
@@ -100,17 +100,14 @@ architecture rtl of Hr16bAdcDeserializer is
     );
 
   type AdcClkDiv4RegType is record
-    masterData         : slv(7 downto 0);
-    masterData_1       : slv(7 downto 0);
-    longDataCounter    : slv(2 downto 0);
+    masterData         : slv(7  downto 0);
+    masterData_1       : slv(7  downto 0);
+    longDataCounter    : slv(2  downto 0);
     longData           : slv(39 downto 0);
     longData_1         : slv(39 downto 0);
-    DWByte             : sl;
-    masterDataDW       : slv(15 downto 0);
-    masterDataDW_1     : slv(15 downto 0);
-    bitSlip            : slv(3 downto 0);
-    masterDataDWBS     : slv(15 downto 0);
-    masterDataDWBS_1   : slv(15 downto 0);
+    bitSlip            : slv(2  downto 0);
+    masterDataBS       : slv(7  downto 0);
+    masterDataBS_1     : slv(7  downto 0);
     longDataStable     : sl;
   end record;
 
@@ -120,12 +117,9 @@ architecture rtl of Hr16bAdcDeserializer is
     longDataCounter    => (others => '0'),
     longData           => (others => '0'),
     longData_1         => (others => '0'),
-    DWByte             => '0',
-    masterDataDW       => (others => '0'),
-    masterDataDW_1     => (others => '0'),
     bitSlip            => (others => '0'),
-    masterDataDWBS     => (others => '0'),
-    masterDataDWBS_1   => (others => '0'),
+    masterDataBS       => (others => '0'),
+    masterDataBS_1     => (others => '0'),
     longDataStable     => '0'
     );
 
@@ -137,8 +131,8 @@ architecture rtl of Hr16bAdcDeserializer is
     tenbOrder           : sl;
     dataAligned         : sl;
     valid               : sl;
-    pixDataGearboxIn    : slv(15 downto 0);
-    pixDataGearboxIn_1  : slv(15 downto 0);
+    pixDataGearboxIn    : slv(7 downto 0);
+    pixDataGearboxIn_1  : slv(7 downto 0);
     
   end record;
 
@@ -378,7 +372,7 @@ begin
      -- creates pipeline
      v.masterData_1 := adcDv4R.masterData;
      v.longData_1   := adcDv4R.longData;
-     v.masterDataDWBS_1 := adcDv4R.masterDataDWBS;
+     v.masterDataBS_1 := adcDv4R.masterDataBS;
      
      -- data checks on this logic.
      -- 56 bit assembly logic
@@ -411,51 +405,26 @@ begin
        end if;
      end if;
    
-     --16 bit data assembly logic
-     if adcDv4R.DWByte = '1' then
-       v.masterDataDW(7 downto 0)  := adcDv4R.masterData_1;
-       v.masterDataDW(15 downto 8) := adcDv4R.masterData;
-       v.masterDataDW_1 := adcDv4R.masterDataDW; 
-     end if;
-     
-      v.DWByte := not adcDv4R.DWByte;
-
      --bit slip logic
      case (adcDv4R.bitSlip) is
-       when "0000" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW(15 downto 0);
-       when "0001" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW(14 downto 0) & adcDv4R.masterDataDW_1(15);
-       when "0010" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW(13 downto 0) & adcDv4R.masterDataDW_1(15 downto 14);
-       when "0011" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW(12 downto 0) & adcDv4R.masterDataDW_1(15 downto 13);
-       when "0100" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW(11 downto 0) & adcDv4R.masterDataDW_1(15 downto 12);
-       when "0101" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW(10 downto 0) & adcDv4R.masterDataDW_1(15 downto 11);
-       when "0110" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 9 downto 0) & adcDv4R.masterDataDW_1(15 downto 10);
-       when "0111" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 8 downto 0) & adcDv4R.masterDataDW_1(15 downto  9);
-       when "1000" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 7 downto 0) & adcDv4R.masterDataDW_1(15 downto  8);
-       when "1001" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 6 downto 0) & adcDv4R.masterDataDW_1(15 downto  7);
-       when "1010" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 5 downto 0) & adcDv4R.masterDataDW_1(15 downto  6);
-       when "1011" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 4 downto 0) & adcDv4R.masterDataDW_1(15 downto  5);
-       when "1100" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 3 downto 0) & adcDv4R.masterDataDW_1(15 downto  4);
-       when "1101" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 2 downto 0) & adcDv4R.masterDataDW_1(15 downto  3);
-       when "1110" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW( 1 downto 0) & adcDv4R.masterDataDW_1(15 downto  2);
-       when "1111" =>
-         v.masterDataDWBS := adcDv4R.masterDataDW(          0) & adcDv4R.masterDataDW_1(15 downto  1);
+       when "000" =>
+         v.masterDataBS := adcDv4R.masterData(7 downto 0);
+       when "001" =>
+         v.masterDataBS := adcDv4R.masterData(6 downto 0) & adcDv4R.masterData_1(7);
+       when "010" =>
+         v.masterDataBS := adcDv4R.masterData(5 downto 0) & adcDv4R.masterData_1(7 downto 6);
+       when "011" =>
+         v.masterDataBS := adcDv4R.masterData(4 downto 0) & adcDv4R.masterData_1(7 downto 5);
+       when "100" =>
+         v.masterDataBS := adcDv4R.masterData(3 downto 0) & adcDv4R.masterData_1(7 downto 4);
+       when "101" =>
+         v.masterDataBS := adcDv4R.masterData(2 downto 0) & adcDv4R.masterData_1(7 downto 3);
+       when "110" =>
+         v.masterDataBS := adcDv4R.masterData(1 downto 0) & adcDv4R.masterData_1(7 downto 2);
+       when "111" =>
+         v.masterDataBS := adcDv4R.masterData(0)          & adcDv4R.masterData_1(7 downto  1);
        when others =>
-         v.masterDataDWBS := (others => '0');
+         v.masterDataBS := (others => '0');
      end case;
 
      adcDv4Rin <= v;
@@ -482,8 +451,8 @@ begin
     v := adcDv5R;
       
     v.gearboxSeq          := adcDv5R.gearboxCounter + gearboxOffset;
-    v.pixDataGearboxIn    := adcDv4R.masterDataDWBS;
-    v.pixDataGearboxIn_1  := adcDv4R.masterDataDWBS_1;
+    v.pixDataGearboxIn    := adcDv4R.masterDataBS;
+    v.pixDataGearboxIn_1  := adcDv4R.masterDataBS_1;
     
     -- flag that indicates data, or frame signal matches the expected pattern
     if adcDv5R.masterPixData = FRAME_PATTERN_G then
@@ -495,16 +464,16 @@ begin
     if MSB_LSB_G = '1' then             -- LSB
       case (adcDv5R.gearboxSeq) is
         when "00" =>
-          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 9 downto 0);
+          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 1 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 0);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when "01" =>
-          v.tenbData(0)   := adcDv5R.pixDataGearboxIn(11 downto 2);
+          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 3 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 2);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when "10" =>
-          v.tenbData(0)   := adcDv5R.pixDataGearboxIn(13 downto 4);
+          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 5 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 4);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when "11" =>
-          v.tenbData(0)   := adcDv5R.pixDataGearboxIn(15 downto 6);
+          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 7 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 6);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when others =>
           v.tenbData(0)   := (others => '0');
@@ -513,16 +482,16 @@ begin
     else
       case (adcDv5R.gearboxSeq) is
         when "00" =>
-          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 9 downto 0);
+          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 1 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 0);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when "01" =>
-          v.tenbData(0)   := adcDv5R.pixDataGearboxIn(11 downto 2);
+          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 3 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 2);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when "10" =>
-          v.tenbData(0)   := adcDv5R.pixDataGearboxIn(13 downto 4);
+          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 5 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 4);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when "11" =>
-          v.tenbData(0)   := adcDv5R.pixDataGearboxIn(15 downto 6);
+          v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 7 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 6);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when others =>
           v.tenbData(0)   := (others => '0');
