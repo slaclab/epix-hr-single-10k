@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-08-22
+-- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -64,6 +64,7 @@ entity Hr16bAdcDeserializer is
       delayValueOut   : out slv(8 downto 0);
       bitSlip         : in slv(2 downto 0) := "000";
       gearboxOffset   : in slv(1 downto 0) := "00";
+      dataValid       : out sl;
       pixData         : out slv(19 downto 0)     
       );
 end Hr16bAdcDeserializer;
@@ -516,7 +517,8 @@ begin
 
     adcDv5Rin <= v;
          
-     --outputs
+    --outputs
+    dataValid <= adcDv5R.valid;
     
   end process;
    

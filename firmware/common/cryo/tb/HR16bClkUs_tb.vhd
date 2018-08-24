@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-08-22
+-- Last update: 2018-08-23
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -77,6 +77,7 @@ architecture arch of HR16bClkUs_tb is
   signal dataDelayValue   : slv(8 downto 0);
   signal gearboxOffset : slv(1 downto 0) := "00";
   signal bitSlip       : slv(2 downto 0) := "101";
+  signal dataValid     : sl;
   signal pixData       : slv20Array(2-1 downto 0);
 
   -- clock
@@ -116,6 +117,7 @@ begin  -- Dac8812Cntrl_arch
       delayValueOut => dataDelayValue,
       bitSlip       => bitSlip,
       gearboxOffset => gearboxOffset,
+      dataValid     => dataValid,
       pixData       => pixData(1)
 
       -- axilite
