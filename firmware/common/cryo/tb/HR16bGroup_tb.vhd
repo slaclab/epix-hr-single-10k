@@ -115,9 +115,9 @@ begin  --
         axilReadSlave   => axilReadSlave,
 
         -- common clocks to all deserializers
-        bitClk          : in sl;
-        byteClk         : in sl;          -- bit clk divided by 5
-        deserClk        : in sl;          -- deserializer clk DDR, 8 bits => bit
+        bitClk          => bitClk,
+        byteClk         => byteClk,
+        deserClk        => deserClk,
 
         -- Reset for adc deserializer
         adcClkRst => sysClkRst,
@@ -132,10 +132,10 @@ begin  --
   end generate GEN_US;
   
   -- clock generation
-  sysClk    <= not sysClk after 6.4   ns;
-  bitClk    <= not sysClk after 3     ns;
-  byteClk   <= not sysClk after 3 * 4 ns;
-  deserClk  <= not sysClk after 3 * 5 ns;
+  sysClk    <= not sysClk   after 6.4   ns;
+  bitClk    <= not bitClk   after 3     ns;
+  byteClk   <= not byteClk  after 3 * 5 ns;
+  deserClk  <= not deserClk after 3 * 4 ns;
   --
   fClkP <= not fClkP after 3 * 10 ns;-- 20.0 ns;
   fClkN <= not fClkP;

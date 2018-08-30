@@ -69,16 +69,18 @@ entity Hr16bAdcReadoutGroupUS is
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
       (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
-end Ad9249ReadoutGroupUS;
+end Hr16bAdcReadoutGroupUS;
 
 -- Define architecture
 architecture rtl of Hr16bAdcReadoutGroupUS is
 
   attribute keep : string;
 
+  constant NUM_BITS_C       : natural          := 20;
   constant IDLE_PATTERN_1_C : slv((NUM_BITS_C-1) downto 0) := "0101111100" & "1010101010";
   constant IDLE_PATTERN_2_C : slv((NUM_BITS_C-1) downto 0) := "1010000011" & "1010101010";
-  constant NUM_BITS_C       : natural          := 20;
+  constant FRAME_PATTERN_C  : slv((NUM_BITS_C-1) downto 0) := "0000000000" & "1111111111";
+  constant LOCKED_COUNTER_VALUE_C : slv(15 downto 0) := x"0100";
   
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
@@ -118,9 +120,10 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
-      slip           : Slv4Array(NUM_CHANNELS_G-1 downto 0); 
-      count          : Slv6Array(NUM_CHANNELS_G-1 downto 0); 
-      gearBoxOffset  : Slv3Array(NUM_CHANNELS_G-1 downto 0); 
+      slip           : Slv3Array(NUM_CHANNELS_G-1 downto 0); 
+      count          : Slv6Array(NUM_CHANNELS_G-1 downto 0);
+      lockedCounter  : Slv16Array(NUM_CHANNELS_G-1 downto 0);
+      gearBoxOffset  : Slv2Array(NUM_CHANNELS_G-1 downto 0); 
       --loadDelay      : sl;
       --delayValue     : slv(8 downto 0);
       idleWord       : slv(NUM_CHANNELS_G-1 downto 0);
@@ -131,6 +134,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    constant ADC_REG_INIT_C : AdcRegType := (
       slip           => (others => (others => '0')),
       count          => (others => (others => '0')),
+      lockedCounter  => (others => (others => '0')),
       gearBoxOffset  => (others => (others => '0')),
       --loadDelay      => '0',
       --delayValue     => (others => '0'),
@@ -194,7 +198,7 @@ begin
          cntRst     => axilR.lockedCountRst,
          dataOut    => open,
          cntOut     => lockedFallCount(i),
-         wrClk      => adcBitClkR,
+         wrClk      => byteClk,
          wrRst      => '0',
          rdClk      => axilClk,
          rdRst      => axilRst);
@@ -320,9 +324,9 @@ begin
         loadDelay     => axilR.dataDelaySet(i),
         delay         => axilR.delay,
         delayValueOut => curDelayData(i),
-        bitSlip       => adcR.slip,
-        gearboxOffset => adcR.gearboxOffset,
-        dataValid     => dataValid(i)
+        bitSlip       => adcR.slip(i),
+        gearboxOffset => adcR.gearboxOffset(i),
+        dataValid     => dataValid(i),
         pixData       => adcData(i)
         );
    end generate;
@@ -340,9 +344,11 @@ begin
       -------------------------------------------------------------------------
       for i in NUM_CHANNELS_G-1 downto 0 loop
         if dataValid(i) = '1' then
-          v.idleWord(i) <= '1' when
-                       adcData(i) = IDLE_PATTERN_1_C or adcData(i) = IDLE_PATTERN_2_C
-                       else '0';
+          if adcData(i) = IDLE_PATTERN_1_C or adcData(i) = IDLE_PATTERN_2_C or adcData(i) = FRAME_PATTERN_C then
+            v.idleWord(i) := '1';
+          else
+            v.idleWord(i) := '0';
+          end if;
         end if;
       end loop;
 
@@ -354,7 +360,7 @@ begin
           if (adcR.idleWord(i) = '1') then
             v.lockedCounter(i) := adcR.lockedCounter(i) + 1;           
           else
-            v.lockedCounter(i) := 0;
+            v.lockedCounter(i) := (others => '0');
             v.slip(i)   := adcR.slip(i) + 1;       
             -- increments the gearbox
             if adcR.slip(i) = 0 then
@@ -363,7 +369,7 @@ begin
           end if;
         end if;
         -- checks for lock, once locked keeps states until reset is requested
-        if adcR.lockedCounter(i) >= LOCKED_COUNTER_VALUE then
+        if adcR.lockedCounter(i) >= LOCKED_COUNTER_VALUE_C then
           v.locked(i) := '1';
         end if;
 
@@ -384,7 +390,7 @@ begin
             v.fifoWrData(i) := adcData(i);
          else
             -- Not locked
-            v.fifoWrData(i) := (others => '1');  --"10" & "00000000000000";
+            v.fifoWrData(i) := (others => '1');  
          end if;
       end loop;
 
@@ -392,8 +398,6 @@ begin
       -- reset state variables whenever resync requested
       -------------------------------------------------------------------------
       if resync = '1' then
-         v.twoWords := (others=>'0');
-         v.lockErrCnt := 0;
          v.locked := (others=>'0');       
       end if;
 
