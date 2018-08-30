@@ -15,4 +15,5 @@ loadRuckusTcl $::env(TOP_DIR)/submodules
 set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY none [get_runs synth_1]
 
 # set top moudule
-set_property top {HR16bClkUs_tb} [get_filesets sim_1]
+#set_property top {HR16bClkUs_tb} [get_filesets sim_1]
+set_property top {HR16bGroup_tb} [get_filesets sim_1]
