@@ -354,9 +354,9 @@ begin  --
   byteClk   <= not byteClk  after 3 * 5 ns;
   deserClk  <= not deserClk after 3 * 4 ns;
   --
-  fClkP <= not fClkP after 7 * 4 ns;
+  fClkP <= not fClkP after 7 * 3 ns;
   fClkN <= not fClkP;
-  dClkP <= not dClkP after 4 ns; 
+  dClkP <= not dClkP after 3 ns; 
   dClkN <= not dClkP;
   --
 

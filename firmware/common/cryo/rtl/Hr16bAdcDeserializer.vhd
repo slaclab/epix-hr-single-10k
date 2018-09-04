@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-08-23
+-- Last update: 2018-09-04
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -63,6 +63,7 @@ entity Hr16bAdcDeserializer is
       delay           : in slv(8 downto 0) := "000000000";
       delayValueOut   : out slv(8 downto 0);
       bitSlip         : in slv(2 downto 0) := "000";
+      tenbOrder       : in sl := '1';
       gearboxOffset   : in slv(1 downto 0) := "00";
       dataValid       : out sl;
       pixData         : out slv(19 downto 0)     
@@ -445,12 +446,13 @@ begin
   end process;
    
           
-  adc8To7GearboxComb : process (adcDv4R, adcDv5R, gearboxOffset) is
+  adc8To7GearboxComb : process (adcDv4R, adcDv5R, gearboxOffset, tenbOrder) is
     variable v : AdcClkDiv5RegType;
   begin
 
     v := adcDv5R;
-      
+
+    v.tenbOrder           := tenbOrder;
     v.gearboxSeq          := adcDv5R.gearboxCounter + gearboxOffset;
     v.pixDataGearboxIn    := adcDv4R.masterDataBS;
     v.pixDataGearboxIn_1  := adcDv4R.masterDataBS_1;

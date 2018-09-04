@@ -77,9 +77,9 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
   attribute keep : string;
 
   constant NUM_BITS_C       : natural          := 20;
-  constant IDLE_PATTERN_1_C : slv((NUM_BITS_C-1) downto 0) := "0101111100" & "1010101010";
-  constant IDLE_PATTERN_2_C : slv((NUM_BITS_C-1) downto 0) := "1010000011" & "1010101010";
-  constant FRAME_PATTERN_C  : slv((NUM_BITS_C-1) downto 0) := "0000000000" & "1111111111";
+  constant IDLE_PATTERN_1_C : slv((NUM_BITS_C-1) downto 0) := "1010101010" & "0101111100";
+  constant IDLE_PATTERN_2_C : slv((NUM_BITS_C-1) downto 0) := "1010101010" & "1010000011";
+  constant FRAME_PATTERN_C  : slv((NUM_BITS_C-1) downto 0) := "1111111111" & "0000000000";
   constant LOCKED_COUNTER_VALUE_C : slv(15 downto 0) := x"0100";
   
    -------------------------------------------------------------------------------------------------
@@ -311,7 +311,7 @@ begin
         DEFAULT_DELAY_G   => (others => '0'),
         FRAME_PATTERN_G   => "00000000001111111111",
         ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
-        BIT_REV_G         => '1',
+        BIT_REV_G         => '0',
         MSB_LSB_G         => '1')
       port map (
         adcClkRst     => adcBitRst,
