@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-09-04
+-- Last update: 2018-09-05
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -506,9 +506,9 @@ begin
     v.valid := not adcDv5R.valid;
     if adcDv5R.valid = '1' then
       if adcDv5R.tenbOrder = '0' then
-        v.masterPixData  := adcDv5R.tenbData(1) & adcDv5R.tenbData(0);
+        v.masterPixData  := adcDv5R.tenbData(3) & adcDv5R.tenbData(2);
       else
-        v.masterPixData  := adcDv5R.tenbData(2) & adcDv5R.tenbData(1);
+        v.masterPixData  := adcDv5R.tenbData(2) & adcDv5R.tenbData(3);
       end if;
     end if;
     

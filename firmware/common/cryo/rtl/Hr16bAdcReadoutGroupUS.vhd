@@ -81,6 +81,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
   constant IDLE_PATTERN_2_C : slv((NUM_BITS_C-1) downto 0) := "1010101010" & "1010000011";
   constant FRAME_PATTERN_C  : slv((NUM_BITS_C-1) downto 0) := "1111111111" & "0000000000";
   constant LOCKED_COUNTER_VALUE_C : slv(15 downto 0) := x"0100";
+  constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
   
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
@@ -127,7 +128,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       --loadDelay      : sl;
       --delayValue     : slv(8 downto 0);
       idleWord       : slv(NUM_CHANNELS_G-1 downto 0);
-      locked         : slv(NUM_CHANNELS_G-1 downto 0);  
+      locked         : slv(NUM_CHANNELS_G-1 downto 0);
+      dataValidAll   : sl;
       fifoWrData     : Slv20Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
@@ -140,6 +142,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       --delayValue     => (others => '0'),
       idleWord       => (others => '0'),
       locked         => (others => '0'),
+      dataValidAll   => '0',
       fifoWrData     => (others => (others => '0')));
 
    signal adcR   : AdcRegType := ADC_REG_INIT_C;
@@ -395,6 +398,15 @@ begin
       end loop;
 
       -------------------------------------------------------------------------
+      -- data valid flag
+      -------------------------------------------------------------------------
+      if dataValid = VECTOR_OF_ZEROS_C(NUM_CHANNELS_G-1 downto 0) then
+        v.dataValidAll := '0';
+      else
+        v.dataValidAll := '1';
+      end if;
+
+      -------------------------------------------------------------------------
       -- reset state variables whenever resync requested
       -------------------------------------------------------------------------
       if resync = '1' then
@@ -437,7 +449,7 @@ begin
       port map (
          rst    => adcBitRst,
          wr_clk => byteClk,
-         wr_en  => '1',                 --Always write data
+         wr_en  => adcR.dataValidAll,
          din    => fifoDataIn,
          rd_clk => adcStreamClk,
          rd_en  => fifoDataValid,
@@ -454,7 +466,7 @@ begin
       port map (
          rst    => adcBitRst,
          wr_clk => byteClk,
-         wr_en  => '1',                 --Always write data
+         wr_en  => fifoDataValid,  
          din    => fifoDataIn,
          rd_clk => axilClk,
          rd_en  => debugDataValid,

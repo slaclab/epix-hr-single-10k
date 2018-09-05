@@ -261,7 +261,7 @@ begin  --
         adcSerial => adcSerial,
 
         -- Deserialized ADC Data
-        adcStreamClk => fClkP,--sysClk,
+        adcStreamClk => byteClk,--fClkP,--sysClk,
         adcStreams   => adcStreams      
         );
 -------------------------------------------------------------------------------
@@ -273,7 +273,7 @@ begin  --
       RST_POLARITY_G => '1',
       RST_ASYNC_G    => false)
    port map(
-      clk       => fClkP,
+      clk       => byteClk,--fClkP,
       rst       => sysClkRst,
       validIn   => adcStreams(0).tValid,
       dataIn    => adcStreams(0).tData(19 downto 0),
@@ -322,7 +322,7 @@ begin  --
    )
    port map( 
       -- Deserialized data port
-      rxClk             => fClkP,
+      rxClk             => byteClk,--fClkP,
       rxRst             => sysClkRst,
       adcStreams        => adcStreams(1 downto 0),
       
@@ -354,7 +354,7 @@ begin  --
   byteClk   <= not byteClk  after 3 * 5 ns;
   deserClk  <= not deserClk after 3 * 4 ns;
   --
-  fClkP <= not fClkP after 7 * 3 ns;
+  fClkP <= not fClkP after 10 * 3 ns;
   fClkN <= not fClkP;
   dClkP <= not dClkP after 3 ns; 
   dClkN <= not dClkP;
@@ -378,7 +378,7 @@ begin  --
   AutomaticTestCheck_Proc: process
     variable dataIndex : integer := 0;
   begin
-    wait until fClkP = '1';
+    wait until fClkP = '1';             --check this clock
     if DecValidOut = '1' then
       if DecDataOut = ramTestWaveform(dataIndex) then
         testOk <= '1';
