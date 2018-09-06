@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-09-05
+-- Last update: 2018-08-07
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -50,25 +50,25 @@ use unisim.vcomponents.all;
 
 -------------------------------------------------------------------------------
 
-entity HR16bGroup_encoded_data_tb is
+entity cryo_tb is
 
-end HR16bGroup_encoded_data_tb;
+end cryo_tb;
 
 -------------------------------------------------------------------------------
 
-architecture arch of HR16bGroup_encoded_data_tb is
+architecture cryo_tb_arch of cryo_tb is
 
   -- component generics
   constant TPD_G : time := 1 ns;
   constant NUM_CHANNELS_G : integer := 8;
-  constant IDLE_PATTERN_C : slv(15 downto 0) := x"00FF";
+  constant IDLE_PATTERN_C : slv(11 downto 0) := x"03F";
   constant STREAMS_PER_ASIC_C : natural := 2;
   -- Axilite constants
   constant READOUT_GROUP_ID   : integer := 0;
   constant AXISTREAM_GROUP_ID : integer := 1;
 
   --file definitions
-  constant DATA_BITS   : natural := 16;
+  constant DATA_BITS   : natural := 12;
   constant DEPTH_C     : natural := 1024;
   constant FILENAME_C  : string  := "/afs/slac.stanford.edu/u/re/ddoering/localGit/epix-hr-dev/firmware/simulations/CryoEncDec/sin.csv";
   subtype word_t  is slv(DATA_BITS - 1 downto 0);
@@ -105,28 +105,30 @@ architecture arch of HR16bGroup_encoded_data_tb is
   signal fClkN : sl := '1';
   signal sDataP : sl;                       
   signal sDataN : sl;
-  signal gearboxOffset : slv(1 downto 0) := "00";
-  signal bitSlip       : slv(2 downto 0) := "101";
+  signal gearboxOffset : slv(2 downto 0) := "000";
+  signal bitSlip       : slv(3 downto 0) := "0101";
   -- encoder
   signal EncValidIn  : sl              := '1';
   signal EncReadyIn  : sl;
-  signal EncDataIn   : slv(15 downto 0);
+  signal EncDataIn   : slv(11 downto 0);
   signal EncDispIn   : slv(1 downto 0) := "00";
   signal EncDataKIn  : sl;
   signal EncValidOut : sl;
   signal EncReadyOut : sl              := '1';
-  signal EncDataOut  : slv(19 downto 0);
+  signal EncDataOut  : slv(13 downto 0);
   signal EncDispOut  : slv(1 downto 0);
   signal EncSof      : sl := '0';
   signal EncEof      : sl := '0';
   signal DecValidOut : sl;
-  signal DecDataOut  : slv(15 downto 0);
+  signal DecDataOut  : slv(11 downto 0);
   signal DecDataKOut : sl;
   signal DecDispOut  : slv(1 downto 0);
+  signal DecCodeError: sl;
+  signal DecDispError: sl;
   signal DecSof      : sl;
   signal DecEof      : sl;
   signal DecEofe     : sl;
-
+  signal DecValid    : sl;
 
   signal serialDataOut : sl;
 
@@ -147,9 +149,6 @@ architecture arch of HR16bGroup_encoded_data_tb is
 
   -- clock
   signal sysClk    : std_logic := '1';
-  signal bitClk    : sl := '1';
-  signal byteClk   : sl := '1';          -- bit clk divided by 5
-  signal deserClk  : sl := '1';          -- deserializer clk DDR, 8 bits => bit
 
   -- automatic test
   signal testOk : sl := '0';
@@ -171,7 +170,7 @@ begin  --
 
   sysClkRst_n <= not sysClkRst;
 
-  U_encoder : entity work.SspEncoder8b10b 
+  U_encoder : entity work.SspEncoder12b14b 
    generic map (
      TPD_G          => TPD_G,
      RST_POLARITY_G => '1',
@@ -192,7 +191,7 @@ begin  --
 
   U_serializer :  entity work.serializerSim 
     generic map(
-        g_dwidth => 20 
+        g_dwidth => 14 
     )
     port map(
         clk_i     => dClkP,
@@ -233,92 +232,52 @@ begin  --
       generic map (
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => 8,
-        DATA_TYPE_G       => "16b20b",
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
         XIL_DEVICE_G      => "ULTRASCALE",
-        IDELAYCTRL_FREQ_G => 300.0,
         DEFAULT_DELAY_G   => (others => '0'),
         ADC_INVERT_CH_G   => "00000000")
       port map (
         -- Master system clock, 125Mhz
         axilClk => sysClk,
-        axilRst => sysClkRst,        
+        axilRst => sysClkRst,
+
+        -- Reset for adc deserializer
+        adcClkRst => sysClkRst,
 
         -- Axi Interface
         axilWriteMaster => sAxilWriteMaster(READOUT_GROUP_ID),
         axilWriteSlave  => sAxilWriteSlave(READOUT_GROUP_ID),
         axilReadMaster  => sAxilReadMaster(READOUT_GROUP_ID),
         axilReadSlave   => sAxilReadSlave(READOUT_GROUP_ID),
-
-        -- common clocks to all deserializers
-        bitClk          => bitClk,
-        byteClk         => byteClk,
-        deserClk        => deserClk,
-
-        -- Reset for adc deserializer
-        adcClkRst => sysClkRst,
  
         -- Serial Data from ADC
         adcSerial => adcSerial,
 
         -- Deserialized ADC Data
-        adcStreamClk => byteClk,--fClkP,--sysClk,
+        adcStreamClk => fClkP,--sysClk,
         adcStreams   => adcStreams      
         );
-
---    DUT0: entity work.Hr16bAdcReadoutGroupUS
---      generic map (
---        TPD_G             => TPD_G,
---        NUM_CHANNELS_G    => 8,
---        IODELAY_GROUP_G   => "DEFAULT_GROUP",
---        IDELAYCTRL_FREQ_G => 300.0,
---        DELAY_VALUE_G     => 1250,
---        DEFAULT_DELAY_G   => (others => '0'),
---        ADC_INVERT_CH_G   => "00000000")
---      port map (
---        -- Master system clock, 125Mhz
---        axilClk => sysClk,
---        axilRst => sysClkRst,        
---
---        -- Axi Interface
---        axilWriteMaster => sAxilWriteMaster(READOUT_GROUP_ID),
---        axilWriteSlave  => sAxilWriteSlave(READOUT_GROUP_ID),
---        axilReadMaster  => sAxilReadMaster(READOUT_GROUP_ID),
---        axilReadSlave   => sAxilReadSlave(READOUT_GROUP_ID),
---
---        -- common clocks to all deserializers
---        bitClk          => bitClk,
---        byteClk         => byteClk,
---        deserClk        => deserClk,
---
---        -- Reset for adc deserializer
---        adcClkRst => sysClkRst,
--- 
---        -- Serial Data from ADC
---        adcSerial => adcSerial,
---
---        -- Deserialized ADC Data
---        adcStreamClk => byteClk,--fClkP,--sysClk,
---        adcStreams   => adcStreams      
---        );
 -------------------------------------------------------------------------------
 -- decodes a single stream
 -------------------------------------------------------------------------------  
-  U_decoder_deserdata : entity work.SspDecoder8b10b 
+  U_decoder_deserdata : entity work.SspDecoder12b14b 
     generic map(
       TPD_G          => TPD_G,
       RST_POLARITY_G => '1',
       RST_ASYNC_G    => false)
    port map(
-      clk       => byteClk,--fClkP,
+      clk       => fClkP,
       rst       => sysClkRst,
       validIn   => adcStreams(0).tValid,
-      dataIn    => adcStreams(0).tData(19 downto 0),
+      dataIn    => adcStreams(0).tData(13 downto 0),
       validOut  => DecValidOut,
       dataOut   => DecDataOut,
+      valid     => DecValid,
       sof       => DecSof,
       eof       => DecEof,
-      eofe      => DecEofe);
+      eofe      => DecEofe,
+      codeError => DecCodeError,
+      dispError => DecDispError);
 -------------------------------------------------------------------------------
 -- use the code below to bypass serializer/deserializer
 -------------------------------------------------------------------------------
@@ -359,7 +318,7 @@ begin  --
    )
    port map( 
       -- Deserialized data port
-      rxClk             => byteClk,--fClkP,
+      rxClk             => fClkP,
       rxRst             => sysClkRst,
       adcStreams        => adcStreams(1 downto 0),
       
@@ -386,14 +345,11 @@ begin  --
    );
   
   -- clock generation
-  sysClk    <= not sysClk after 4 ns;
-  bitClk    <= not bitClk   after 3     ns;
-  byteClk   <= not byteClk  after 3 * 5 ns;
-  deserClk  <= not deserClk after 3 * 4 ns;
+  sysClk <= not sysClk after 4 ns;
   --
-  fClkP <= not fClkP after 10 * 3 ns;
+  fClkP <= not fClkP after 7 * 4 ns;
   fClkN <= not fClkP;
-  dClkP <= not dClkP after 3 ns; 
+  dClkP <= not dClkP after 4 ns; 
   dClkN <= not dClkP;
   --
 
@@ -415,7 +371,7 @@ begin  --
   AutomaticTestCheck_Proc: process
     variable dataIndex : integer := 0;
   begin
-    wait until fClkP = '1';             --check this clock
+    wait until fClkP = '1';
     if DecValidOut = '1' then
       if DecDataOut = ramTestWaveform(dataIndex) then
         testOk <= '1';
@@ -453,7 +409,7 @@ begin  --
     wait for 100 us;
     EncValidIn <= '0';                  -- starts sending realData
 
-    wait for 1000 us;
+    wait for 10 us;
     EncValidIn <= '1';                  -- starts sending realData
 
     wait for 200 us;
@@ -541,8 +497,8 @@ begin  --
     ---------------------------------------------------------------------------
     -- start gearbox offset search
     ---------------------------------------------------------------------------
-    gearboxOffset <= "00";
-    bitSlip <= "000";
+    gearboxOffset <= "000";
+    bitSlip <= "0000";
 
 
     wait for 10 us;
@@ -554,5 +510,5 @@ begin  --
 
   
 
-end arch;
+end cryo_tb_arch;
 

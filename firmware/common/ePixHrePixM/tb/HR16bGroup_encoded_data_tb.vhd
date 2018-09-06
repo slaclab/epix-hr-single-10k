@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-09-05
+-- Last update: 2018-08-07
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -229,14 +229,13 @@ begin  --
   adcSerial.chP(7) <= sDataP;
   adcSerial.chN(7) <= sDataN;
 
-  DUT0: entity work.HrAdcReadoutGroup
+  DUT0: entity work.Hr16bAdcReadoutGroupUS
       generic map (
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => 8,
-        DATA_TYPE_G       => "16b20b",
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
-        XIL_DEVICE_G      => "ULTRASCALE",
         IDELAYCTRL_FREQ_G => 300.0,
+        DELAY_VALUE_G     => 1250,
         DEFAULT_DELAY_G   => (others => '0'),
         ADC_INVERT_CH_G   => "00000000")
       port map (
@@ -265,42 +264,6 @@ begin  --
         adcStreamClk => byteClk,--fClkP,--sysClk,
         adcStreams   => adcStreams      
         );
-
---    DUT0: entity work.Hr16bAdcReadoutGroupUS
---      generic map (
---        TPD_G             => TPD_G,
---        NUM_CHANNELS_G    => 8,
---        IODELAY_GROUP_G   => "DEFAULT_GROUP",
---        IDELAYCTRL_FREQ_G => 300.0,
---        DELAY_VALUE_G     => 1250,
---        DEFAULT_DELAY_G   => (others => '0'),
---        ADC_INVERT_CH_G   => "00000000")
---      port map (
---        -- Master system clock, 125Mhz
---        axilClk => sysClk,
---        axilRst => sysClkRst,        
---
---        -- Axi Interface
---        axilWriteMaster => sAxilWriteMaster(READOUT_GROUP_ID),
---        axilWriteSlave  => sAxilWriteSlave(READOUT_GROUP_ID),
---        axilReadMaster  => sAxilReadMaster(READOUT_GROUP_ID),
---        axilReadSlave   => sAxilReadSlave(READOUT_GROUP_ID),
---
---        -- common clocks to all deserializers
---        bitClk          => bitClk,
---        byteClk         => byteClk,
---        deserClk        => deserClk,
---
---        -- Reset for adc deserializer
---        adcClkRst => sysClkRst,
--- 
---        -- Serial Data from ADC
---        adcSerial => adcSerial,
---
---        -- Deserialized ADC Data
---        adcStreamClk => byteClk,--fClkP,--sysClk,
---        adcStreams   => adcStreams      
---        );
 -------------------------------------------------------------------------------
 -- decodes a single stream
 -------------------------------------------------------------------------------  

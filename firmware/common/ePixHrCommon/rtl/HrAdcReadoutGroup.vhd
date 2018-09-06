@@ -2,7 +2,7 @@
 -- File       : HrAdcReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-07-06
+-- Last update: 2018-09-05
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -54,8 +54,15 @@ entity HrAdcReadoutGroup is
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
 
+      -- common clocks to all deserializers
+      bitClk          : in sl := '0';
+      byteClk         : in sl := '0';          -- bit clk divided by 5
+      deserClk        : in sl := '0';          -- deserializer clk DDR, 8 bits => bit
+
       -- Reset for adc deserializer
       adcClkRst : in sl;
+      --
+      idelayCtrlRdy : sl := '1';
 
       -- Serial Data from ADC
       adcSerial : in HrAdcSerialGroupType;
@@ -68,9 +75,6 @@ end HrAdcReadoutGroup;
 
 -- Define architecture
 architecture rtl of HrAdcReadoutGroup is
-
-   signal idelayCtrlRdy : sl;
-   signal cmt_locked    : sl;
 
 begin
 
@@ -97,5 +101,33 @@ begin
         adcStreams        => adcStreams
         );
   end generate GEN_ULTRASCALE_HRADC;
+
+    GEN_ULTRASCALE_HRADC16 : if ((XIL_DEVICE_G = "ULTRASCALE") and (DATA_TYPE_G = "16b20b")) generate
+    U_HrADC_0 : entity work.Hr16bAdcReadoutGroupUS
+      generic map (
+        TPD_G             => TPD_G,
+        NUM_CHANNELS_G    => NUM_CHANNELS_G,
+        IODELAY_GROUP_G   => IODELAY_GROUP_G,
+        IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G,
+        DEFAULT_DELAY_G   => DEFAULT_DELAY_G,
+        ADC_INVERT_CH_G   => ADC_INVERT_CH_G
+        )
+      port map (
+        axilClk           => axilClk,
+        axilRst           => axilRst,
+        axilReadMaster    => axilReadMaster,
+        axilReadSlave     => axilReadSlave,
+        axilWriteMaster   => axilWriteMaster,
+        axilWriteSlave    => axilWriteSlave,
+        bitClk            => bitClk,
+        byteClk           => byteClk,
+        deserClk          => deserClk,
+        adcClkRst         => adcClkRst,
+        idelayCtrlRdy     => idelayCtrlRdy,
+        adcSerial         => adcSerial,
+        adcStreamClk      => adcStreamClk,
+        adcStreams        => adcStreams
+        );
+  end generate GEN_ULTRASCALE_HRADC16;
 end rtl;
 
