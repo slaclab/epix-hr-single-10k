@@ -25,7 +25,8 @@ use ieee.math_real.all;
 -- DDR serializer
 entity serializerSim is
     generic(
-        g_dwidth : positive := 14 -- must be an even number
+        g_dwidth    : positive := 14; -- must be an even number
+        g_lsb_first : string   := "True"
     );
     port(
         clk_i     : in  std_logic;
@@ -49,8 +50,16 @@ architecture rtl of serializerSim is
 begin
     -- when clk is high output data_h, otherwise output data_l
     -- first conversion contains junk
-    s_data_o_h <= s_data(to_integer(s_cnt_h));
-    s_data_o_l <= s_data(to_integer(s_cnt_l));
+    lsb_selection: if g_lsb_first = "True" generate
+      s_data_o_h <= s_data(to_integer(s_cnt_h));
+      s_data_o_l <= s_data(to_integer(s_cnt_l));
+    end generate lsb_selection;
+
+    msb_selection: if g_lsb_first = "False" generate
+      s_data_o_h <= s_data(to_integer(g_dwidth-s_cnt_h-1));
+      s_data_o_l <= s_data(to_integer(g_dwidth-s_cnt_l-1));
+    end generate msb_selection;
+    
 
     data_o <= s_data_o_h when clk_i = '1' else s_data_o_l;
 

@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-03-05
+-- Last update: 2018-09-07
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -23,6 +23,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use work.all;
 use work.StdRtlPkg.all;
+
+library STD;
+use STD.textio.all;      
+
 
 use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
@@ -55,10 +59,40 @@ architecture AD9249GroupUS_arch of AD9249GroupUS_tb is
 
   -- component generics
   constant TPD_G : time := 1 ns;
+  constant IDLE_PATTERN_C : slv(13 downto 0) := "00000001111111";
   constant NUM_CHANNELS_G : integer := 8;
+  constant DEPTH_C     : natural := 1024;
+  constant DATA_BITS   : natural := 14;
+  constant FILENAME_C  : string  := "/afs/slac.stanford.edu/u/re/ddoering/localGit/epix-hr-dev/firmware/simulations/CryoEncDec/sin.csv";
+  
+  subtype word_t  is slv(DATA_BITS - 1 downto 0);
+  type    ram_t   is array(0 to DEPTH_C - 1) of word_t;
+
+  impure function readWaveFile(FileName : STRING) return ram_t is
+    file     FileHandle   : TEXT open READ_MODE is FileName;
+    variable CurrentLine  : LINE;
+    variable TempWord     : integer; --slv(DATA_BITS - 1 downto 0);
+    variable TempWordSlv  : slv(16 - 1 downto 0);
+    variable Result       : ram_t    := (others => (others => '0'));
+  begin
+    for i in 0 to DEPTH_C - 1 loop
+      exit when endfile(FileHandle);
+      readline(FileHandle, CurrentLine);
+      read(CurrentLine, TempWord);
+      TempWordSlv  := toSlv(TempWord, 16);
+      Result(i)    := TempWordSlv(15 downto 16 - DATA_BITS);
+    end loop;
+    return Result;
+  end function;
+
+  -- waveform signal
+  signal ramWaveform      : ram_t    := readWaveFile(FILENAME_C);
+  signal ramTestWaveform  : ram_t    := readWaveFile(FILENAME_C);
+
 
   -- component ports
   signal sysClkRst : std_logic := '1';
+  signal sysClkRst_n : sl := '0';
   signal idelayCtrlRdy : std_logic := '0';
   signal dClkP : sl := '1';                       -- Data clock
   signal dClkN : sl := '0';
@@ -67,8 +101,6 @@ architecture AD9249GroupUS_arch of AD9249GroupUS_tb is
   signal sDataP : sl;                       -- Frame clock
   signal sDataN : sl;
 --  signal cmt_locked : sl;
-  signal gearboxOffset : slv(2 downto 0) := "000";
-  signal bitSlip       : slv(3 downto 0) := "0101";
 --  signal pixData       : slv14Array(NUM_CHANNELS_G downto 0);  -- in channels
                                                                -- is the frame
                                                                -- signal
@@ -86,86 +118,47 @@ architecture AD9249GroupUS_arch of AD9249GroupUS_tb is
   -- clock
   signal sysClk    : std_logic := '1';
 
-  constant GROUP_TYPE : string := "TOP";     -- "US"
+  signal dataValidIn   : sl := '0';
+  signal dataIn        : slv(13 downto 0);
+  signal dataInRev        : slv(13 downto 0);
+  signal serialDataOut : sl;
+  signal testData      : slv(13 downto 0);
+  -- automatic test
+  signal testOk : sl := '0';
 
 begin  -- Dac8812Cntrl_arch
 
-  -- component instantiation
-  GEN_US : if GROUP_TYPE = "US" generate
-    DUT0: entity work.Ad9249ReadoutGroupUS
-      generic map (
-        TPD_G             => TPD_G,
-        NUM_CHANNELS_G    => 8,
-        IODELAY_GROUP_G   => "DEFAULT_GROUP",
-        IDELAYCTRL_FREQ_G => 350.0,
-        DELAY_VALUE_G     => 1250,
-        DEFAULT_DELAY_G   => (others => '0'),
-        ADC_INVERT_CH_G   => "00000000")
-      port map (
-        -- Master system clock, 125Mhz
-        axilClk => sysClk,
-        axilRst => sysClkRst,
-
-        -- Reset for adc deserializer
-        adcClkRst => sysClkRst,
-
-        -- Axi Interface
-        axilWriteMaster => axilWriteMaster,
-        axilWriteSlave  => axilWriteSlave,
-        axilReadMaster  => axilReadMaster,
-        axilReadSlave   => axilReadSlave,
- 
-        -- Serial Data from ADC
-        adcSerial => adcSerial,
-
-        -- Deserialized ADC Data
-        adcStreamClk => sysClk,
-        adcStreams   => adcStreams      
-        );
-  end generate GEN_US;
-
-
-  GEN_TOP : if GROUP_TYPE = "TOP" generate
-    DUT0: entity work.Ad9249ReadoutGroup
-      generic map (
-        TPD_G             => TPD_G,
-        NUM_CHANNELS_G    => 8,
-        IODELAY_GROUP_G   => "DEFAULT_GROUP",
-        XIL_DEVICE_G      => "ULTRASCALE",
-        DEFAULT_DELAY_G   => (others => '0'),
-        ADC_INVERT_CH_G   => "00000000")
-      port map (
-        -- Master system clock, 125Mhz
-        axilClk => sysClk,
-        axilRst => sysClkRst,
-
-        -- Reset for adc deserializer
-        adcClkRst => sysClkRst,
-
-        -- Axi Interface
-        axilWriteMaster => axilWriteMaster,
-        axilWriteSlave  => axilWriteSlave,
-        axilReadMaster  => axilReadMaster,
-        axilReadSlave   => axilReadSlave,
-
-        -- Signals to/from idelayCtrl
---        idelayCtrlRdy => idelayCtrlRdy,
---        cmt_locked    => cmt_locked,
+  sysClkRst_n <= not sysClkRst;
+  dataInRev <= bitReverse(dataIn(13 downto 7))&bitReverse(dataIn(6 downto 0));
    
-        -- Serial Data from ADC
-        adcSerial => adcSerial,
+  DataIn_Proc: process
+    variable dataIndex : integer := 0;
+  begin
+    wait until fClkP = '1';
+    if dataValidIn = '1' then
+      dataIn <= (ramWaveform(dataIndex));--"10101101100111";--
+      dataIndex := dataIndex + 1;
+      if dataIndex = DEPTH_C then
+        dataIndex := 0;
+      end if;
+    else
+      dataIn <= IDLE_PATTERN_C;
+    end if;
+  end process;
 
-        -- Deserialized ADC Data
-        adcStreamClk => sysClk,
-        adcStreams   => adcStreams      
-        );
-  end generate GEN_TOP;
-  
-  
 
-  
- 
-  
+  U_serializer :  entity work.serializerSim 
+    generic map(
+        g_dwidth => 14,
+        g_lsb_first => "False"
+    )
+    port map(
+        clk_i     => dClkP,
+        reset_n_i => sysClkRst_n,
+        data_i    => dataIn,        -- "00"&EncDataIn, --
+        data_o    => serialDataOut
+    );
+
   -- clock generation
   sysClk <= not sysClk after 6.4 ns;
   --
@@ -174,11 +167,14 @@ begin  -- Dac8812Cntrl_arch
   dClkP <= not dClkP after 3 ns; --2.857148571485714 ns;--1.428571428571428571428571428571 ns;
   dClkN <= not dClkP;
   --
-  sDataP <= not fClkP;
-  sDataN <=     fClkP;
+  --sDataP <= not fClkP;
+  --sDataN <=     fClkP;
 
-  adcSerial.fClkP <= fClkP;
-  adcSerial.fClkN <= fClkN;
+  sDataP <=     serialDataOut;
+  sDataN <= not serialDataOut;
+
+  adcSerial.fClkP <= fClkN;
+  adcSerial.fClkN <= fClkP;
   adcSerial.dClkP <= dClkP;
   adcSerial.dClkN <= dClkN;
 
@@ -198,6 +194,54 @@ begin  -- Dac8812Cntrl_arch
   adcSerial.chN(6) <= sDataN;
   adcSerial.chP(7) <= sDataP;
   adcSerial.chN(7) <= sDataN;
+
+  
+  DUT0: entity work.Ad9249ReadoutGroup
+      generic map (
+        TPD_G             => TPD_G,
+        NUM_CHANNELS_G    => 8,
+        IODELAY_GROUP_G   => "DEFAULT_GROUP",
+        DEFAULT_DELAY_G   => (others => '0'),
+        ADC_INVERT_CH_G   => "00000000")
+      port map (
+        -- Master system clock, 125Mhz
+        axilClk => sysClk,
+        axilRst => sysClkRst,
+
+        -- Reset for adc deserializer
+        adcClkRst => sysClkRst,
+
+        -- Axi Interface
+        axilWriteMaster => axilWriteMaster,
+        axilWriteSlave  => axilWriteSlave,
+        axilReadMaster  => axilReadMaster,
+        axilReadSlave   => axilReadSlave,
+ 
+        -- Serial Data from ADC
+        adcSerial => adcSerial,
+
+        -- Deserialized ADC Data
+        adcStreamClk => sysClk,
+        adcStreams   => adcStreams      
+        );
+  
+  AutomaticTestCheck_Proc: process
+    variable dataIndex : integer := 0;
+  begin
+    wait until sysClk = '1';             --check this clock
+    if adcStreams(0).tValid = '1' then
+      testData <= (adcStreams(0).tData(13 downto 0));
+      if testData = ramTestWaveform(dataIndex) then
+        testOk <= '1';
+        dataIndex := dataIndex + 1;
+        if dataIndex = DEPTH_C then
+          dataIndex := 0;
+        end if;
+      else
+        testOk <= '0';
+      end if;
+    end if;
+  end process;
  
   
   -- waveform generation
@@ -216,6 +260,8 @@ begin  -- Dac8812Cntrl_arch
     idelayCtrlRdy <= '1';               -- simulates control ready signal
         
     wait for 10 us;
+
+    dataValidIn <= '1';
 
     ---------------------------------------------------------------------------
     -- laod idelay value
@@ -236,52 +282,6 @@ begin  -- Dac8812Cntrl_arch
     axiLiteBusSimRead (sysClk, axilReadMaster, axilReadSlave, x"00000020", registerData, true);
     registerValue <= registerData;
     wait for 1 us;
-
-    ---------------------------------------------------------------------------
-    -- start gearbox offset search
-    ---------------------------------------------------------------------------
-    gearboxOffset <= "000";
-    bitSlip <= "0000";
-
-    for i in 0 to 15 loop
-      
-       wait for 10 us;
-       gearboxOffset <= gearboxOffset + 1;
-       
-    end loop;  -- i
-
-    wait for 10 us;
-    
-    ---------------------------------------------------------------------------
-    -- start gearbox offset search
-    ---------------------------------------------------------------------------
-    gearboxOffset <= "111";
-    bitSlip <= "0000";
-
-    for i in 0 to 15 loop
-
-      wait for 10 us;
-      bitSlip <= bitSlip + 1;
-
-    end loop;
-
-    wait for 10 us;
-    
-    ---------------------------------------------------------------------------
-    -- start gearbox offset search
-    ---------------------------------------------------------------------------
-    gearboxOffset <= "000";
-    bitSlip <= "0000";
-
-    for i in 0 to 15 loop
-
-      wait for 10 us;
-      bitSlip <= bitSlip + 1;
-
-    end loop;
-
-    bitSlip <= "1011";
-
 
     
     wait;
