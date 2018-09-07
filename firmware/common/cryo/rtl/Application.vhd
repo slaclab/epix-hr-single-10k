@@ -820,7 +820,6 @@ begin
       TPD_G             => TPD_G,
       NUM_CHANNELS_G    => 4,
       IODELAY_GROUP_G   => IODELAY_GROUP_G,
-      XIL_DEVICE_G      => "ULTRASCALE",
       IDELAYCTRL_FREQ_G => 200.0,
       DEFAULT_DELAY_G   => (others => '0'),
       ADC_INVERT_CH_G   => "00000010"
