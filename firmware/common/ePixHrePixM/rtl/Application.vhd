@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-09-05
+-- Last update: 2018-09-18
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -221,6 +221,12 @@ architecture mapping of Application is
    signal iAsicSync            : sl;
    signal iAsicAcq             : sl;
    signal iAsicGrst            : sl;
+   signal iAsicSsrRst          : sl;
+   signal iAsicSsrRstMAc       : sl;
+   signal iAsicSsrSerClrb      : sl;
+   signal iAsicSsrStoClrb      : sl;
+   signal iAsicSsrData         : sl;
+   signal iAsicSsrClk          : sl;
    signal iSaciSelL            : slv(3 downto 0);
    signal iSaciClk             : sl;
    signal iSaciCmd             : sl;
@@ -280,13 +286,11 @@ architecture mapping of Application is
    constant START_ADDR_C : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '0');
    constant STOP_ADDR_C  : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '1');
 
-   -- Equalizer signals
-   signal EqualizerLosIn : slv(5 downto 0);
    -- Programmable power supply signals
    signal enableLDOOut        : slv(1 downto 0);
    signal dacSclkProgSupplyOut: sl;
    signal dacDinProgSupplyOut : sl;
-   signal dacCsbProgSupplyOut : slv(1 downto 0);
+   signal dacCsbProgSupplyOut : slv(4 downto 0);
    signal dacClrbProgSupplyOut: sl;
    -- CJC
    signal cjcRst            : sl;
@@ -322,9 +326,6 @@ begin
   -----------------------------------------------------------------------------
   -- Programmable power supply IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DATAP_19 : IOBUF port map (O => open, I => enableLDOOut(0), IO => asicDataP(19), T => '0');
-  --
-  IOBUF_DATAN_19 : IOBUF port map (O => open, I => enableLDOOut(1), IO => asicDataN(19), T => '0');
   --
   IOBUF_SPARE_HPP_0 : IOBUF port map (O => open, I => dacDinProgSupplyOut,    IO => spareHpP(0), T => '0');
   IOBUF_SPARE_HPP_1 : IOBUF port map (O => open, I => dacSclkProgSupplyOut,   IO => spareHpP(1), T => '0');
@@ -332,43 +333,51 @@ begin
   --
   IOBUF_SPARE_HPN_0 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(0), IO => spareHpN(0), T => '0');
   IOBUF_SPARE_HPN_1 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(1), IO => spareHpN(1), T => '0');
+  IOBUF_SPARE_HPN_2 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(2), IO => spareHpN(2), T => '0');
+  IOBUF_SPARE_HPN_3 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(3), IO => spareHpN(3), T => '0');
+  IOBUF_SPARE_HPP_3 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(4), IO => spareHpP(3), T => '0');
   --
-  -----------------------------------------------------------------------------
-  -- Equalizer IOBUF & MAPPING
-  -----------------------------------------------------------------------------
-  -- EqualizerLosIn(5 downto 3) <= asicDataN(18 downto 16);
-  -- EqualizerLosIn(2 downto 0) <= asicDataP(18 downto 16);
-  --
-  IOBUF_DATAP_16 : IOBUF port map (O => EqualizerLosIn(0), I => '0', IO => asicDataP(16), T => '1');
-  IOBUF_DATAP_17 : IOBUF port map (O => EqualizerLosIn(1), I => '0', IO => asicDataP(17), T => '1');
-  IOBUF_DATAP_18 : IOBUF port map (O => EqualizerLosIn(2), I => '0', IO => asicDataP(18), T => '1');
-  --
-  IOBUF_DATAN_16 : IOBUF port map (O => EqualizerLosIn(3), I => '0', IO => asicDataN(16), T => '1');
-  IOBUF_DATAN_17 : IOBUF port map (O => EqualizerLosIn(4), I => '0', IO => asicDataN(17), T => '1');
-  IOBUF_DATAN_18 : IOBUF port map (O => EqualizerLosIn(5), I => '0', IO => asicDataN(18), T => '1');
-
   -----------------------------------------------------------------------------
   -- Clock Jitter Cleaner IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DATAP_1 : IOBUF port map (O => open,   I => cjcFrqtbl,    IO => asicDataP(1),  T => '0');
-  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcDec,       IO => asicDataP(7),  T => '0');
-  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcInc,       IO => asicDataP(8),  T => '0');
-  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(9),  T => '0');
-  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(10), T => '0');
-  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(11), T => '0');
-  IOBUF_DATAP_12: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(12), T => '0');
-  IOBUF_DATAP_13: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(13), T => '1');
+  IOBUF_DATAP_5 : IOBUF port map (O => open,   I => cjcFrqtbl,    IO => asicDataP(5),  T => '0');
+  IOBUF_DATAP_6 : IOBUF port map (O => open,   I => cjcDec,       IO => asicDataP(6),  T => '0');
+  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcInc,       IO => asicDataP(7),  T => '0');
+  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(8),  T => '0');
+  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(9),  T => '0');
+  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(10), T => '0');
+  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(11), T => '0');
+  IOBUF_DATAP_12: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(12), T => '1');
   --
-  IOBUF_DATAN_1 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(1),  T => '0');
-  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(7),  T => '0');
-  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(8),  T => '0');
-  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(9),  T => '0');
-  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(10), T => '0');
-  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(11), T => '0');
-  IOBUF_DATAN_12: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(12), T => '0');
-  IOBUF_DATAN_13: IOBUF port map (O => cjcLol, I => '0',          IO => asicDataN(13), T => '1');
+  IOBUF_DATAN_5 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(5),  T => '0');
+  IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(6),  T => '0');
+  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(7),  T => '0');
+  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(8),  T => '0');
+  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(9),  T => '0');
+  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(10), T => '0');
+  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(11), T => '0');
+  IOBUF_DATAN_12: IOBUF port map (O => cjcLol, I => '0',          IO => asicDataN(12), T => '1');
+  --
+  -----------------------------------------------------------------------------
+  -- Serial Shift Register IOBUF & MAPPING
+  -----------------------------------------------------------------------------
+  IOBUF_DATAP_14 : IOBUF port map (O => open,   I => iAsicSsrClk,     IO => asicDataP(14),  T => '0');
+  IOBUF_DATAP_15 : IOBUF port map (O => open,   I => iAsicSsrClk,     IO => asicDataP(15),  T => '0');
+  IOBUF_DATAP_16 : IOBUF port map (O => open,   I => iAsicSsrData,    IO => asicDataP(16),  T => '0');
+  --
+  IOBUF_DATAN_13 : IOBUF port map (O => open,   I => iAsicSsrRstMAc,  IO => asicDataN(13), T => '0');
+  IOBUF_DATAN_14 : IOBUF port map (O => open,   I => iAsicSsrSerClrb, IO => asicDataN(14), T => '0');
+  IOBUF_DATAN_15 : IOBUF port map (O => open,   I => iAsicSsrStoClrb, IO => asicDataN(15), T => '0');
+  IOBUF_DATAN_16 : IOBUF port map (O => open,   I => iAsicSsrRst,     IO => asicDataN(16), T => '0');
+  --
+  -----------------------------------------------------------------------------
+  -- Differential asic signals IOBUF & MAPPING
+  -----------------------------------------------------------------------------
+  IBUFDS_DM1 : IBUFDS generic map (DQS_BIAS => "FALSE") port map (I  => asicDataP(1), IB => asicDataN(1), O  => iAsic01DM1);
+  IBUFDS_DM2 : IBUFDS generic map (DQS_BIAS => "FALSE") port map (I  => asicDataP(2), IB => asicDataN(2), O  => iAsic01DM2);
+  OBUFDS_CLK : OBUFDS                                   port map (I  => asicRdClk,    O  => asicRoClkP,   OB => asicRoClkN);
+
     
-  
    ---------------------
    -- Heart beat LED  --
    ---------------------
@@ -483,18 +492,17 @@ begin
    -----------------------------------------------------------------------------
    -- ASIC signal routing
    -----------------------------------------------------------------------------
-   asicPpmat       <= iasicPpmat;
+   asicPpmat       <= iAsicPpmat;
    asicGlblRst     <= iAsicGrst;
-   asicSync        <= iasicSync;
-   asicAcq         <= iasicAcq;
+   asicSync        <= iAsicSync;
+   asicAcq         <= iAsicAcq;
+   asicR0          <= iAsicSR0;
+   iAsicSsrRstMAc  <= not iAsicSsrRst;
 
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
    mbIrq           <= (others => '0');  
-   asicR0          <= '0';
-   asicRoClkP      <= (others => '0');
-   asicRoClkN      <= (others => '1');
    gtTxP           <= '0';
    gtTxN           <= '1';
    smaTxP          <= '0';
@@ -505,10 +513,11 @@ begin
    -- Generate clocks from 156.25 MHz PGP  --
    ------------------------------------------
    -- clkIn     : 156.25 MHz PGP
+   -- base clk is 1000 MHz
    -- clkOut(0) : 100.00 MHz app clock
-   -- clkOut(1) : 100.00 MHz asic clock
-   -- clkOut(2) : 100.00 MHz asic clock
-   -- clkOut(3) : 300.00 MHz idelay control clock
+   -- clkOut(1) : 250.00 MHz asic clock
+   -- clkOut(2) : 250.00 MHz asic clock (because HR pll bypass)
+   -- clkOut(3) : 250.00 MHz idelay control clock (valid 200MHz to 800MHz)
    -- clkOut(4) :  50.00 MHz monitoring adc
    U_CoreClockGen : entity work.ClockManagerUltraScale 
    generic map(
@@ -521,15 +530,15 @@ begin
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
-      DIVCLK_DIVIDE_G        => 10,
+      DIVCLK_DIVIDE_G        => 6,
       CLKFBOUT_MULT_F_G      => 38.4,
       CLKFBOUT_MULT_G        => 5,
       CLKOUT0_DIVIDE_F_G     => 1.0,
-      CLKOUT0_DIVIDE_G       => 6,
-      CLKOUT1_DIVIDE_G       => 6,
-      CLKOUT2_DIVIDE_G       => 6,
-      CLKOUT3_DIVIDE_G       => 2,
-      CLKOUT4_DIVIDE_G       => 12,
+      CLKOUT0_DIVIDE_G       => 10,
+      CLKOUT1_DIVIDE_G       => 4,
+      CLKOUT2_DIVIDE_G       => 4,
+      CLKOUT3_DIVIDE_G       => 4,
+      CLKOUT4_DIVIDE_G       => 20,
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
@@ -577,31 +586,29 @@ begin
    U_BUFGCE_DIV_0 : BUFGCE_DIV
    generic map (
       BUFGCE_DIVIDE => 5,     -- 1-8
-      -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
       IS_CE_INVERTED => '0',  -- Optional inversion for CE
       IS_CLR_INVERTED => '0', -- Optional inversion for CLR
       IS_I_INVERTED => '0'    -- Optional inversion for I
    )
    port map (
       O => byteClk,     -- 1-bit output: Buffer
-      CE => '1',   -- 1-bit input: Buffer enable
-      CLR => '0', -- 1-bit input: Asynchronous clear
+      CE => '1',        -- 1-bit input: Buffer enable
+      CLR => '0',       -- 1-bit input: Asynchronous clear
       I => asicClk      -- 1-bit input: Buffer
    );
 
   U_BUFGCE_DIV_1 : BUFGCE_DIV
    generic map (
       BUFGCE_DIVIDE => 4,     -- 1-8
-      -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
       IS_CE_INVERTED => '0',  -- Optional inversion for CE
       IS_CLR_INVERTED => '0', -- Optional inversion for CLR
       IS_I_INVERTED => '0'    -- Optional inversion for I
    )
    port map (
       O => deserClk,     -- 1-bit output: Buffer
-      CE => '1',   -- 1-bit input: Buffer enable
-      CLR => '0', -- 1-bit input: Asynchronous clear
-      I => asicClk      -- 1-bit input: Buffer
+      CE => '1',         -- 1-bit input: Buffer enable
+      CLR => '0',        -- 1-bit input: Asynchronous clear
+      I => asicClk       -- 1-bit input: Buffer
    );
   
 
@@ -714,7 +721,13 @@ begin
       asicGlblRst    => iAsicGrst,
       asicSync       => iAsicSync,
       asicAcq        => iAsicAcq,
+      asicSsrRst     => iAsicSsrRst,
+      asicSsrSerClrb => iAsicSsrSerClrb,
+      asicSsrStoClrb => iAsicSsrStoClrb,
+      asicSsrData    => iAsicSsrData,
+      asicSsrClk     => iAsicSsrClk,
       asicVid        => open,
+      
       errInhibit     => errInhibit
    );
 
@@ -838,7 +851,7 @@ begin
       NUM_CHANNELS_G    => 4,
       IODELAY_GROUP_G   => IODELAY_GROUP_G,
       XIL_DEVICE_G      => "ULTRASCALE",
-      IDELAYCTRL_FREQ_G => 200.0,
+      IDELAYCTRL_FREQ_G => 250.0,
       DEFAULT_DELAY_G   => (others => '0'),
       ADC_INVERT_CH_G   => "00000010"
    )
@@ -1100,22 +1113,16 @@ begin
    end generate;
 
 
-   adcSerial(0).fClkP  <= asicDataP(2);
-   adcSerial(0).fClkN  <= asicDataN(2);
-   adcSerial(0).dClkP  <= asicDataP(5);
-   adcSerial(0).dClkN  <= asicDataN(5);
+   adcSerial(0).fClkP  <= byteClk;
+   adcSerial(0).fClkN  <= not byteClk;
+   adcSerial(0).dClkP  <= asicClk;
+   adcSerial(0).dClkN  <= not asicClk;
    adcSerial(0).chP(0) <= asicDataP(0);
    adcSerial(0).chN(0) <= asicDataN(0);
-   adcSerial(0).chP(1) <= asicDataP(3);
-   adcSerial(0).chN(1) <= asicDataN(3);
+   adcSerial(0).chP(1) <= asicDataP(1);
+   adcSerial(0).chN(1) <= asicDataN(1);
    --
-   --adcSerial(1).fClkP  <= asicDataP(4);
-   --adcSerial(1).fClkN  <= asicDataN(4);
-   --adcSerial(1).dClkP  <= asicDataP(6);
-   --adcSerial(1).dClkN  <= asicDataN(6);
-   --adcSerial(1).chP(0) <= asicDataP(3);
-   --adcSerial(1).chN(0) <= asicDataN(3);
-   
+  
    --------------------------------------------
    --     ASICS LOOP                         --
    --------------------------------------------   
@@ -1125,16 +1132,16 @@ begin
      -------------------------------------------------------
      U_AXI_ASIC : entity work.HrAdcReadoutGroup
       generic map (
-        TPD_G             => TPD_G,
-        NUM_CHANNELS_G    => STREAMS_PER_ASIC_C,
-        DATA_TYPE_G       => "16b20b",
-        IODELAY_GROUP_G   => "DEFAULT_GROUP",
-        XIL_DEVICE_G      => "ULTRASCALE",
-        DEFAULT_DELAY_G   => (others => '0'),
-        ADC_INVERT_CH_G   => "00000000")
+        TPD_G           => TPD_G,
+        NUM_CHANNELS_G  => STREAMS_PER_ASIC_C,
+        DATA_TYPE_G     => "16b20b",
+        IODELAY_GROUP_G => "DEFAULT_GROUP",
+        XIL_DEVICE_G    => "ULTRASCALE",
+        DEFAULT_DELAY_G => (others => '0'),
+        ADC_INVERT_CH_G => "00000000")
       port map (
-        axilClk => appClk,
-        axilRst => appRst,
+        axilClk         => appClk,
+        axilRst         => appRst,
         axilWriteMaster => mAxiWriteMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
         axilWriteSlave  => mAxiWriteSlaves(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
         axilReadMaster  => mAxiReadMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
@@ -1142,7 +1149,7 @@ begin
         bitClk          => asicClk,
         byteClk         => byteClk,
         deserClk        => deserClk,
-        adcClkRst       => sysRst,
+        adcClkRst       => serdesReset,
         idelayCtrlRdy   => idelayRdy,
         adcSerial       => adcSerial(i),
         adcStreamClk    => asicRdClk,
@@ -1260,29 +1267,7 @@ begin
    port map (
       clk      => appClk,
       rstOut   => startDdrTest_n
-   );
-
-   --------------------------------------------
-   -- Equalizer monitoring                   --
-   --------------------------------------------
-   U_EqualizerStatus : entity work.EqualizerModules
-     generic map(
-      TPD_G               => TPD_G,
-      NUN_OF_EQUALIZER_IC => 6)
-   port map(
-      sysClk            => appClk,
-      sysRst            => appRst,
-      -- IO signals
-      EqualizerLOS      => EqualizerLosIn,
-      EqualizerLOSSynced=> open,
-      -- AXI lite slave port for register access
-      axilClk           => appClk,
-      axilRst           => appRst,
-      sAxilWriteMaster  => mAxiWriteMasters(EQUALIZER_REG_AXI_INDEX_C),
-      sAxilWriteSlave   => mAxiWriteSlaves(EQUALIZER_REG_AXI_INDEX_C),
-      sAxilReadMaster   => mAxiReadMasters(EQUALIZER_REG_AXI_INDEX_C),
-      sAxilReadSlave    => mAxiReadSlaves(EQUALIZER_REG_AXI_INDEX_C)
-   );
+   );   
 
    --------------------------------------------
    -- Programmable power supply              --
@@ -1300,7 +1285,6 @@ begin
       axiWriteMaster => mAxiWriteMasters(PROG_SUPPLY_REG_AXI_INDEX_C),
       axiWriteSlave  => mAxiWriteSlaves(PROG_SUPPLY_REG_AXI_INDEX_C),
       -- Static control IO interface
-      enableLDO      => enableLDOOut, 
       -- DAC interfaces
       dacSclk        => dacSclkProgSupplyOut,
       dacDin         => dacDinProgSupplyOut,

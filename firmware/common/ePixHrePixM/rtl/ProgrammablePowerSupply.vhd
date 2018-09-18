@@ -4,7 +4,7 @@
 -- File       : Programable Power supply
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 2018-06-22
+-- Last update: 2018-09-18
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,7 +38,8 @@ use unisim.vcomponents.all;
 entity ProgrammablePowerSupply is
    generic (
       TPD_G             : time := 1 ns;
-      CLK_PERIOD_G      : real := 10.0e-9
+      CLK_PERIOD_G      : real := 10.0e-9;
+      NUM_DAC_G         : integer := 5
    );
    port (
       -- Global Signals
@@ -49,12 +50,10 @@ entity ProgrammablePowerSupply is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
-      -- Static control IO interface
-      enableLDO      : out slv(1 downto 0);
       -- DAC interfaces
       dacSclk        : out sl;
       dacDin         : out sl;
-      dacCsb         : out slv(1 downto 0);
+      dacCsb         : out slv(NUM_DAC_G-1 downto 0);
       dacClrb        : out sl
    );
 end ProgrammablePowerSupply;
@@ -62,15 +61,13 @@ end ProgrammablePowerSupply;
 architecture rtl of ProgrammablePowerSupply is
    
    type RegType is record
-      vDacSetting       : Slv16Array(1 downto 0);
-      enableLDO         : slv(1 downto 0);
+      vDacSetting       : Slv16Array(NUM_DAC_G-1 downto 0);
       axiReadSlave      : AxiLiteReadSlaveType;
       axiWriteSlave     : AxiLiteWriteSlaveType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
       vDacSetting       => (others => (others=>'0')),
-      enableLDO         => (others=>'0'),
       axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C
    );
@@ -80,16 +77,16 @@ architecture rtl of ProgrammablePowerSupply is
     
    signal axiReset : sl;
    
-   signal dacDinSig  : slv(1 downto 0);  -- common signals
-   signal dacSclkSig : slv(1 downto 0);  -- common signals
-   signal dacClrbSig : slv(1 downto 0);  -- common signals
+   signal dacDinSig  : slv(NUM_DAC_G-1 downto 0);  -- common signals
+   signal dacSclkSig : slv(NUM_DAC_G-1 downto 0);  -- common signals
+   signal dacClrbSig : slv(NUM_DAC_G-1 downto 0);  -- common signals
    
 begin
 
    axiReset <= axiRst;
-   dacDin   <= dacDinSig(0)  or dacDinSig(1);
-   dacSclk  <= dacSclkSig(0) or dacSclkSig(1);
-   dacClrb  <= dacClrbSig(0) or dacClrbSig(1);
+   dacDin   <= uOr(dacDinSig);
+   dacSclk  <= uOr(dacSclkSig);
+   dacClrb  <= uOr(dacClrbSig);
 
    -------------------------------
    -- Configuration Register
@@ -109,9 +106,10 @@ begin
       axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
       
       -- Map out standard registers
-      axiSlaveRegister(regCon,  x"000000",  0, v.enableLDO); -- Guard ring dac
-      axiSlaveRegister(regCon,  x"000004",  0, v.vDacSetting(0));
-      axiSlaveRegister(regCon,  x"000008",  0, v.vDacSetting(1));
+      --axiSlaveRegister(regCon,  x"000000",  0, v.enableLDO); -- Guard ring dac
+      for i in 0 to NUM_DAC_G-1 loop
+        axiSlaveRegister(regCon,  x"000004"+toSlv((i*4), 24),  0, v.vDacSetting(i));
+      end loop;      
       
       axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_OK_C);
       
@@ -127,7 +125,7 @@ begin
       axiReadSlave    <= r.axiReadSlave;
 
       -- outputs
-      enableLDO <= r.enableLDO;
+      
       
    end process comb;
 

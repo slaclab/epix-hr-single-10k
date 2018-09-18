@@ -4,7 +4,7 @@
 -- File       : RegControlEpixHR.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 2018-07-24
+-- Last update: 2018-09-17
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -70,11 +70,18 @@ entity RegisterControl is
       asicSync       : out sl;
       asicAcq        : out sl;
       asicVid        : out sl;
+      asicSsrRst     : out sl;
+      asicSsrSerClrb : out sl;
+      asicSsrStoClrb : out sl;
+      asicSsrData    : out sl;
+      asicSsrClk     : out sl;
       errInhibit     : out sl
    );
 end RegisterControl;
 
 architecture rtl of RegisterControl is
+
+   constant SSR_PARALLEL_OUT : integer := 40;
    
    type AsicAcqType is record
       SR0               : sl;
@@ -116,6 +123,23 @@ architecture rtl of RegisterControl is
       saciSyncPolarity  : sl;
       saciSyncDelay     : slv(31 downto 0);
       saciSyncWidth     : slv(31 downto 0);
+      ssrRst            : sl;
+      ssrRstPolarity    : sl;
+      ssrRstDelay       : slv(31 downto 0);
+      ssrRstWidth       : slv(31 downto 0);
+      ssrSerialClrb     : sl;
+      ssrStorageClrb    : sl;
+      ssrClk            : sl;
+      ssrClkEn          : sl;
+      ssrCnt            : slv(31 downto 0);
+      ssrClkHalfT       : slv(31 downto 0);
+      ssrClkDelay       : slv(31 downto 0);
+      ssrClkNumPeriods  : slv(15 downto 0);
+      ssrClkCounter     : integer;
+      ssrDatab          : sl;
+      ssrData           : slv(SSR_PARALLEL_OUT-1 downto 0);
+      ssrDataSel        : integer;
+      
    end record AsicAcqType;
    
    constant ASICACQ_TYPE_INIT_C : AsicAcqType := (
@@ -157,7 +181,23 @@ architecture rtl of RegisterControl is
       saciSync          => '0',
       saciSyncPolarity  => '0',
       saciSyncDelay     => (others=>'0'),
-      saciSyncWidth     => (others=>'0')
+      saciSyncWidth     => (others=>'0'),
+      ssrRst            => '0',
+      ssrRstPolarity    => '0',
+      ssrRstDelay       => X"0000_0010",
+      ssrRstWidth       => X"0000_1410",
+      ssrSerialClrb     => '1',
+      ssrStorageClrb    => '1',
+      ssrClk            => '0',
+      ssrClkEn          => '0',
+      ssrCnt            => (others=>'0'),
+      ssrClkHalfT       => X"0000_0040",
+      ssrClkDelay       => X"0000_0002",
+      ssrClkNumPeriods  => X"0028",
+      ssrClkCounter     => 0,
+      ssrDatab          => '1',
+      ssrData           => x"FFFF_FFFF_FE",
+      ssrDataSel        => 0
    );
    
    type RegType is record
@@ -166,6 +206,7 @@ architecture rtl of RegisterControl is
       adcClk            : sl;
       adcCnt            : slv(31 downto 0);
       adcClkHalfT       : slv(31 downto 0);
+      
       saciPrepRdoutCnt  : slv(31 downto 0);
       boardRegOut       : appConfigType;
       asicAcqReg        : AsicAcqType;
@@ -205,6 +246,7 @@ architecture rtl of RegisterControl is
    
    constant BUILD_INFO_C       : BuildInfoRetType    := toBuildInfo(BUILD_INFO_G);
    
+   
 begin
 
    axiReset <= sysRst or r.usrRst;
@@ -224,6 +266,7 @@ begin
       -- Reset data and strobes
       v.axiReadSlave.rdata       := (others => '0');
       v.resetCounters            := '0';
+      
       
       -- Determine the transaction type
       axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
@@ -267,9 +310,17 @@ begin
       axiSlaveRegister(regCon,  x"000174",  0, v.asicAcqReg.SR0Polarity);
       axiSlaveRegister(regCon,  x"000178",  0, v.asicAcqReg.SR0Delay);
       axiSlaveRegister(regCon,  x"00017C",  0, v.asicAcqReg.SR0Width);
-      --
-      axiSlaveRegister(regCon,  x"000174",  0, v.asicAcqReg.Vid);
-      
+      axiSlaveRegister(regCon,  x"000180",  0, v.asicAcqReg.Vid);
+      axiSlaveRegister(regCon,  x"000184",  0, v.asicAcqReg.ssrRstPolarity);
+      axiSlaveRegister(regCon,  x"000188",  0, v.asicAcqReg.ssrRstDelay);
+      axiSlaveRegister(regCon,  x"00018C",  0, v.asicAcqReg.ssrRstWidth);
+      axiSlaveRegister(regCon,  x"000190",  0, v.asicAcqReg.ssrSerialClrb);
+      axiSlaveRegister(regCon,  x"000190",  1, v.asicAcqReg.ssrStorageClrb);
+      axiSlaveRegister(regCon,  x"000194",  0, v.asicAcqReg.ssrClkHalfT);
+      axiSlaveRegister(regCon,  x"000198",  0, v.asicAcqReg.ssrClkDelay);
+      axiSlaveRegister(regCon,  x"00019C",  0, v.asicAcqReg.ssrClkNumPeriods);
+      axiSlaveRegister(regCon,  x"0001A0",  0, v.asicAcqReg.ssrData);
+     
       axiSlaveRegisterR(regCon, x"000200",  0, r.boardRegOut.acqCnt);
       axiSlaveRegisterR(regCon, x"000204",  0, r.saciPrepRdoutCnt);
       axiSlaveRegister(regCon,  x"000208",  0, v.resetCounters);
@@ -281,7 +332,8 @@ begin
       axiSlaveRegister(regCon,  x"000300",  0, v.adcClkHalfT);
       axiSlaveRegister(regCon,  x"000304",  0, v.boardRegOut.requestStartupCal);
       axiSlaveRegister(regCon,  x"000304",  1, v.boardRegOut.startupAck);          -- set by Microblaze
-      axiSlaveRegister(regCon,  x"000304",  2, v.boardRegOut.startupFail);         -- set by Microblaze     
+      axiSlaveRegister(regCon,  x"000304",  2, v.boardRegOut.startupFail);         -- set by Microblaze
+
       
       -- Special reset for write to address 00
       --if regCon.axiStatus.writeEnable = '1' and axiWriteMaster.awaddr = 0 then
@@ -297,20 +349,54 @@ begin
       else
          v.adcCnt := r.adcCnt + 1;
       end if;
+
+      -- Serial Shift Register clock counter
+      if r.asicAcqReg.ssrClkEn = '1' then
+        if r.asicAcqReg.ssrCnt >= r.asicAcqReg.ssrClkHalfT - 1 then
+          v.asicAcqReg.ssrClk := not r.asicAcqReg.ssrClk;
+          v.asicAcqReg.ssrCnt := (others => '0');
+          --counts the periods
+          if r.asicAcqReg.ssrClk = '1' then
+            v.asicAcqReg.ssrClkCounter := r.asicAcqReg.ssrClkCounter + 1;
+            -- Mux selection is bound by the number of parallel outputs
+            if r.asicAcqReg.ssrDataSel < SSR_PARALLEL_OUT-1   then
+              v.asicAcqReg.ssrDataSel    := r.asicAcqReg.ssrDataSel  + 1;
+            else
+              v.asicAcqReg.ssrDataSel    := 0;
+            end if;
+          end if;
+        else
+          v.asicAcqReg.ssrCnt := r.asicAcqReg.ssrCnt + 1;
+        end if;
+      else
+          v.asicAcqReg.ssrClk := '0';
+          v.asicAcqReg.ssrCnt := (others => '0');
+      end if;
+
+      -- serial shift register data mux
+      if (r.asicAcqReg.ssrClkEn = '1') then --
+        -- 40 parallel outputs
+        v.asicAcqReg.ssrDatab := r.asicAcqReg.ssrData((r.asicAcqReg.ssrDataSel)); 
+      else
+        v.asicAcqReg.ssrDatab := '1';
+      end if;
       
       -- programmable ASIC acquisition waveform
       if acqStart = '1' then
-         v.boardRegOut.acqCnt    := r.boardRegOut.acqCnt + 1;
-         v.asicAcqTimeCnt        := (others=>'0');
-         v.asicAcqReg.SR0        := r.asicAcqReg.SR0Polarity;
-         v.asicAcqReg.GlblRst    := r.asicAcqReg.GlblRstPolarity;
-         v.asicAcqReg.Acq        := r.asicAcqReg.AcqPolarity;
-         v.asicAcqReg.Tpulse     := r.asicAcqReg.TpulsePolarity;
-         v.asicAcqReg.Start      := r.asicAcqReg.StartPolarity;
-         v.asicAcqReg.PPbe       := r.asicAcqReg.PPbePolarity;
-         v.asicAcqReg.Ppmat      := r.asicAcqReg.PpmatPolarity;
-         v.asicAcqReg.Sync       := r.asicAcqReg.SyncPolarity;
-         v.asicAcqReg.saciSync   := r.asicAcqReg.saciSyncPolarity;
+         v.boardRegOut.acqCnt       := r.boardRegOut.acqCnt + 1;
+         v.asicAcqTimeCnt           := (others=>'0');
+         v.asicAcqReg.SR0           := r.asicAcqReg.SR0Polarity;
+         v.asicAcqReg.GlblRst       := r.asicAcqReg.GlblRstPolarity;
+         v.asicAcqReg.Acq           := r.asicAcqReg.AcqPolarity;
+         v.asicAcqReg.Tpulse        := r.asicAcqReg.TpulsePolarity;
+         v.asicAcqReg.Start         := r.asicAcqReg.StartPolarity;
+         v.asicAcqReg.PPbe          := r.asicAcqReg.PPbePolarity;
+         v.asicAcqReg.Ppmat         := r.asicAcqReg.PpmatPolarity;
+         v.asicAcqReg.Sync          := r.asicAcqReg.SyncPolarity;
+         v.asicAcqReg.saciSync      := r.asicAcqReg.saciSyncPolarity;
+         v.asicAcqReg.ssrClkEn      := '0';
+         v.asicAcqReg.ssrClkCounter := 0;
+         v.asicAcqReg.ssrDataSel    := 0;
       else
          if r.asicAcqTimeCnt /= x"FFFFFFFF" then
             v.asicAcqTimeCnt := r.asicAcqTimeCnt + 1;
@@ -321,6 +407,22 @@ begin
             v.asicAcqReg.SR0 := not r.asicAcqReg.SR0Polarity;
             if r.asicAcqReg.SR0Width /= 0 and (r.asicAcqReg.SR0Width + r.asicAcqReg.SR0Delay) <= r.asicAcqTimeCnt then
                v.asicAcqReg.SR0 := r.asicAcqReg.SR0Polarity;
+            end if;
+         end if;
+
+         -- single pulse. zero value corresponds to infinite delay/width
+         if r.asicAcqReg.ssrRstDelay /= 0 and r.asicAcqReg.ssrRstDelay <= r.asicAcqTimeCnt then
+            v.asicAcqReg.ssrRst := not r.asicAcqReg.ssrRstPolarity;
+            if r.asicAcqReg.ssrRstWidth /= 0 and (r.asicAcqReg.ssrRstWidth + r.asicAcqReg.ssrRstDelay) <= r.asicAcqTimeCnt then
+               v.asicAcqReg.ssrRst := r.asicAcqReg.ssrRstPolarity;
+            end if;
+         end if;
+    
+         -- single pulse. zero value corresponds to infinite delay
+         if r.asicAcqReg.ssrClkDelay /= 0 and r.asicAcqReg.ssrClkDelay <= r.asicAcqTimeCnt then
+            v.asicAcqReg.ssrClkEn := '1';
+            if r.asicAcqReg.ssrClkNumPeriods-1 < r.asicAcqReg.ssrClkCounter then
+               v.asicAcqReg.ssrClkEn := '0';
             end if;
          end if;
          
@@ -445,6 +547,11 @@ begin
       asicSync       <= r.asicAcqReg.Sync;
       asicAcq        <= r.asicAcqReg.Acq;
       asicVid        <= r.asicAcqReg.Vid;
+      asicSsrRst     <= r.asicAcqReg.ssrRst;
+      asicSsrSerClrb <= r.asicAcqReg.ssrSerialClrb;
+      asicSsrStoClrb <= r.asicAcqReg.ssrStorageClrb;
+      asicSsrData    <= r.asicAcqReg.ssrDatab;
+      asicSsrClk     <= r.asicAcqReg.ssrClk;
       
    end process comb;
 
