@@ -373,9 +373,9 @@ begin
   -----------------------------------------------------------------------------
   -- Differential asic signals IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IBUFDS_DM1 : IBUFDS generic map (DQS_BIAS => "FALSE") port map (I  => asicDataP(1), IB => asicDataN(1), O  => iAsic01DM1);
-  IBUFDS_DM2 : IBUFDS generic map (DQS_BIAS => "FALSE") port map (I  => asicDataP(2), IB => asicDataN(2), O  => iAsic01DM2);
-  OBUFDS_CLK : OBUFDS                                   port map (I  => asicRdClk,    O  => asicRoClkP,   OB => asicRoClkN);
+  IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDataP(1), T => '1');
+  IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => asicDataN(1), T => '1');
+  OBUFDS_CLK     : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(0),OB => asicRoClkN(0));
 
     
    ---------------------
@@ -502,6 +502,9 @@ begin
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
+   asicRoClkN(3 downto 1) <= (others => '0');
+   asicRoClkP(3 downto 1) <= (others => '0');  
+     
    mbIrq           <= (others => '0');  
    gtTxP           <= '0';
    gtTxN           <= '1';
@@ -850,7 +853,6 @@ begin
       TPD_G             => TPD_G,
       NUM_CHANNELS_G    => 4,
       IODELAY_GROUP_G   => IODELAY_GROUP_G,
-      XIL_DEVICE_G      => "ULTRASCALE",
       IDELAYCTRL_FREQ_G => 250.0,
       DEFAULT_DELAY_G   => (others => '0'),
       ADC_INVERT_CH_G   => "00000010"
@@ -1119,8 +1121,8 @@ begin
    adcSerial(0).dClkN  <= not asicClk;
    adcSerial(0).chP(0) <= asicDataP(0);
    adcSerial(0).chN(0) <= asicDataN(0);
-   adcSerial(0).chP(1) <= asicDataP(1);
-   adcSerial(0).chN(1) <= asicDataN(1);
+   adcSerial(0).chP(1) <= asicDataP(2);
+   adcSerial(0).chN(1) <= asicDataN(2);
    --
   
    --------------------------------------------
