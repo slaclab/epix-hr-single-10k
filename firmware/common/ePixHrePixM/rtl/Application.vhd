@@ -237,6 +237,9 @@ architecture mapping of Application is
    signal adcClk               : sl;
    signal errInhibit           : sl;
 
+   signal slowAdcDin_i           : sl;  
+   signal slowAdcRefClk_i        : sl;
+
 
    -- HS DAC
    signal WFDacDin_i    : sl;
@@ -444,59 +447,72 @@ begin
    asicSaciClk     <= iSaciClk;
    asicSaciSel     <= iSaciSelL;
    iSaciSelL(3 downto 1) <=  (others => '1');
-   ----------------------------------------------------------------------------
+
+  ----------------------------------------------------------------------------
    -- Trigger signals
    ----------------------------------------------------------------------------
-  iDaqTrigger <= daqTg;
-  iRunTrigger <= connRun;
-  ssiCmd_i    <= ssiCmd;
+   iDaqTrigger <= daqTg;
+   iRunTrigger <= connRun;
+   ssiCmd_i    <= ssiCmd;
+
+   slowAdcDin <= slowAdcDin_i;
+   slowAdcRefClk <= slowAdcRefClk_i;
+  
    ----------------------------------------------------------------------------
    -- Monitoring signals
    ----------------------------------------------------------------------------
    connTgOut <= 
       iAsic01DM1        when boardConfig.epixhrDbgSel1 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel1 = "00001" else
-      --iAsicStart        when boardConfig.epixhrDbgSel1 = "00010" else
-      iAsicAcq          when boardConfig.epixhrDbgSel1 = "00011" else
-      --iAsicTpulse       when boardConfig.epixhrDbgSel1 = "00100" else
-      iAsicSR0          when boardConfig.epixhrDbgSel1 = "00101" else
-      iSaciClk          when boardConfig.epixhrDbgSel1 = "00110" else
-      iSaciCmd          when boardConfig.epixhrDbgSel1 = "00111" else
-      asicSaciRsp       when boardConfig.epixhrDbgSel1 = "01000" else
-      iSaciSelL(0)      when boardConfig.epixhrDbgSel1 = "01001" else
-      iSaciSelL(1)      when boardConfig.epixhrDbgSel1 = "01010" else
-      asicRdClk         when boardConfig.epixhrDbgSel1 = "01011" else
-      --bitClk            when boardConfig.epixhrDbgSel1 = "01100" else
-      byteClk           when boardConfig.epixhrDbgSel1 = "01101" else
-      WFdacDin_i        when boardConfig.epixhrDbgSel1 = "01110" else
-      WFdacSclk_i       when boardConfig.epixhrDbgSel1 = "01111" else
-      WFdacCsL_i        when boardConfig.epixhrDbgSel1 = "10000" else
-      WFdacLdacL_i      when boardConfig.epixhrDbgSel1 = "10001" else
-      WFdacClrL_i       when boardConfig.epixhrDbgSel1 = "10010" else
-      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10011" else
+      iAsicAcq          when boardConfig.epixhrDbgSel1 = "00010" else
+      iAsicSR0          when boardConfig.epixhrDbgSel1 = "00011" else
+      iSaciClk          when boardConfig.epixhrDbgSel1 = "00100" else
+      iSaciCmd          when boardConfig.epixhrDbgSel1 = "00101" else
+      asicSaciRsp       when boardConfig.epixhrDbgSel1 = "00110" else
+      iSaciSelL(0)      when boardConfig.epixhrDbgSel1 = "00111" else
+      iSaciSelL(1)      when boardConfig.epixhrDbgSel1 = "01000" else
+      asicRdClk         when boardConfig.epixhrDbgSel1 = "01001" else
+      byteClk           when boardConfig.epixhrDbgSel1 = "01010" else
+      WFdacDin_i        when boardConfig.epixhrDbgSel1 = "01011" else
+      WFdacSclk_i       when boardConfig.epixhrDbgSel1 = "01100" else
+      WFdacCsL_i        when boardConfig.epixhrDbgSel1 = "01101" else
+      WFdacLdacL_i      when boardConfig.epixhrDbgSel1 = "01110" else
+      WFdacClrL_i       when boardConfig.epixhrDbgSel1 = "01111" else
+      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10000" else
+      iAsicSsrData      when boardConfig.epixhrDbgSel1 = "10001" else
+      iAsicSsrClk       when boardConfig.epixhrDbgSel1 = "10010" else
+      iAsicSsrRst       when boardConfig.epixhrDbgSel1 = "10011" else     
+      slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10100" else
+      slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10101" else
+      slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
+      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else   
       '0';   
    
    connMps <=
       iAsic01DM2        when boardConfig.epixhrDbgSel2 = "00000" else
-      iAsicSync         when boardConfig.epixhrDbgSel2 = "00001" else
-      --iAsicStart        when boardConfig.epixhrDbgSel2 = "00010" else
-      iAsicAcq          when boardConfig.epixhrDbgSel2 = "00011" else
-      --iAsicTpulse       when boardConfig.epixhrDbgSel2 = "00100" else
-      iAsicSR0          when boardConfig.epixhrDbgSel2 = "00101" else
-      iSaciClk          when boardConfig.epixhrDbgSel2 = "00110" else
-      iSaciCmd          when boardConfig.epixhrDbgSel2 = "00111" else
-      asicSaciRsp       when boardConfig.epixhrDbgSel2 = "01000" else
-      iSaciSelL(0)      when boardConfig.epixhrDbgSel2 = "01001" else
-      iSaciSelL(1)      when boardConfig.epixhrDbgSel2 = "01010" else
-      asicRdClk         when boardConfig.epixhrDbgSel2 = "01011" else
-      --bitClk            when boardConfig.epixhrDbgSel2 = "01100" else
-      byteClk           when boardConfig.epixhrDbgSel2 = "01101" else
-      WFdacDin_i        when boardConfig.epixhrDbgSel2 = "01110" else
-      WFdacSclk_i       when boardConfig.epixhrDbgSel2 = "01111" else
-      WFdacCsL_i        when boardConfig.epixhrDbgSel2 = "10000" else
-      WFdacLdacL_i      when boardConfig.epixhrDbgSel2 = "10001" else
-      WFdacClrL_i       when boardConfig.epixhrDbgSel2 = "10010" else
-      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10011" else
+      iAsicSync         when boardConfig.epixhrDbgSel1 = "00001" else
+      iAsicAcq          when boardConfig.epixhrDbgSel1 = "00010" else
+      iAsicSR0          when boardConfig.epixhrDbgSel1 = "00011" else
+      iSaciClk          when boardConfig.epixhrDbgSel1 = "00100" else
+      iSaciCmd          when boardConfig.epixhrDbgSel1 = "00101" else
+      asicSaciRsp       when boardConfig.epixhrDbgSel1 = "00110" else
+      iSaciSelL(0)      when boardConfig.epixhrDbgSel1 = "00111" else
+      iSaciSelL(1)      when boardConfig.epixhrDbgSel1 = "01000" else
+      asicRdClk         when boardConfig.epixhrDbgSel1 = "01001" else
+      byteClk           when boardConfig.epixhrDbgSel1 = "01010" else
+      WFdacDin_i        when boardConfig.epixhrDbgSel1 = "01011" else
+      WFdacSclk_i       when boardConfig.epixhrDbgSel1 = "01100" else
+      WFdacCsL_i        when boardConfig.epixhrDbgSel1 = "01101" else
+      WFdacLdacL_i      when boardConfig.epixhrDbgSel1 = "01110" else
+      WFdacClrL_i       when boardConfig.epixhrDbgSel1 = "01111" else
+      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10000" else
+      iAsicSsrData      when boardConfig.epixhrDbgSel1 = "10001" else
+      iAsicSsrClk       when boardConfig.epixhrDbgSel1 = "10010" else
+      iAsicSsrRst       when boardConfig.epixhrDbgSel1 = "10011" else
+      slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10100" else
+      slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10101" else
+      slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
+      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else   
       '0';
 
    -----------------------------------------------------------------------------
@@ -973,18 +989,18 @@ begin
       sAxilReadSlave    => mAxiReadSlaves(MONADC_REG_AXI_INDEX_C),
       
       -- AXI stream output
-      axisClk           => appClk,
-      axisRst           => appRst,
+      axisClk           => sysClk,
+      axisRst           => sysRst,
       mAxisMaster       => sAuxAxisMasters(1),
       mAxisSlave        => sAuxAxisSlaves(1),
 
       -- ADC Control Signals
-      adcRefClk         => slowAdcRefClk,
+      adcRefClk         => slowAdcRefClk_i,
       adcDrdy           => slowAdcDrdy,
       adcSclk           => slowAdcSclk,
       adcDout           => slowAdcDout,
       adcCsL            => slowAdcCsL,
-      adcDin            => slowAdcDin
+      adcDin            => slowAdcDin_i
    );
    
 
