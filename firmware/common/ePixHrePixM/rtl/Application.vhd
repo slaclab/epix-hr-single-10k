@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-09-18
+-- Last update: 2018-09-21
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -439,7 +439,11 @@ begin
    asicSaciClk     <= iSaciClk;
    asicSaciSel     <= iSaciSelL;
    iSaciSelL(3 downto 1) <=  (others => '1');
-
+   ----------------------------------------------------------------------------
+   -- Trigger signals
+   ----------------------------------------------------------------------------
+  iDaqTrigger <= daqTg;
+  iRunTrigger <= connRun;
    ----------------------------------------------------------------------------
    -- Monitoring signals
    ----------------------------------------------------------------------------
