@@ -66,6 +66,8 @@ entity Application is
       -- 0 is pseudo scope, 1 is slow adc monitoring
       sAuxAxisMasters  : out   AxiStreamMasterArray(1 downto 0);
       sAuxAxisSlaves   : in    AxiStreamSlaveArray(1 downto 0);
+      -- ssi commands (Lane and Vc 0)
+      ssiCmd           : in    SsiCmdMasterType;
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       mAxiReadMaster   : out   AxiReadMasterType;
@@ -269,7 +271,7 @@ architecture mapping of Application is
 
 
    -- Command interface
-   signal ssiCmd               : SsiCmdMasterType;
+   signal ssiCmd_i               : SsiCmdMasterType;
    
    -- External Signals 
    signal serialIdIo           : slv(1 downto 0) := "00";
@@ -314,6 +316,9 @@ architecture mapping of Application is
    attribute keep of asicRdClk         : signal is "true";
    attribute keep of startDdrTest_n    : signal is "true";
    attribute keep of iAsicAcq          : signal is "true";
+   attribute keep of ssiCmd_i          : signal is "true";
+   attribute keep of iDaqTrigger       : signal is "true";
+   attribute keep of iRunTrigger       : signal is "true";
 
    attribute keep of adcStreams        : signal is "true";
 
@@ -444,6 +449,7 @@ begin
    ----------------------------------------------------------------------------
   iDaqTrigger <= daqTg;
   iRunTrigger <= connRun;
+  ssiCmd_i    <= ssiCmd;
    ----------------------------------------------------------------------------
    -- Monitoring signals
    ----------------------------------------------------------------------------
@@ -757,7 +763,7 @@ begin
       pgpClk         => sysClk,
       pgpClkRst      => sysRst,
       -- SW trigger in (from VC)
-      ssiCmd         => ssiCmd,
+      ssiCmd         => ssiCmd_i,
       -- PGP RxOutType (to trigger from sideband)
       pgpRxOut       => pgpRxOut,
       -- Opcode associated with this trigger

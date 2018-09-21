@@ -95,10 +95,20 @@ SetDebugCoreClk ${ilaName} {U_App/appClk}
 
 
 ConfigProbe ${ilaName} {U_App/iAsicAcq}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}
+ConfigProbe ${ilaName} {U_App/ssiCmd_i[*]}
+ConfigProbe ${ilaName} {U_App/iDaqTrigger}
+ConfigProbe ${ilaName} {U_App/iRunTrigger}
+
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GenData[0].U_DATA_DESERIALIZER/adcDV4R[*]}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GenData[0].U_DATA_DESERIALIZER/adcDV7R[*]}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GenData[0].U_DATA_DESERIALIZER/loadDelaySync}
+ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/U_FRAME_DESERIALIZER/loadDelaySync}
+
+
 
 
 ### Delete the last unused port

@@ -2,7 +2,7 @@
 -- File       : EpixHrEpixM.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-09-05
+-- Last update: 2018-09-21
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.EpixHrCorePkg.all;
 use work.AppPkg.all;
+use work.SsiCmdMasterPkg.all;
 
 entity EpixHrEpixM is
    generic (
@@ -163,6 +164,8 @@ architecture top_level of EpixHrEpixM is
    -- Auxiliary AXI Stream, (sysClk domain)
    signal sAuxAxisMasters : AxiStreamMasterArray(1 downto 0);
    signal sAuxAxisSlaves  : AxiStreamSlaveArray(1 downto 0);
+   -- ssi commands (Lane and Vc 0)
+   signal ssiCmd          : SsiCmdMasterType;
    -- DDR's AXI Memory Interface (sysClk domain)
    signal axiReadMaster   : AxiReadMasterType;
    signal axiReadSlave    : AxiReadSlaveType;
@@ -197,6 +200,8 @@ begin
          -- Auxiliary AXI Stream, (sysClk domain)
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
+         -- ssi commands (Lane and Vc 0)
+         ssiCmd           => ssiCmd,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          mAxiReadMaster   => axiReadMaster,
@@ -303,6 +308,8 @@ begin
          -- Auxiliary AXI Stream, (sysClk domain)
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
+         -- ssi commands (Lane and Vc 0)
+         ssiCmd           => ssiCmd,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          sAxiReadMaster   => axiReadMaster,
