@@ -124,13 +124,13 @@ class EpixHRGen1ePixM(pr.Device):
             sDacRegisters(           name='SlowDacs'    ,                      offset=0x86200000, expand=False, enabled=False),
             OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x87000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(         name='FastADCsDebug',                     offset=0x88000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config[0].Adc[0]',    offset=0x88100000, expand=False, enabled=False),
+            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',       offset=0x88100000, expand=False, enabled=False),
             SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x88200000, expand=False),
             DigitalPktRegisters(     name="PacketRegisters",                   offset=0x8B000000, expand=False)
             ))
 
-        self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.Command(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
+        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
 
 
     def fnSetWaveform(self, dev,cmd,arg):
@@ -198,7 +198,7 @@ class EpixHRGen1Cryo(pr.Device):
             sDacRegisters(           name='SlowDacs'    ,                      offset=0x86200000, expand=False, enabled=False),
             OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x87000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(         name='FastADCsDebug',                     offset=0x88000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config[0].Adc[0]',    offset=0x88100000, expand=False, enabled=False),
+            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',    offset=0x88100000, expand=False, enabled=False),
             SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x88200000, expand=False),
             DigitalPktRegisters(     name="PacketRegisters",                   offset=0x8B000000, expand=False)
             ))
@@ -269,7 +269,7 @@ class EpixHRGen1Prbs(pr.Device):
             OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8C000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8D000000, enabled=False, expand=False),
             #analog_devices.Ad9249ReadoutGroup(name = 'Ad9249Rdout[0].Adc[0]',  offset=0x8D000000, channels=4, enabled=False, expand=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config[0].Adc[0]',    offset=0x8E000000, enabled=False, expand=False),
+            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',    offset=0x8E000000, enabled=False, expand=False),
             SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x8F000000, expand=False),
             ))
 
@@ -508,11 +508,11 @@ class EPixHrePixMAppCoreFpgaRegisters(pr.Device):
       self.add(pr.RemoteVariable(name='ssrRstDelay',     description='SSR Delay1',        offset=0x00000188, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='ssrWidth',        description='SSR Width1',        offset=0x0000018C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='ssrSerialClrb',   description='SSR Serial clear',  offset=0x00000190, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-      self.add(pr.RemoteVariable(name='ssrStorageClrb',  description='SSR Storage clear'  offset=0x00000190, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='ssrStorageClrb',  description='SSR Storage clear', offset=0x00000190, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='ssrClkHalfT',     description='SSR period',        offset=0x00000194, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='ssrClkDelay',     description='SSR delay',         offset=0x00000198, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='ssrClkNumPeriods',description='SSR Num. rows',     offset=0x0000019C, bitSize=16, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.RemoteVariable(name='ssrData',         description='SSR Data 40 bits',  offset=0x000001A0, bitSize=40, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.RemoteVariable(name='ssrData',         description='SSR Data 40 bits',  offset=0x000001A0, bitSize=40, bitOffset=0, base=pr.UInt, disp = '{:#x}', mode='RW'))
       self.add(pr.RemoteVariable(name='AcqCnt',          description='AcqCnt',            offset=0x00000200, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='SaciPrepRdoutCnt',description='SaciPrepRdoutCnt',  offset=0x00000204, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='ResetCounters',   description='ResetCounters',     offset=0x00000208, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
@@ -782,6 +782,23 @@ class MonAdcRegisters(pr.Device):
       # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
       # A command can also be a call to a local function with local scope.
       # The command object and the arg are passed
+      self.add(pr.LocalCommand(name='InitAdcDelay',description='Find and set best delay for the adc channels', function=self.fnSetFindAndSetDelays))
+
+   def fnSetFindAndSetDelays(self,dev,cmd,arg):
+       """Find and set Monitoring ADC delays"""
+       parent = self.parent
+       if not(parent.Ad9249Config_Adc_0.enable.get()):
+           parent.Ad9249Config_Adc_0.enable.set(True)
+       
+       parent.Ad9249Config_Adc_0.OutputTestMode.set(9) # one bit on
+       self.testResult = np.zeros(256)
+       #check adc 0
+       for delay in range (0, 256):
+           self.DelayAdc0.set(delay)
+           self.testResult[delay] = (self.Adc0_0.get()==0x2AAA)
+       print(self.testResult)
+       #check adc 1
+       
    
    @staticmethod   
    def frequencyConverter(self):
