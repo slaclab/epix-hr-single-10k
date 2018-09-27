@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-09-26
+-- Last update: 2018-09-27
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -240,6 +240,7 @@ architecture mapping of Application is
    signal slowAdcDin_i         : sl;  
    signal slowAdcRefClk_i      : sl;
    signal slowAdcCsL_i         : sl;
+   signal slowAdcSclk_i        : sl;
 
 
    -- HS DAC
@@ -463,6 +464,7 @@ begin
    slowAdcDin    <= slowAdcDin_i;
    slowAdcRefClk <= slowAdcRefClk_i;
    slowAdcCsL    <= slowAdcCsL_i;
+   slowAdcSclk   <= slowAdcSclk_i;
   
    ----------------------------------------------------------------------------
    -- Monitoring signals
@@ -1003,7 +1005,7 @@ begin
       -- ADC Control Signals
       adcRefClk         => slowAdcRefClk_i,
       adcDrdy           => slowAdcDrdy,
-      adcSclk           => slowAdcSclk,
+      adcSclk           => slowAdcSclk_i,
       adcDout           => slowAdcDout,
       adcCsL            => slowAdcCsL_i,
       adcDin            => slowAdcDin_i
