@@ -102,11 +102,17 @@ ConfigProbe ${ilaName} {U_App/iAsicAcq}
 ConfigProbe ${ilaName} {U_App/ssiCmd_i[*]}
 ConfigProbe ${ilaName} {U_App/iDaqTrigger}
 ConfigProbe ${ilaName} {U_App/iRunTrigger}
+ConfigProbe ${ilaName} {U_App/slowAdcDin_i}
+ConfigProbe ${ilaName} {U_App/slowAdcDrdy}
+ConfigProbe ${ilaName} {U_App/slowAdcDout}
+ConfigProbe ${ilaName} {U_App/slowAdcRefClk_i}
+ConfigProbe ${ilaName} {U_App/slowAdcCsL_i}
 
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GenData[0].U_DATA_DESERIALIZER/adcDV4R[*]}
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GenData[0].U_DATA_DESERIALIZER/adcDV7R[*]}
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GenData[0].U_DATA_DESERIALIZER/loadDelaySync}
 ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/U_FRAME_DESERIALIZER/loadDelaySync}
+
 
 
 

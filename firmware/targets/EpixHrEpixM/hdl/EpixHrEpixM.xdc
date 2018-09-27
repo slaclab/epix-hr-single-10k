@@ -39,6 +39,7 @@ set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_Core/U
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT3]]
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/U_ISERDESE3_master/INTERNAL_DIVCLK}]] -group [get_clocks -of_objects [get_pins U_App/U_BUFGCE_DIV_1/O]]
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]] -group [get_clocks -of_objects [get_pins U_App/U_BUFGCE_DIV_0/O]]
+set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]]
 
 #requierd becase we repurpose the IO lines to get the clock from the cryo ADC debug lines
 #set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/AdcClk_I_Ibufds/O] 
