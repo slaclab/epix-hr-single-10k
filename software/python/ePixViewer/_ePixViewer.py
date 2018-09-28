@@ -119,7 +119,6 @@ class Window(QtGui.QMainWindow, QObject):
         
         # weak way to sync frame reader and display
         self.readFileDelay = 0.1
-        self.displayBusy = False
 
         # initialize image processing objects
         self.rawImgFrame = []
@@ -320,9 +319,8 @@ class Window(QtGui.QMainWindow, QObject):
         [frameComplete, readyForDisplay, self.rawImgFrame] = self.currentCam.buildImageFrame(currentRawData = self.rawImgFrame, newRawData = newRawData)
 
         if (readyForDisplay):
-            if (not self.displayBusy): 
-                self.displayImageFromReader(imageData = self.rawImgFrame)
-            else: print("Display busy")
+            self.displayImageFromReader(imageData = self.rawImgFrame)
+            
         if (frameComplete == 0 and readyForDisplay == 1):
         # in this condition we have data about two different images
         # since a new image has been sent and the old one is incomplete
@@ -331,12 +329,11 @@ class Window(QtGui.QMainWindow, QObject):
         if (frameComplete == 1):
         # frees the memory since it has been used alreay enabling a new frame logic to start fresh
             self.rawImgFrame = []              
-        self.eventReader.busy = False
+        
 
     # core code for displaying the image
     def displayImageFromReader(self, imageData):
         #init variables
-        self.displayBusy = True
         self.imgTool.imgWidth = self.currentCam.sensorWidth
         self.imgTool.imgHeight = self.currentCam.sensorHeight
         #get descrambled image com camera
@@ -363,8 +360,6 @@ class Window(QtGui.QMainWindow, QObject):
         # this sleep is a weak way of waiting for the file to be readout completely... needs improvement
         time.sleep(self.readFileDelay)
         thisString = 'Frame {} of {}'.format(self.eventReader.frameIndex, self.eventReader.numAcceptedFrames)
-
-        self.displayBusy = False    
 
         self.postImageDisplayProcessing()        
 
@@ -400,7 +395,6 @@ class Window(QtGui.QMainWindow, QObject):
         if (self.LinePlot2_RB1.isChecked()):
             self.lineDisplay2.update_plot(self.cbScopeCh0.isChecked(), "Scope Trace A", 'r',  chAdata, 
                                             self.cbScopeCh1.isChecked(), "Scope Trace B", 'b',  chBdata)
-        self.eventReaderScope.busy = False
        
 
     def displayMonitoringDataFromReader(self):
@@ -408,7 +402,7 @@ class Window(QtGui.QMainWindow, QObject):
         envData = np.zeros((8,1), dtype='int32')
         
         #exits if there is no 
-        if (rawData.isempty()) :        
+        if (len(rawData)==0) :        
             return false
         #removes header before displying the image
         for j in range(0,32):
@@ -440,7 +434,6 @@ class Window(QtGui.QMainWindow, QObject):
         if (self.monitoringDataIndex > self.monitoringDataLength):
             self.monitoringDataTraces = np.delete(self.monitoringDataTraces, 0, 1)
 
-        self.eventReaderMonitoring.busy = False
 
     # Evaluates which post display algorithms are needed if any
     def postImageDisplayProcessing(self):
@@ -613,8 +606,6 @@ class EventReader(rogue.interfaces.stream.Slave):
         self.VIEW_PSEUDOSCOPE_ID     = 0x2
         self.VIEW_MONITORING_DATA_ID = 0x3
         self.readFileDelay = 0.1
-        self.busy = False
-        self.busyTimeout = 0
         
 
 
@@ -637,21 +628,14 @@ class EventReader(rogue.interfaces.stream.Slave):
         self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
         self.numAcceptedFrames += 1
 
-        VcNum =  p[0] & 0xF
-        if (self.busy): 
-            self.busyTimeout = self.busyTimeout + 1
-            print("Event Reader Busy: " +  str(self.busyTimeout))
-            if self.busyTimeout >  10:
-                self.busy = False
-        else:
-            self.busyTimeout = 0
+        VcNum =  p[0] & 0xF    
 
         if (time.clock_gettime(0)-self.lastTime)>1:
             self.lastTime = time.clock_gettime(0)
-            if ((VcNum == self.VIEW_PSEUDOSCOPE_ID) and (not self.busy)):
+            if ((VcNum == self.VIEW_PSEUDOSCOPE_ID)):
                 if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
                 self.parent.processPseudoScopeFrameTrigger.emit()
-            elif (VcNum == self.VIEW_MONITORING_DATA_ID and (not self.busy)):
+            elif (VcNum == self.VIEW_MONITORING_DATA_ID):
                 if (PRINT_VERBOSE): print('Decoding Monitoring Data')
                 self.parent.processMonitoringFrameTrigger.emit()
             elif (VcNum == 0):
@@ -664,9 +648,7 @@ class EventReader(rogue.interfaces.stream.Slave):
 
         index = self.numProcessFrames%4
         self.numProcessFrames += 1
-        if ((self.enable) and (not self.busy)):
-            self.busy = True
-            
+        if (self.enable):        
             # Get the channel number
             chNum = (self.lastFrame.getFlags() >> 24)
             # reads payload only
@@ -709,8 +691,7 @@ class EventReader(rogue.interfaces.stream.Slave):
                 # if displaying all images the sleep produces a frame rate that can be displayed without 
                 # freezing or crashing the program. 
 #                time.sleep(self.readFileDelay)
-            #sets busy flag at the end
-            #self.busy = False
+
 
 
 ################################################################################
