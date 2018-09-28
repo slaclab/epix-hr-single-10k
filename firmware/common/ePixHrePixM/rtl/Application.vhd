@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-09-27
+-- Last update: 2018-09-28
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -329,6 +329,7 @@ architecture mapping of Application is
    attribute keep of slowAdcDout       : signal is "true";
    attribute keep of slowAdcRefClk_i   : signal is "true";
    attribute keep of slowAdcCsL_i      : signal is "true";
+   attribute keep of slowAdcSclk_i     : signal is "true";
    attribute keep of adcStreams        : signal is "true";
 
 
@@ -997,8 +998,8 @@ begin
       sAxilReadSlave    => mAxiReadSlaves(MONADC_REG_AXI_INDEX_C),
       
       -- AXI stream output
-      axisClk           => appClk,
-      axisRst           => appRst,
+      axisClk           => sysClk,
+      axisRst           => sysRst,
       mAxisMaster       => sAuxAxisMasters(1),
       mAxisSlave        => sAuxAxisSlaves(1),
 
