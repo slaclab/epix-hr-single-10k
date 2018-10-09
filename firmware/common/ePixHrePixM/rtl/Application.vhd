@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-09-28
+-- Last update: 2018-10-05
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -283,6 +283,7 @@ architecture mapping of Application is
 
    -- DDR signals
    signal startDdrTest_n       : sl;
+   signal startDdrTest         : sl;
    -- DDR sconstants
    constant DDR_AXI_CONFIG_C : AxiConfigType := axiConfig(
       ADDR_WIDTH_C => 15,
@@ -977,14 +978,14 @@ begin
    -------------------------------------------- 
    U_AdcCntrl: entity work.SlowAdcCntrlAxi
    generic map (
-      SYS_CLK_PERIOD_G  => 10.0E-9,	-- 100MHz
+      SYS_CLK_PERIOD_G  => 6.4E-9,	-- 156.25MHz
       ADC_CLK_PERIOD_G  => 200.0E-9,	-- 5MHz
       SPI_SCLK_PERIOD_G => 2.0E-6  	-- 500kHz
    )
    port map ( 
       -- Master system clock
-      sysClk            => appClk,
-      sysClkRst         => appRst,
+      sysClk            => sysClk,
+      sysClkRst         => sysRst,
       
       -- Trigger Control
       adcStart          => acqStart,
@@ -1290,7 +1291,7 @@ begin
       -- DDR Memory Interface
       axiClk          => sysClk,
       axiRst          => sysRst,
-      start           => not startDdrTest_n, -- input signal that starts the test 
+      start           => startDdrTest, -- input signal that starts the test 
       axiWriteMaster  => mAxiWriteMaster,
       axiWriteSlave   => mAxiWriteSlave,
       axiReadMaster   => mAxiReadMaster,
@@ -1304,7 +1305,8 @@ begin
    port map (
       clk      => appClk,
       rstOut   => startDdrTest_n
-   );   
+   );
+  startDdrTest <= not startDdrTest_n;
 
    --------------------------------------------
    -- Programmable power supply              --

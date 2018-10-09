@@ -37,7 +37,7 @@ entity PseudoScopeAxi is
    generic (
       TPD_G                      : time                  := 1 ns;
       MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
-      AXIL_ERR_RESP_G            : slv(1 downto 0)       := AXI_RESP_DECERR_C
+      AXIL_ERR_RESP_G            : slv(1 downto 0)       := AXI_RESP_OK_C
    );
    port ( 
 

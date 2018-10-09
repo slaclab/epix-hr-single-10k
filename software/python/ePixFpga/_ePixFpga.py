@@ -59,8 +59,8 @@ class EpixHRGenEmpty(pr.Device):
             pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False)
             ))
 
-        self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.Command(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
+        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
 
     def fnSetWaveform(self, dev,cmd,arg):
         """SetTestBitmap command function"""
@@ -110,23 +110,25 @@ class EpixHRGen1ePixM(pr.Device):
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
             # app registers
             MMCM7Registers(          name='MMCM7Registers',                    offset=0x80000000, expand=False, enabled=False),
-            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False),
+            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x82100000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x82200000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x82300000, expand=False, enabled=False),
-            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x82400000, expand=False, enabled=False, numberLanes=4),
-            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x83000000, expand=False),
-            EPixHrePixMAppCoreFpgaRegisters(name="RegisterControl",            offset=0x8C000000, expand=False),
-            powerSupplyRegisters(    name='PowerSupply',                       offset=0x85000000, expand=False),            
-            HighSpeedDacRegisters(   name='HSDac',                             offset=0x86000000, expand=False,HsDacEnum=HsDacEnum),
-            #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
-            sDacRegisters(           name='SlowDacs'    ,                      offset=0x86200000, expand=False, enabled=False),
-            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x87000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
-            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x88000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',       offset=0x88100000, expand=False, enabled=False),
-            SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x88200000, expand=False),
-            DigitalPktRegisters(     name="PacketRegisters",                   offset=0x8B000000, expand=False)
+            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, expand=False, enabled=False),
+            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
+            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False, enabled=False),
+            epix.EpixHrAdcAsic(      name='HrAdcAsic0',                        offset=0x88000000, expand=False, enabled=False),
+            EPixHrePixMAppCoreFpgaRegisters(name="RegisterControl",            offset=0x96000000, expand=False, enabled=False),
+            powerSupplyRegisters(    name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
+            HighSpeedDacRegisters(   name='HSDac',                             offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
+            pr.MemoryDevice(         name='waveformMem',                       offset=0x8B000000, wordBitSize=16, stride=4, size=1024*4),
+            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8C000000, expand=False, enabled=False),
+            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
+            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8E000000, expand=False, enabled=False),
+            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',        offset=0x8F000000, expand=False, enabled=False),
+            SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x90000000, expand=False, enabled=False),
+            ProgrammablePowerSupply( name="ProgPowerSupply",                   offset=0x92000000, expand=False, enabled=False),
+            DigitalPktRegisters(     name="PacketRegisters",                   offset=0x95000000, expand=False, enabled=False)
             ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -140,7 +142,7 @@ class EpixHRGen1ePixM(pr.Device):
             waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
             if waveform.shape == (1024,):
                 for x in range (0, 1024):
-                    self._rawWrite(offset = (0x8A000000 + x * 4),data =  int(waveform[x]))
+                    self._rawWrite(offset = (0x86100000 + x * 4),data =  int(waveform[x]))
             else:
                 print('wrong csv file format')
 
@@ -150,7 +152,7 @@ class EpixHRGen1ePixM(pr.Device):
         if os.path.splitext(self.filename)[1] == '.csv':
             readBack = np.zeros((1024),dtype='uint16')
             for x in range (0, 1024):
-                readBack[x] = self._rawRead(offset = (0x8A000000 + x * 4))
+                readBack[x] = self._rawRead(offset = (0x86100000 + x * 4))
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
 
 
@@ -203,8 +205,8 @@ class EpixHRGen1Cryo(pr.Device):
             DigitalPktRegisters(     name="PacketRegisters",                   offset=0x8B000000, expand=False)
             ))
 
-        self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.Command(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
+        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
 
 
     def fnSetWaveform(self, dev,cmd,arg):
@@ -214,7 +216,7 @@ class EpixHRGen1Cryo(pr.Device):
             waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
             if waveform.shape == (1024,):
                 for x in range (0, 1024):
-                    self._rawWrite(offset = (0x8A000000 + x * 4),data =  int(waveform[x]))
+                    self._rawWrite(offset = (0x86100000 + x * 4),data =  int(waveform[x]))
             else:
                 print('wrong csv file format')
 
@@ -224,7 +226,7 @@ class EpixHRGen1Cryo(pr.Device):
         if os.path.splitext(self.filename)[1] == '.csv':
             readBack = np.zeros((1024),dtype='uint16')
             for x in range (0, 1024):
-                readBack[x] = self._rawRead(offset = (0x8A000000 + x * 4))
+                readBack[x] = self._rawRead(offset = (0x86100000 + x * 4))
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
 
 
@@ -273,8 +275,8 @@ class EpixHRGen1Prbs(pr.Device):
             SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x8F000000, expand=False),
             ))
 
-        self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.Command(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
+        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
 
 
     def fnSetWaveform(self, dev,cmd,arg):
@@ -333,8 +335,8 @@ class EpixHRGen1FD(pr.Device):
             axi.AxiStreamMonitoring(name='AxiStreamMon',               offset=0x87000000, enabled=False, expand=False),
             ))
 
-        self.add(pr.Command(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.Command(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
+        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
 
     def fnSetWaveform(self, dev,cmd,arg):
         """SetTestBitmap command function"""
@@ -955,6 +957,7 @@ class powerSupplyRegisters(pr.Device):
          return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
       return func
 
+
 class sDacRegisters(pr.Device):
    def __init__(self, **kwargs):
       super().__init__(description='Slow DAC Registers', **kwargs)
@@ -973,11 +976,58 @@ class sDacRegisters(pr.Device):
       #Setup registers & variables
       
       self.add((
-         pr.RemoteVariable(name='dac_0'  ,         description='',                  offset=0x00000000, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_1'  ,         description='',                  offset=0x00000004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_2'  ,         description='',                  offset=0x00000008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_3'  ,         description='',                  offset=0x0000000C, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_4'  ,         description='',                  offset=0x00000010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
+         pr.RemoteVariable(name='dac_0'  ,         description='',                  offset=0x00000, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dac_1'  ,         description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dac_2'  ,         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dac_3'  ,         description='',                  offset=0x0000C, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dac_4'  ,         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dummy'  ,         description='',                  offset=0x00014, bitSize=32,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
+               )
+      
+      
+      
+      #####################################
+      # Create commands
+      #####################################
+      
+      # A command has an associated function. The function can be a series of
+      # python commands in a string. Function calls are executed in the command scope
+      # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+      # A command can also be a call to a local function with local scope.
+      # The command object and the arg are passed
+   
+   @staticmethod   
+   def frequencyConverter(self):
+      def func(dev, var):         
+         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+      return func
+
+##############################################################
+#programmable power supply
+##############################################################
+class ProgrammablePowerSupply(pr.Device):
+   def __init__(self, **kwargs):
+      super().__init__(description='Slow DAC Registers', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables
+      
+      self.add((
+         pr.RemoteVariable(name='dac_0'  ,         description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dac_1'  ,         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dac_2'  ,         description='',                  offset=0x0000c, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dac_3'  ,         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='dac_4'  ,         description='',                  offset=0x00014, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
                )
       
       

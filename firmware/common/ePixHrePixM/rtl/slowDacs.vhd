@@ -4,7 +4,7 @@
 -- File       : RegControlEpixHR.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 04/26/2016
+-- Last update: 2018-10-08
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -36,8 +36,9 @@ use unisim.vcomponents.all;
 
 entity slowDacs is
    generic (
-      TPD_G             : time               := 1 ns;
-      CLK_PERIOD_G      : real            := 10.0e-9
+      TPD_G             : time              := 1 ns;
+      CLK_PERIOD_G      : real              := 10.0e-9;
+      AXIL_ERR_RESP_G   : slv(1 downto 0)   := AXI_RESP_OK_C
    );
    port (
       -- Global Signals
@@ -60,12 +61,14 @@ architecture rtl of slowDacs is
    
    type RegType is record
       vDacSetting       : Slv16Array(4 downto 0);
+      dummy             : slv(31 downto 0);
       axiReadSlave      : AxiLiteReadSlaveType;
       axiWriteSlave     : AxiLiteWriteSlaveType;
    end record RegType;
    
    constant REG_INIT_C : RegType := (
       vDacSetting       => (others => (others=>'0')),
+      dummy             => x"DEADF00D",
       axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C
    );
@@ -109,8 +112,9 @@ begin
       axiSlaveRegister(regCon,  x"000008",  0, v.vDacSetting(2));
       axiSlaveRegister(regCon,  x"00000C",  0, v.vDacSetting(3));
       axiSlaveRegister(regCon,  x"000010",  0, v.vDacSetting(4)); -- dac that generates Vocm for HS dac
+      axiSlaveRegister(regCon,  x"000014",  0, v.dummy);
       
-      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_OK_C);
+      axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXIL_ERR_RESP_G);
       
       -- Synchronous Reset
       if axiReset = '1' then
