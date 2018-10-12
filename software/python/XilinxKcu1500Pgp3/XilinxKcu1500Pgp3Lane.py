@@ -12,7 +12,7 @@
 import pyrogue as pr
 import pyrogue.interfaces.simulation
 #import pyrogue.simulation
-import rogue.hardware.data
+#import rogue.hardware.data
 
 from DataLib.DataDev import *
 from surf.protocols.pgp._Pgp3AxiL import *
