@@ -4,7 +4,7 @@
 -- File       : Programable Power supply
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 2018-09-18
+-- Last update: 2018-10-18
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ begin
    -----------------------------------------------
    -- DAC Controller
    -----------------------------------------------
-   G_MAX5443 : for i in 0 to 1 generate
+   G_MAX5443 : for i in 0 to (NUM_DAC_G-1) generate
        U_DacCntrl : entity work.DacCntrl 
        generic map (
           TPD_G => TPD_G

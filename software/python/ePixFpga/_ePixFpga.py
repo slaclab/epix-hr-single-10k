@@ -142,7 +142,7 @@ class EpixHRGen1ePixM(pr.Device):
             waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
             if waveform.shape == (1024,):
                 for x in range (0, 1024):
-                    self._rawWrite(offset = (0x86100000 + x * 4),data =  int(waveform[x]))
+                    self.waveformMem._rawWrite(offset = (x * 4),data =  int(waveform[x]))
             else:
                 print('wrong csv file format')
 
@@ -152,7 +152,7 @@ class EpixHRGen1ePixM(pr.Device):
         if os.path.splitext(self.filename)[1] == '.csv':
             readBack = np.zeros((1024),dtype='uint16')
             for x in range (0, 1024):
-                readBack[x] = self._rawRead(offset = (0x86100000 + x * 4))
+                readBack[x] = self.waveformMem._rawRead(offset = (x * 4))
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
 
 
