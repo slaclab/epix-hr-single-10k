@@ -126,9 +126,10 @@ class EpixHRGen1ePixM(pr.Device):
             OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8E000000, expand=False, enabled=False),
             analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',        offset=0x8F000000, expand=False, enabled=False),
-            SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x90000000, expand=False, enabled=False),
-            ProgrammablePowerSupply( name="ProgPowerSupply",                   offset=0x92000000, expand=False, enabled=False),
-            DigitalPktRegisters(     name="PacketRegisters",                   offset=0x95000000, expand=False, enabled=False)
+            SlowAdcRegisters(            name="SlowAdcRegisters",              offset=0x90000000, expand=False, enabled=False),
+            ProgrammablePowerSupply(     name="ProgPowerSupply",               offset=0x92000000, expand=False, enabled=False),
+            ClockJitterCleanerRegisters( name="Clock Jitter Cleaner",          offset=0x93000000, expand=False, enabled=False),
+            DigitalPktRegisters(         name="PacketRegisters",               offset=0x95000000, expand=False, enabled=False)
             ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -142,7 +143,7 @@ class EpixHRGen1ePixM(pr.Device):
             waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
             if waveform.shape == (1024,):
                 for x in range (0, 1024):
-                    self._rawWrite(offset = (0x86100000 + x * 4),data =  int(waveform[x]))
+                    self.waveformMem._rawWrite(offset = (x * 4),data =  int(waveform[x]))
             else:
                 print('wrong csv file format')
 
@@ -152,7 +153,7 @@ class EpixHRGen1ePixM(pr.Device):
         if os.path.splitext(self.filename)[1] == '.csv':
             readBack = np.zeros((1024),dtype='uint16')
             for x in range (0, 1024):
-                readBack[x] = self._rawRead(offset = (0x86100000 + x * 4))
+                readBack[x] = self.waveformMem._rawRead(offset = (x * 4))
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
 
 
@@ -957,6 +958,57 @@ class powerSupplyRegisters(pr.Device):
          return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
       return func
 
+##############################################################
+##
+## Clock Jitter Cleaner
+## 
+##############################################################
+class ClockJitterCleanerRegisters(pr.Device):
+   def __init__(self, **kwargs):
+      super().__init__(description='Clock jitter cleaner Registers', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables
+      
+      self.add((
+         pr.RemoteVariable(name='Lol',           description='Loss of Lock',                         offset=0x00000000, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RO'),
+         pr.RemoteVariable(name='Los',           description='Loss of Signal',                       offset=0x00000000, bitSize=1,   bitOffset=1,   base=pr.Bool, mode='RO'),
+         pr.RemoteVariable(name='RstL',          description='Reset active low',                     offset=0x00000004, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='Dec',           description='Skew decrement',                       offset=0x00000004, bitSize=1,   bitOffset=1,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='Inc',           description='Skew increment',                       offset=0x00000004, bitSize=1,   bitOffset=2,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='Frqtbl',        description='Frequency table select',               offset=0x00000004, bitSize=1,   bitOffset=3,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='Rate',          description='Rate selection',                       offset=0x00000008, bitSize=2,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='BwSel',         description='Loop bandwidth select',                offset=0x0000000C, bitSize=2,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='FreqSel',       description='Frequency Select',                     offset=0x00000010, bitSize=4,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='Sfout',         description='Signal format select',                 offset=0x00000014, bitSize=2,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW')))
+      
+      
+      
+      #####################################
+      # Create commands
+      #####################################
+      
+      # A command has an associated function. The function can be a series of
+      # python commands in a string. Function calls are executed in the command scope
+      # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+      # A command can also be a call to a local function with local scope.
+      # The command object and the arg are passed
+   
+   @staticmethod   
+   def frequencyConverter(self):
+      def func(dev, var):         
+         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+      return func
 
 class sDacRegisters(pr.Device):
    def __init__(self, **kwargs):
@@ -1023,11 +1075,11 @@ class ProgrammablePowerSupply(pr.Device):
       #Setup registers & variables
       
       self.add((
-         pr.RemoteVariable(name='dac_0'  ,         description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_1'  ,         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_2'  ,         description='',                  offset=0x0000c, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_3'  ,         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_4'  ,         description='',                  offset=0x00014, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
+         pr.RemoteVariable(name='MVddAsic_dac_0',    description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='MVh_dac_1',         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='MVbias_dac_2',      description='',                  offset=0x0000c, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='MVm_dac_3',         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='MVdd_det_dac_4',    description='',                  offset=0x00014, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
                )
       
       

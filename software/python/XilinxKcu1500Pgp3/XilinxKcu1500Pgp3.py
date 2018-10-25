@@ -11,8 +11,7 @@
 
 import pyrogue as pr
 import pyrogue.interfaces.simulation
-#import pyrogue.simulation
-import rogue.hardware.data
+
 
 from DataLib.DataDev import *
 from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3Lane import *

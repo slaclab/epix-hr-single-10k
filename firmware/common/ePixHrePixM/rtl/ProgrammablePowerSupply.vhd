@@ -4,7 +4,7 @@
 -- File       : Programable Power supply
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 2018-09-18
+-- Last update: 2018-10-19
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -84,10 +84,12 @@ architecture rtl of ProgrammablePowerSupply is
 begin
 
    axiReset <= axiRst;
-   dacDin   <= uOr(dacDinSig);
-   dacSclk  <= uOr(dacSclkSig);
-   dacClrb  <= uOr(dacClrbSig);
-
+   --dacDin   <= uOr(dacDinSig);
+   dacDin   <= (dacDinSig(4) or dacDinSig(3) or dacDinSig(2) or dacDinSig(1) or dacDinSig(0));
+   --dacSclk  <= uOr(dacSclkSig);
+   dacSclk  <= (dacSclkSig(4) or dacSclkSig(3) or dacSclkSig(2) or dacSclkSig(1) or dacSclkSig(0));
+   --dacClrb  <= uOr(dacClrbSig);
+   dacClrb <= (dacClrbSig(4) or dacClrbSig(3) or dacClrbSig(2) or dacClrbSig(1) or dacClrbSig(0));
    -------------------------------
    -- Configuration Register
    -------------------------------  
@@ -139,7 +141,7 @@ begin
    -----------------------------------------------
    -- DAC Controller
    -----------------------------------------------
-   G_MAX5443 : for i in 0 to 1 generate
+   G_MAX5443 : for i in 0 to (NUM_DAC_G-1) generate
        U_DacCntrl : entity work.DacCntrl 
        generic map (
           TPD_G => TPD_G
