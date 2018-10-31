@@ -107,7 +107,9 @@ begin
          intCnt   <= (others=>'0') after TPD_G;
          intClkEn <= '0'           after TPD_G;
       elsif rising_edge(sysClk) then
-        if curState != ST_IDLE then
+        if curState = ST_IDLE then
+          intClk <= '0';
+        else
           if intCnt = 1 then             -- should generate a 50MHz clock, 7 was
                                          -- the original parameter.
             intCnt   <= (others=>'0') after TPD_G;
@@ -117,8 +119,6 @@ begin
             intCnt   <= intCnt + 1    after TPD_G;
             intClkEn <= '0'           after TPD_G;
           end if;
-        else
-          intClk <= '0';
         end if;
       end if;
    end process;
