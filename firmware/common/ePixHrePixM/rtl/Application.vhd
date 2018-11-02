@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-10-05
+-- Last update: 2018-11-02
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -613,8 +613,8 @@ begin
       rstOut(4)       => open,
       locked          => clkLocked,
       -- AXI-Lite Interface 
-      axilClk         => sysClk,
-      axilRst         => sysRst,
+      axilClk         => appClk,
+      axilRst         => appRst,
       axilReadMaster  => mAxiReadMasters(PLLREGS_AXI_INDEX_C),
       axilReadSlave   => mAxiReadSlaves(PLLREGS_AXI_INDEX_C),
       axilWriteMaster => mAxiWriteMasters(PLLREGS_AXI_INDEX_C),
