@@ -34,10 +34,10 @@ entity ClockJitterCleaner is
       sysClk            : in  sl;
       sysRst            : in  sl;
       -- CJC control
-      cjcRst            : out   sl(1 downto 0);
-      cjcDec            : out   sl(1 downto 0);
-      cjcInc            : out   sl(1 downto 0);
-      cjcFrqtbl         : out   sl(1 downto 0);
+      cjcRst            : out   slv(1 downto 0);
+      cjcDec            : out   slv(1 downto 0);
+      cjcInc            : out   slv(1 downto 0);
+      cjcFrqtbl         : out   slv(1 downto 0);
       cjcRate           : out   slv(3 downto 0);
       cjcBwSel          : out   slv(3 downto 0);
       cjcFrqSel         : out   slv(7 downto 0);
@@ -61,10 +61,10 @@ architecture rtl of ClockJitterCleaner is
    
    
    type ClockJitterCleanerType is record
-      Rst            : sl(1 downto 0);
-      Dec            : sl(1 downto 0);
-      Inc            : sl(1 downto 0);
-      Frqtbl         : sl(1 downto 0);
+      Rst            : slv(1 downto 0);
+      Dec            : slv(1 downto 0);
+      Inc            : slv(1 downto 0);
+      Frqtbl         : slv(1 downto 0);
       Los            : sl;
       Lol            : sl;
       Rate           : slv(3 downto 0);

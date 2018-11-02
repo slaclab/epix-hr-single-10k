@@ -301,10 +301,10 @@ architecture mapping of Application is
    signal dacCsbProgSupplyOut : slv(4 downto 0);
    signal dacClrbProgSupplyOut: sl;
    -- CJC
-   signal cjcRst            : sl(1 downto 0);
-   signal cjcDec            : sl(1 downto 0);
-   signal cjcInc            : sl(1 downto 0);
-   signal cjcFrqtbl         : sl(1 downto 0);
+   signal cjcRst            : slv(1 downto 0);
+   signal cjcDec            : slv(1 downto 0);
+   signal cjcInc            : slv(1 downto 0);
+   signal cjcFrqtbl         : slv(1 downto 0);
    signal cjcRate           : slv(3 downto 0);
    signal cjcBwSel          : slv(3 downto 0);
    signal cjcFrqSel         : slv(7 downto 0);
