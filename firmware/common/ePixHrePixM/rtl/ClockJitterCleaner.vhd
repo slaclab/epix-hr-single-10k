@@ -2,7 +2,7 @@
 -- File       : Cryo ASIC: ClockJitterCleaner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/07/2017
--- Last update: 2018-06-26
+-- Last update: 2018-11-02
 -------------------------------------------------------------------------------
 -- Description: This module enables to set all registers asssociated with the
 -- clock jitter clean part at the cryo adapter board.
@@ -34,14 +34,14 @@ entity ClockJitterCleaner is
       sysClk            : in  sl;
       sysRst            : in  sl;
       -- CJC control
-      cjcRst            : out   sl;
-      cjcDec            : out   sl;
-      cjcInc            : out   sl;
-      cjcFrqtbl         : out   sl;
-      cjcRate           : out   slv(1 downto 0);
-      cjcBwSel          : out   slv(1 downto 0);
-      cjcFrqSel         : out   slv(3 downto 0);
-      cjcSfout          : out   slv(1 downto 0);
+      cjcRst            : out   sl(1 downto 0);
+      cjcDec            : out   sl(1 downto 0);
+      cjcInc            : out   sl(1 downto 0);
+      cjcFrqtbl         : out   sl(1 downto 0);
+      cjcRate           : out   slv(3 downto 0);
+      cjcBwSel          : out   slv(3 downto 0);
+      cjcFrqSel         : out   slv(7 downto 0);
+      cjcSfout          : out   slv(3 downto 0);
       -- CJC Status
       cjcLos            : in    sl;
       cjcLol            : in    sl;
@@ -61,23 +61,23 @@ architecture rtl of ClockJitterCleaner is
    
    
    type ClockJitterCleanerType is record
-      Rst            : sl;
-      Dec            : sl;
-      Inc            : sl;
-      Frqtbl         : sl;
+      Rst            : sl(1 downto 0);
+      Dec            : sl(1 downto 0);
+      Inc            : sl(1 downto 0);
+      Frqtbl         : sl(1 downto 0);
       Los            : sl;
       Lol            : sl;
-      Rate           : slv(1 downto 0);
-      BwSel          : slv(1 downto 0);
-      FrqSel         : slv(3 downto 0);
-      Sfout          : slv(1 downto 0);
+      Rate           : slv(3 downto 0);
+      BwSel          : slv(3 downto 0);
+      FrqSel         : slv(7 downto 0);
+      Sfout          : slv(3 downto 0);
    end record ClockJitterCleanerType;
    
    constant CLK_JITTER_CLEANER_INIT_C : ClockJitterCleanerType := (
-      Rst          => '0',
-      Dec          => '0',
-      Inc          => '0',
-      Frqtbl       => '0',
+      Rst          => (others=>'0'),
+      Dec          => (others=>'0'),
+      Inc          => (others=>'0'),
+      Frqtbl       => (others=>'0'),
       Los          => '0',
       Lol          => '0',
       Rate         => (others=>'0'),
@@ -135,9 +135,9 @@ begin
       axiSlaveRegisterR(regCon, x"00", 0, v.cjcReg.Lol);
       axiSlaveRegisterR(regCon, x"00", 1, v.cjcReg.Los);
       axiSlaveRegister (regCon, x"04", 0, v.cjcReg.Rst);
-      axiSlaveRegister (regCon, x"04", 1, v.cjcReg.Dec);
-      axiSlaveRegister (regCon, x"04", 2, v.cjcReg.Inc);
-      axiSlaveRegister (regCon, x"04", 3, v.cjcReg.Frqtbl);
+      axiSlaveRegister (regCon, x"04", 2, v.cjcReg.Dec);
+      axiSlaveRegister (regCon, x"04", 4, v.cjcReg.Inc);
+      axiSlaveRegister (regCon, x"04", 6, v.cjcReg.Frqtbl);
       axiSlaveRegister (regCon, x"08", 0, v.cjcReg.Rate);
       axiSlaveRegister (regCon, x"0C", 0, v.cjcReg.BwSel);
       axiSlaveRegister (regCon, x"10", 0, v.cjcReg.FrqSel);

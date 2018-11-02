@@ -301,14 +301,14 @@ architecture mapping of Application is
    signal dacCsbProgSupplyOut : slv(4 downto 0);
    signal dacClrbProgSupplyOut: sl;
    -- CJC
-   signal cjcRst            : sl;
-   signal cjcDec            : sl;
-   signal cjcInc            : sl;
-   signal cjcFrqtbl         : sl;
-   signal cjcRate           : slv(1 downto 0);
-   signal cjcBwSel          : slv(1 downto 0);
-   signal cjcFrqSel         : slv(3 downto 0);
-   signal cjcSfout          : slv(1 downto 0);
+   signal cjcRst            : sl(1 downto 0);
+   signal cjcDec            : sl(1 downto 0);
+   signal cjcInc            : sl(1 downto 0);
+   signal cjcFrqtbl         : sl(1 downto 0);
+   signal cjcRate           : slv(3 downto 0);
+   signal cjcBwSel          : slv(3 downto 0);
+   signal cjcFrqSel         : slv(7 downto 0);
+   signal cjcSfout          : slv(3 downto 0);
    signal cjcLos            : sl;
    signal cjcLol            : sl;
 
@@ -356,22 +356,22 @@ begin
   -----------------------------------------------------------------------------
   -- Clock Jitter Cleaner IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DATAP_5 : IOBUF port map (O => open,   I => cjcFrqtbl,    IO => asicDataP(5),  T => '0');
-  IOBUF_DATAP_6 : IOBUF port map (O => open,   I => cjcDec,       IO => asicDataP(6),  T => '0');
-  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcInc,       IO => asicDataP(7),  T => '0');
-  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(8),  T => '0');
-  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(9),  T => '0');
-  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(10), T => '0');
-  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(11), T => '0');
+  IOBUF_DATAP_5 : IOBUF port map (O => open,   I => cjcFrqtbl(0), IO => asicDataP(5),  T => cjcFrqtbl(1));
+  IOBUF_DATAP_6 : IOBUF port map (O => open,   I => cjcDec(0),    IO => asicDataP(6),  T => cjcDec(1));
+  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcInc(0),    IO => asicDataP(7),  T => cjcInc(1));
+  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(8),  T => cjcFrqSel(4));
+  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(9),  T => cjcFrqSel(5));
+  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(10), T => cjcFrqSel(6));
+  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(11), T => cjcFrqSel(7));
   IOBUF_DATAP_12: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(12), T => '1');
   --
-  IOBUF_DATAN_5 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(5),  T => '0');
-  IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(6),  T => '0');
-  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(7),  T => '0');
-  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(8),  T => '0');
-  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(9),  T => '0');
-  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(10), T => '0');
-  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(11), T => '0');
+  IOBUF_DATAN_5 : IOBUF port map (O => open,   I => cjcRst(0),    IO => asicDataN(5),  T => cjcRst(1));
+  IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(6),  T => cjcRate(2));
+  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(7),  T => cjcRate(3));
+  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(8),  T => cjcBwSel(2));
+  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(9),  T => cjcBwSel(3));
+  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(10), T => cjcSfout(2));
+  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(11), T => cjcSfout(3));
   IOBUF_DATAN_12: IOBUF port map (O => cjcLol, I => '0',          IO => asicDataN(12), T => '1');
   --
   -----------------------------------------------------------------------------

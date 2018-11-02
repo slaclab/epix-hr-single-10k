@@ -984,13 +984,18 @@ class ClockJitterCleanerRegisters(pr.Device):
          pr.RemoteVariable(name='Lol',           description='Loss of Lock',                         offset=0x00000000, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RO'),
          pr.RemoteVariable(name='Los',           description='Loss of Signal',                       offset=0x00000000, bitSize=1,   bitOffset=1,   base=pr.Bool, mode='RO'),
          pr.RemoteVariable(name='RstL',          description='Reset active low',                     offset=0x00000004, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='Dec',           description='Skew decrement',                       offset=0x00000004, bitSize=1,   bitOffset=1,   base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='Inc',           description='Skew increment',                       offset=0x00000004, bitSize=1,   bitOffset=2,   base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='Frqtbl',        description='Frequency table select',               offset=0x00000004, bitSize=1,   bitOffset=3,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='Dec',           description='Skew decrement',                       offset=0x00000004, bitSize=1,   bitOffset=2,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='Inc',           description='Skew increment',                       offset=0x00000004, bitSize=1,   bitOffset=4,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='Frqtbl',        description='Frequency table select',               offset=0x00000004, bitSize=1,   bitOffset=6,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='FrqtblZ',       description='Tri-state driver',                     offset=0x00000004, bitSize=1,   bitOffset=7,   base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='Rate',          description='Rate selection',                       offset=0x00000008, bitSize=2,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='RateZ',         description='Tri-state driver',                     offset=0x00000008, bitSize=2,   bitOffset=2,   base=pr.UInt, disp = '{:#x}', mode='RW'),
          pr.RemoteVariable(name='BwSel',         description='Loop bandwidth select',                offset=0x0000000C, bitSize=2,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='BwSelZ',        description='Tri-state driver',                     offset=0x0000000C, bitSize=2,   bitOffset=2,   base=pr.UInt, disp = '{:#x}', mode='RW'),
          pr.RemoteVariable(name='FreqSel',       description='Frequency Select',                     offset=0x00000010, bitSize=4,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='Sfout',         description='Signal format select',                 offset=0x00000014, bitSize=2,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW')))
+         pr.RemoteVariable(name='FreqSelZ',      description='Tri-state driver',                     offset=0x00000010, bitSize=4,   bitOffset=4,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='Sfout',         description='Signal format select',                 offset=0x00000014, bitSize=2,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='SfoutZ',        description='Tri-state driver',                     offset=0x00000014, bitSize=2,   bitOffset=2,   base=pr.UInt, disp = '{:#x}', mode='RW')))
       
       
       
