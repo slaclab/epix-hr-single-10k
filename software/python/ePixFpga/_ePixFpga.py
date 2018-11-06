@@ -121,7 +121,7 @@ class EpixHRGen1ePixM(pr.Device):
             EPixHrePixMAppCoreFpgaRegisters(name="RegisterControl",            offset=0x96000000, expand=False, enabled=False),
             powerSupplyRegisters(    name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
-            pr.MemoryDevice(         name='waveformMem',                       offset=0x8B000000, wordBitSize=16, stride=4, size=1024*4),
+            pr.MemoryDevice(         name='waveformMem',                       offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
             sDacRegisters(           name='SlowDacs'    ,                      offset=0x8C000000, expand=False, enabled=False),
             OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8E000000, expand=False, enabled=False),
@@ -129,6 +129,7 @@ class EpixHRGen1ePixM(pr.Device):
             SlowAdcRegisters(            name="SlowAdcRegisters",              offset=0x90000000, expand=False, enabled=False),
             ProgrammablePowerSupply(     name="ProgPowerSupply",               offset=0x92000000, expand=False, enabled=False),
             ClockJitterCleanerRegisters( name="Clock Jitter Cleaner",          offset=0x93000000, expand=False, enabled=False),
+            AsicDeserHrRegisters(        name="DeserRegisters",                offset=0x94000000, expand=False, enabled=False), 
             DigitalPktRegisters(         name="PacketRegisters",               offset=0x95000000, expand=False, enabled=False)
             ))
 
@@ -1491,3 +1492,96 @@ class MicroblazeLog(pr.Device):
       return func
 
 
+############################################################################
+## Deserializers HR
+############################################################################
+class AsicDeserHrRegisters(pr.Device):
+   def __init__(self, **kwargs):
+      super().__init__(description='7 Series 20 bit Deserializer Registers', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables
+          
+      self.add(pr.RemoteVariable(name='Resync',       description='Resync',         offset=0x00000004, bitSize=1,  bitOffset=0,  base=pr.Bool, verify = False, mode='RW'))
+      self.add(pr.RemoteVariable(name='Delay',        description='Delay',          offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='LockErrors0',  description='LockErrors',     offset=0x00000030, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='Locked0',      description='Locked',         offset=0x00000030, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
+      self.add(pr.RemoteVariable(name='LockErrors1',  description='LockErrors',     offset=0x00000034, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='Locked1',      description='Locked',         offset=0x00000034, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
+      self.add(pr.RemoteVariable(name='SerDesDelay',  description='DelayValue',     offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.RemoteVariable(name='DelayEn',      description='EnValueUpdate',  offset=0x00000010, bitSize=1,  bitOffset=9,  base=pr.Bool, verify = False, mode='RW'))
+      
+      for i in range(0, 2):
+         self.add(pr.RemoteVariable(name='IserdeseOutA'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
+         self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=16, base=pr.UInt, disp = '{:#x}', mode='RO'))
+      
+      #####################################
+      # Create commands
+      #####################################
+      
+      # A command has an associated function. The function can be a series of
+      # python commands in a string. Function calls are executed in the command scope
+      # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+      # A command can also be a call to a local function with local scope.
+      # The command object and the arg are passed
+
+      self.add(
+            pr.LocalCommand(name='TuneSerialDelay',description='Tune serial data delay', function=self.fnEvaluateSerDelay))
+
+   def fnEvaluateSerDelay(self, dev,cmd,arg):
+        """SetPixelBitmap command function"""
+        addrSize = 4
+        #set r0mode in order to have saci cmd to work properly on legacy firmware
+        self.root.ePix100aFPGA.EpixFpgaRegisters.AsicR0Mode.set(True)
+
+        if (self.enable.get()):
+            self.reportCmd(dev,cmd,arg)
+            if len(arg) > 0:
+                self.filename = arg
+            else:
+                self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+            if os.path.splitext(self.filename)[1] == '.csv':
+                matrixCfg = np.genfromtxt(self.filename, delimiter=',')
+                if matrixCfg.shape == (354, 384):
+                    self._rawWrite(0x00000000*addrSize,0)
+                    self._rawWrite(0x00008000*addrSize,0)
+                    for x in range (0, 354):
+                        for y in range (0, 384):
+                            bankToWrite = int(y/96);
+                            if (bankToWrite == 0):
+                               colToWrite = 0x700 + y%96;
+                            elif (bankToWrite == 1):
+                               colToWrite = 0x680 + y%96;
+                            elif (bankToWrite == 2):
+                               colToWrite = 0x580 + y%96;
+                            elif (bankToWrite == 3):
+                               colToWrite = 0x380 + y%96;
+                            else:
+                               print('unexpected bank number')
+                            self._rawWrite(0x00006011*addrSize, x)
+                            self._rawWrite(0x00006013*addrSize, colToWrite) 
+                            self._rawWrite(0x00005000*addrSize, (int(matrixCfg[x][y])))
+                    self._rawWrite(0x00000000*addrSize,0)
+                else:
+                    print('csv file must be 384x354 pixels')
+            else:
+                print("Not csv file : ", self.filename)
+        else:
+            print("Warning: ASIC enable is set to False!")   
+
+   
+   @staticmethod   
+   def frequencyConverter(self):
+      def func(dev, var):         
+         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+      return func

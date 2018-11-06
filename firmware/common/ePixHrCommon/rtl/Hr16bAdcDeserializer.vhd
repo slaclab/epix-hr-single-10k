@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-09-05
+-- Last update: 2018-11-05
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -484,16 +484,16 @@ begin
       end case;
     else
       case (adcDv5R.gearboxSeq) is
-        when "00" =>
+        when "11" =>
           v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 1 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 0);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
-        when "01" =>
+        when "00" =>
           v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 3 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 2);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
-        when "10" =>
+        when "01" =>
           v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 5 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 4);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
-        when "11" =>
+        when "10" =>
           v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 7 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 6);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when others =>

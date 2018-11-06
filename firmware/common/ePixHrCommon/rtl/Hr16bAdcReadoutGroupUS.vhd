@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-19
+-- Last update: 2018-11-05
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -171,6 +171,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
   attribute keep of byteClk       : signal is "true";  
   attribute keep of adcData       : signal is "true";
   attribute keep of dataValid     : signal is "true";
+  attribute keep of adcR          : signal is "true";
 
 begin
 
@@ -315,7 +316,7 @@ begin
         FRAME_PATTERN_G   => "00000000001111111111",
         ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
         BIT_REV_G         => '0',
-        MSB_LSB_G         => '1')
+        MSB_LSB_G         => '0')
       port map (
         adcClkRst     => adcBitRst,
         idelayCtrlRdy => axilR.idelayCtrlRdy,
