@@ -117,10 +117,16 @@ ConfigProbe ${ilaName} {U_App/iAsicAcq}
 
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/adcDV4R[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/adcDV5R[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/loadDelaySync}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[1].U_DATA_DESERIALIZER/adcDV4R[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[1].U_DATA_DESERIALIZER/adcDV5R[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/adcData[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/dataValid[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/adcR[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/rxDataCs[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/rxValidCs}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/decDataOut[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/decValidOut[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/sData_i[*]}
 
 

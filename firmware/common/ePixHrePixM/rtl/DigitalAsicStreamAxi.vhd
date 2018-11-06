@@ -181,7 +181,7 @@ architecture RTL of DigitalAsicStreamAxi is
 
    signal rxValid       : slv(STREAMS_PER_ASIC_G-1 downto 0);
    
-   signal decDataOut    : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
+   signal decDataOut    : slv16Array(STREAMS_PER_ASIC_G-1 downto 0);
    signal decValidOut   : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decSof        : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decEof        : slv(STREAMS_PER_ASIC_G-1 downto 0);
@@ -194,7 +194,7 @@ architecture RTL of DigitalAsicStreamAxi is
    signal dFifoEof      : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoSof      : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoValid    : slv(STREAMS_PER_ASIC_G-1 downto 0);
-   signal dFifoOut      : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoOut      : slv16Array(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoExtData  : slv(16*STREAMS_PER_ASIC_G-1 downto 0) := (others => '0');
    
    signal sAxisMaster  : AxiStreamMasterType;
@@ -206,7 +206,7 @@ architecture RTL of DigitalAsicStreamAxi is
    signal iRxValid      : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal acqNoSync     : slv(31 downto 0);
    
-   signal rxDataCs   : slv(13 downto 0);                 -- for chipscope
+   signal rxDataCs   : slv(19 downto 0);                 -- for chipscope
    signal rxValidCs  : sl;                               -- for chipscope
    attribute keep : string;                              -- for chipscope
    attribute keep of s            : signal is "true";    -- for chipscope
@@ -217,14 +217,17 @@ architecture RTL of DigitalAsicStreamAxi is
    attribute keep of dFifoValid   : signal is "true";    -- for chipscope
    attribute keep of rxDataCs     : signal is "true";    -- for chipscope
    attribute keep of rxValidCs    : signal is "true";    -- for chipscope
-   attribute keep of sAxisMaster  : signal is "true";    -- for chipscope
-   attribute keep of imAxisMaster : signal is "true";    -- for chipscope 
-   attribute keep of imAxisSlave  : signal is "true";    -- for chipscope 
+--   attribute keep of sAxisMaster  : signal is "true";    -- for chipscope
+--   attribute keep of imAxisMaster : signal is "true";    -- for chipscope 
+--   attribute keep of imAxisSlave  : signal is "true";    -- for chipscope
+   attribute keep of decDataOut   : signal is "true";    -- for chipscope
+   attribute keep of decSof       : signal is "true";    -- for chipscope 
+   attribute keep of decValidOut  : signal is "true";    -- for chipscope
 
 
 begin
    
-   rxDataCs <= adcStreams(0).tData(13 downto 0);     -- for chipscope
+   rxDataCs <= adcStreams(0).tData(19 downto 0);     -- for chipscope
    rxValidCs <= adcStreams(0).tValid;   -- for chipscope
 
    mAxisMaster <= imAxisMaster;
@@ -233,11 +236,7 @@ begin
    fifoExtData_GEN : for i in 0 to STREAMS_PER_ASIC_G-1 generate
      dataExt : process(dFifoOut)
        begin
-         if ASIC_DATA_PADDING_G = "LSB" then
-           dFifoExtData(16*i+15 downto 16*i) <= dFifoOut(i)&"0000";
-         else
-           dFifoExtData(16*i+15 downto 16*i) <= "0000"&dFifoOut(i);
-         end if;
+         dFifoExtData(16*i+15 downto 16*i) <= dFifoOut(i);         
        end process;
    end generate;
    
@@ -266,28 +265,43 @@ begin
    -- Instatiate one decoder per data stream.
    ----------------------------------------------------------------------------
    U_DECODERS : for i in 0 to STREAMS_PER_ASIC_G-1 generate
-     --------------------------------------------------------------------------
-     -- 12b14b decoder with SSP output
-     --------------------------------------------------------------------------
-     Dec12b14b_U : entity work.SspDecoder12b14b 
-       generic map (
+     Dec8b10b_U : entity work.SspDecoder8b10b 
+       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
          RST_ASYNC_G    => false)
-       port map (
-         clk         => rxClk,
-         rst         => rxRst,
-         dataIn      => adcStreams(i).tData(13 downto 0),
-         validIn     => iRxValid(i),
-         dataOut     => decDataOut(i),
-         validOut    => decValidOut(i),
-         valid       => open,
-         sof         => decSof(i),
-         eof         => decEof(i),
-         eofe        => decEofe(i),
-         codeError   => decCodeError(i),
-         dispError   => decDispError(i)
-         );
+       port map(
+         clk       => rxClk,--fClkP,
+         rst       => rxRst,
+         validIn   => iRxValid(i),
+         dataIn    => adcStreams(i).tData(19 downto 0),
+         validOut  => decValidOut(i),
+         dataOut   => decDataOut(i),
+         sof       => decSof(i),
+         eof       => decEof(i),
+         eofe      => decEofe(i));
+     --------------------------------------------------------------------------
+     -- 12b14b decoder with SSP output
+     --------------------------------------------------------------------------
+--     Dec12b14b_U : entity work.SspDecoder12b14b 
+--       generic map (
+--         TPD_G          => TPD_G,
+--         RST_POLARITY_G => '1',
+--         RST_ASYNC_G    => false)
+--       port map (
+--         clk         => rxClk,
+--         rst         => rxRst,
+--         dataIn      => adcStreams(i).tData(13 downto 0),
+--         validIn     => iRxValid(i),
+--         dataOut     => decDataOut(i),
+--         validOut    => decValidOut(i),
+--         valid       => open,
+--         sof         => decSof(i),
+--         eof         => decEof(i),
+--         eofe        => decEofe(i),
+--         codeError   => decCodeError(i),
+--         dispError   => decDispError(i)
+--         );
 
    
      -- disable decoder in test mode (fake ASIC data)
@@ -301,24 +315,24 @@ begin
          GEN_SYNC_FIFO_G   => false,
          FWFT_EN_G         => true,
          ADDR_WIDTH_G      => 4,
-         DATA_WIDTH_G      => 15
+         DATA_WIDTH_G      => 19
          )
        port map (
          -- Resets
          rst               => rxRst,
          wr_clk            => rxClk,
          wr_en             => decValidOut(i),
-         din(11 downto 0)  => decDataOut(i),
-         din(12)           => decEofe(i),
-         din(13)           => decEof(i),
-         din(14)           => decSof(i),
+         din(15 downto 0)  => decDataOut(i),
+         din(16)           => decEofe(i),
+         din(17)           => decEof(i),
+         din(18)           => decSof(i),
          --Read Ports (rd_clk domain)
          rd_clk            => axisClk,
          rd_en             => dFifoRd,
-         dout(11 downto 0) => dFifoOut(i),
-         dout(12)          => dFifoEofe(i),
-         dout(13)          => dFifoEof(i),
-         dout(14)          => dFifoSof(i),
+         dout(15 downto 0) => dFifoOut(i),
+         dout(16)          => dFifoEofe(i),
+         dout(17)          => dFifoEof(i),
+         dout(18)          => dFifoSof(i),
          valid             => dFifoValid(i)
          );
    end generate;
