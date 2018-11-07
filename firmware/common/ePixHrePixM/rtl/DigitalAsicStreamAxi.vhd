@@ -434,7 +434,7 @@ begin
            --------------------------------------------------------------------
            -- FIRST frame mode trigger option
            --------------------------------------------------------------------
-           -- starts data tx when all streams have DV and SOF, different data
+           -- starts data tx when at least one stream have DV and SOF, different data
            -- delays should be acommodate by the fifo
            --------------------------------------------------------------------
            -- SECOND frame mode trigger option
@@ -450,7 +450,7 @@ begin
            -- if module is desabled data is not set ever as indicated by
            -- stopDataTx signal
             if (
-                ((dFifoValid(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) and dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0))
+                ((dFifoValid(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0))
                  or (s.testMode(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and s.testTrig(1) = '1' and s.testTrig(2) = '0')
                  or (s.streamDataMode='1'))
                 and (s.stopDataTx='0'))  then
