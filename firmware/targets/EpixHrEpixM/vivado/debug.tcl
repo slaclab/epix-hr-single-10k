@@ -126,6 +126,7 @@ ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/rxDataCs[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/rxValidCs}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/decDataOut[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/decValidOut[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/decSof[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/sData_i[*]}
 

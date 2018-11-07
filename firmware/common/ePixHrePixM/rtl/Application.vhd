@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-11-02
+-- Last update: 2018-11-06
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -1190,7 +1190,7 @@ begin
         adcClkRst       => serdesReset,
         idelayCtrlRdy   => idelayRdy,
         adcSerial       => adcSerial(i),
-        adcStreamClk    => asicRdClk,
+        adcStreamClk    => byteClk,
         adcStreams      => asicStreams      
         );
 
@@ -1211,8 +1211,8 @@ begin
          )
        port map( 
          -- Deserialized data port
-         rxClk             => asicRdClk, --fClkP,    --use frame clock
-         rxRst             => asicRdClkRst,
+         rxClk             => byteClk, --fClkP,    --use frame clock
+         rxRst             => byteClkRst,
          adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
       
          -- AXI lite slave port for register access
