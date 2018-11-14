@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-11-12
+-- Last update: 2018-11-14
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -317,7 +317,7 @@ architecture mapping of Application is
    --
    signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
    signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
-   signal adcStreamsEn_n    : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal adcStreamsEn_n    : slv(STREAMS_PER_ASIC_C-1 downto 0);
 
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
