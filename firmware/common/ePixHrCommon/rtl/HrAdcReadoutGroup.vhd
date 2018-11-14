@@ -2,7 +2,7 @@
 -- File       : HrAdcReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-09-05
+-- Last update: 2018-11-12
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -68,9 +68,10 @@ entity HrAdcReadoutGroup is
       adcSerial : in HrAdcSerialGroupType;
 
       -- Deserialized ADC Data
-      adcStreamClk : in  sl;
-      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
-      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
+      adcStreamClk    : in  sl;
+      adcStreams      : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
+      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C)));
+      adcStreamsEn_n  : out slv(STREAMS_PER_ASIC_G-1 downto 0) := (others => '0'));
 end HrAdcReadoutGroup;
 
 -- Define architecture
@@ -126,7 +127,8 @@ begin
         idelayCtrlRdy     => idelayCtrlRdy,
         adcSerial         => adcSerial,
         adcStreamClk      => adcStreamClk,
-        adcStreams        => adcStreams
+        adcStreams        => adcStreams,
+        adcStreamsEn_n    => adcStreamsEn_n
         );
   end generate GEN_ULTRASCALE_HRADC16;
 end rtl;

@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-11-06
+-- Last update: 2018-11-12
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -316,7 +316,8 @@ architecture mapping of Application is
    constant STREAMS_PER_ASIC_C : natural := 2;
    --
    signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
-   signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);   
+   signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+   signal adcStreamsEn_n    : slv(STREAMS_PER_ASIC_G-1 downto 0);
 
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
@@ -1191,7 +1192,8 @@ begin
         idelayCtrlRdy   => idelayRdy,
         adcSerial       => adcSerial(i),
         adcStreamClk    => byteClk,
-        adcStreams      => asicStreams      
+        adcStreams      => asicStreams,
+        adcStreamsEn_n  => adcStreamsEn_n
         );
 
      -------------------------------------------------------------------------------
@@ -1214,6 +1216,7 @@ begin
          rxClk             => byteClk, --fClkP,    --use frame clock
          rxRst             => byteClkRst,
          adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
+         adcStreamsEn_n    => adcStreamsEn_n,
       
          -- AXI lite slave port for register access
          axilClk           => appClk,
