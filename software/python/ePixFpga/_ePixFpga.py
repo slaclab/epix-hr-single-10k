@@ -896,13 +896,14 @@ class HighSpeedDacRegisters(pr.Device):
       #Setup registers & variables
       
       self.add((
-         pr.RemoteVariable(name='enabled',         description='Enable waveform generation',                  offset=0x00000000, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='WFEnabled',       description='Enable waveform generation',                  offset=0x00000000, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='run',             description='Generates waveform when true',                offset=0x00000000, bitSize=1,   bitOffset=1,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='externalUpdateEn',description='Updates value on AcqStart',                   offset=0x00000000, bitSize=1,   bitOffset=2,   base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='samplingCounter', description='Sampling period (>269, times 1/clock ref. 156MHz)', offset=0x00000004, bitSize=12,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
          pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',               offset=0x00000008, bitSize=16,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
          pr.RemoteVariable(name='DacChannel',      description='Select the DAC channel to use',               offset=0x00000008, bitSize=2,   bitOffset=16,  mode='RW', enum=HsDacEnum)))
       
-      
+      self.add((pr.LinkVariable  (name='DacValueV' ,      linkedGet=self.convtFloat,        dependencies=[self.DacValue])));
       
       #####################################
       # Create commands
@@ -913,7 +914,12 @@ class HighSpeedDacRegisters(pr.Device):
       # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
       # A command can also be a call to a local function with local scope.
       # The command object and the arg are passed
-   
+   @staticmethod
+   def convtFloat(dev, var):
+       value   = var.dependencies[0].get(read=False)
+       fpValue = value*(2.5/65536.0)
+       return '%0.3f'%(fpValue)               
+
    @staticmethod   
    def frequencyConverter(self):
       def func(dev, var):         
@@ -1034,15 +1040,20 @@ class sDacRegisters(pr.Device):
       #Setup registers & variables
       
       self.add((
-         pr.RemoteVariable(name='dac_0'  ,         description='',                  offset=0x00000, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_1'  ,         description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_2'  ,         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_3'  ,         description='',                  offset=0x0000C, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dac_4'  ,         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='dummy'  ,         description='',                  offset=0x00014, bitSize=32,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
+              pr.RemoteVariable(name='dac_0'  ,         description='',                  offset=0x00000, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),    
+              pr.RemoteVariable(name='dac_1'  ,         description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+              pr.RemoteVariable(name='dac_2'  ,         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+              pr.RemoteVariable(name='dac_3'  ,         description='',                  offset=0x0000C, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+              pr.RemoteVariable(name='dac_4'  ,         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+              pr.RemoteVariable(name='dummy'  ,         description='',                  offset=0x00014, bitSize=32,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))        
                )
-      
-      
+      self.add((
+              pr.LinkVariable  (name='Vdac_0' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_0]),
+              pr.LinkVariable  (name='Vdac_1' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_1]),
+              pr.LinkVariable  (name='Vdac_2' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_2]),
+              pr.LinkVariable  (name='Vdac_3' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_3]),
+              pr.LinkVariable  (name='Vdac_4' ,         linkedGet=self.convtFloat,        dependencies=[self.dac_4]))
+               )
       
       #####################################
       # Create commands
@@ -1053,6 +1064,11 @@ class sDacRegisters(pr.Device):
       # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
       # A command can also be a call to a local function with local scope.
       # The command object and the arg are passed
+   @staticmethod
+   def convtFloat(dev, var):
+        value   = var.dependencies[0].get(read=False)
+        fpValue = value*(3.0/65536.0)
+        return '%0.3f'%(fpValue)            
    
    @staticmethod   
    def frequencyConverter(self):
@@ -1081,13 +1097,19 @@ class ProgrammablePowerSupply(pr.Device):
       #Setup registers & variables
       
       self.add((
-         pr.RemoteVariable(name='MVddAsic_dac_0',    description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='MVh_dac_1',         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='MVbias_dac_2',      description='',                  offset=0x0000c, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='MVm_dac_3',         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='MVdd_det_dac_4',    description='',                  offset=0x00014, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
+                  pr.RemoteVariable(name='MVddAsic_dac_0',    description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),                
+                  pr.RemoteVariable(name='MVh_dac_1',         description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),              
+                  pr.RemoteVariable(name='MVbias_dac_2',      description='',                  offset=0x0000c, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+                  pr.RemoteVariable(name='MVm_dac_3',         description='',                  offset=0x00010, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+                  pr.RemoteVariable(name='MVdd_det_dac_4',    description='',                  offset=0x00014, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
                )
-      
+      self.add((
+                  pr.LinkVariable  (name='MVddAsic' ,         linkedGet=self.convtFloatP10p0,   dependencies=[self.MVddAsic_dac_0]),
+                  pr.LinkVariable  (name='MVh' ,              linkedGet=self.convtFloatP7p0,    dependencies=[self.MVh_dac_1]),
+                  pr.LinkVariable  (name='MVbias' ,           linkedGet=self.convtFloatP7p0,    dependencies=[self.MVbias_dac_2]),
+                  pr.LinkVariable  (name='MVm' ,              linkedGet=self.convtFloatM2p5,    dependencies=[self.MVm_dac_3]),
+                  pr.LinkVariable  (name='MVdd' ,             linkedGet=self.convtFloatP10p0,   dependencies=[self.MVdd_det_dac_4]))
+               )
       
       
       #####################################
@@ -1099,7 +1121,24 @@ class ProgrammablePowerSupply(pr.Device):
       # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
       # A command can also be a call to a local function with local scope.
       # The command object and the arg are passed
-   
+   @staticmethod
+   def convtFloatP10p0(dev, var):
+        value   = var.dependencies[0].get(read=False)
+        fpValue = value*(10.0/65536.0)
+        return '%0.3f'%(fpValue)            
+
+   @staticmethod
+   def convtFloatM2p5(dev, var):
+        value   = var.dependencies[0].get(read=False)
+        fpValue = value*(-2.5/65536.0)
+        return '%0.3f'%(fpValue)            
+
+   @staticmethod
+   def convtFloatP7p0(dev, var):
+        value   = var.dependencies[0].get(read=False)
+        fpValue = value*(7.0/65536.0)
+        return '%0.3f'%(fpValue)            
+
    @staticmethod   
    def frequencyConverter(self):
       def func(dev, var):         
@@ -1511,7 +1550,7 @@ class AsicDeserHrRegisters(pr.Device):
       
       
       #Setup registers & variables
-          
+      self.add(pr.RemoteVariable(name='StreamsEn_n',  description='Enable/Disable', offset=0x00000000, bitSize=2,  bitOffset=0,  base=pr.UInt, mode='RW'))    
       self.add(pr.RemoteVariable(name='Resync',       description='Resync',         offset=0x00000004, bitSize=1,  bitOffset=0,  base=pr.Bool, verify = False, mode='RW'))
       self.add(pr.RemoteVariable(name='Delay',        description='Delay',          offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='LockErrors0',  description='LockErrors',     offset=0x00000030, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))

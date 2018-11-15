@@ -110,7 +110,7 @@ begin
         if curState = ST_IDLE then
           intClk <= '0';
         else
-          if intCnt = 1 then             -- should generate a 50MHz clock, 7 was
+          if intCnt = 4 then             -- should generate a 50MHz clock, 7 was
                                          -- the original parameter.
             intCnt   <= (others=>'0') after TPD_G;
             intClk   <= not intClk    after TPD_G;

@@ -172,6 +172,14 @@ architecture arch of HR16bGroup_encoded_data_tb is
                                                                       --AXI_STREAM_SLAVE_INIT_C
   signal adcStreamsEn_n : slv(7 downto 0) := (others => '0');
 
+  signal HSDacData : slv(15 downto 0) := (others => '0');
+  signal HSDacCh   : slv(1 downto 0)  := (others => '1');
+  signal HSDacDin  : sl;
+  signal HSDacSclk : sl;
+  signal HSDacCsL  : sl;
+  signal HSDacLdacL: sl;
+  signal HSDacClrL : sl;
+
 begin  --
 
   sysClkRst_n <= not sysClkRst;
@@ -421,6 +429,19 @@ begin  --
     end if;
   end process;
 
+  DAC8812_0: entity work.Dac8812Cntrl
+    generic map (
+      TPD_G => TPD_G)
+    port map (
+      sysClk    => sysClk,
+      sysClkRst => sysClkRst,
+      dacData   => HSDacData,
+      dacCh     => HSDacCh,
+      dacDin    => HSDacDin,
+      dacSclk   => HSDacSclk,
+      dacCsL    => HSDacCsL,
+      dacLdacL  => HSDacLdacL,
+      dacClrL   => HSDacClrL);
   
   -- waveform generation
   WaveGen_Proc: process
@@ -438,7 +459,15 @@ begin  --
     wait for 1 us;
     sysClkRst <= '0';
     idelayCtrlRdy <= '1';               -- simulates control ready signal
-            
+
+    wait for 4 us;
+    HSDacData <= x"0001";
+    HSDacCh   <= "01";
+
+    wait for 4 us;
+    HSDacData <= x"8001";
+    HSDacCh   <= "10";
+      
     wait for 10 us;
     EncValidIn <= '1';                  -- starts sending realData
 

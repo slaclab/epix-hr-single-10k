@@ -202,6 +202,8 @@ architecture mapping of Application is
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
    signal iRunTrigger        : sl := '0';
+   signal connTgMux          : sl;
+   signal connMpsMux         : sl;
    signal opCode             : slv(7 downto 0);
    signal pgpOpCodeOneShot   : sl;
    signal acqStart           : sl;
@@ -472,7 +474,9 @@ begin
    ----------------------------------------------------------------------------
    -- Monitoring signals
    ----------------------------------------------------------------------------
-   connTgOut <= 
+   connTgOut <= not connTgMux;          -- required because the board has a
+                                        -- inverter driver
+   connTgMux <= 
       iAsic01DM1        when boardConfig.epixhrDbgSel1 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel1 = "00001" else
       iAsicAcq          when boardConfig.epixhrDbgSel1 = "00010" else
@@ -498,8 +502,10 @@ begin
       slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else   
       '0';   
-   
-   connMps <=
+
+   connMps    <= not connMpsMux;        -- required because the board has a
+                                        -- inverter driver
+   connMpsMux <=
       iAsic01DM2        when boardConfig.epixhrDbgSel2 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel2 = "00001" else
       iAsicAcq          when boardConfig.epixhrDbgSel2 = "00010" else
