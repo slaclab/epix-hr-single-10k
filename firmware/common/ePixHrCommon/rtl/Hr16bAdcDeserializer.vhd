@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-11-05
+-- Last update: 2018-11-15
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -50,8 +50,6 @@ entity Hr16bAdcDeserializer is
    port (
       -- Reset for adc deserializer
       adcClkRst : in sl;
-      -- Signals to/from idelayCtrl
-      idelayCtrlRdy : in  sl;
       -- Serial Data from ADC
       dClk     : in sl;                       -- Data clock
       dClkDiv4 : in sl;
@@ -66,6 +64,7 @@ entity Hr16bAdcDeserializer is
       tenbOrder       : in sl := '1';
       gearboxOffset   : in slv(1 downto 0) := "00";
       dataValid       : out sl;
+      tenbData        : out Slv10Array(63 downto 0);            
       pixData         : out slv(19 downto 0)     
       );
 end Hr16bAdcDeserializer;
@@ -77,30 +76,6 @@ architecture rtl of Hr16bAdcDeserializer is
   -------------------------------------------------------------------------------------------------
   -- ADC Readout Clocked Registers
   -------------------------------------------------------------------------------------------------
-
-  type StateType is (IDLE_S, WAIT_IDELAY_CTRL_RDY_S, LOAD_VALUE_S, WAIT_LOAD_S, LOAD_PULSE_S ,WAIT_READ_S, READ_VALUE_S);
-  
-  type AdcClkRegType is record
-    state             : StateType;
-    waitStateCnt      : slv(3 downto 0);
-    -- idelay signals 
-    masterCntValueIn  : slv(8 downto 0);
-    masterCntValue    : slv(8 downto 0);
-    masterCE     : sl;
-    masterEn_Vtc : sl;
-    masterLoad   : sl;
-  end record;
-
-  constant ADC_CLK_REG_INIT_C : AdcClkRegType := (
-    state            => IDLE_S,
-    waitStateCnt     => (others => '0'),
-    masterCntValueIn => (others => '0'),
-    masterCntValue   => (others => '0'),
-    masterCE     => '1',
-    masterEn_Vtc => '0',
-    masterLoad   => '0'
-    );
-
   type AdcClkDiv4RegType is record
     masterData         : slv(7  downto 0);
     masterData_1       : slv(7  downto 0);
@@ -152,9 +127,6 @@ architecture rtl of Hr16bAdcDeserializer is
 
   
   
-  signal adcR   : AdcClkRegType := ADC_CLK_REG_INIT_C;
-  signal adcRin : AdcClkRegType;
-
   signal adcDV4R   : AdcClkDiv4RegType := ADC_CLK_DV4_REG_INIT_C;
   signal adcDv4Rin : AdcClkDiv4RegType;
 
@@ -167,22 +139,16 @@ architecture rtl of Hr16bAdcDeserializer is
   signal sDataPadN  : sl;
   signal sData_i    : sl;
   signal sData_d    : sl;
-  signal loadDelaySync : sl;
 
-  -- idelay signals
-  signal idelayRdy_n : sl;
-  signal masterCntValue : slv(8 downto 0);
   -- iserdes signal
   signal masterData      : slv(7 downto 0);
 
   attribute keep of adcDV4R          : signal is "true";
   attribute keep of adcDV5R          : signal is "true";
-  attribute keep of loadDelaySync    : signal is "true";
   attribute keep of sData_i          : signal is "true";
 
 begin
 
-  idelayRdy_n <= not idelayCtrlRdy;
   PixData <= adcDv5R.masterPixData(10)&adcDv5R.masterPixData(11)&adcDv5R.masterPixData(12)&adcDv5R.masterPixData(13)&adcDv5R.masterPixData(14)&adcDv5R.masterPixData(15)&adcDv5R.masterPixData(16)&adcDv5R.masterPixData(17)&adcDv5R.masterPixData(18)&adcDv5R.masterPixData(19)&adcDv5R.masterPixData(0)&adcDv5R.masterPixData(1)&adcDv5R.masterPixData(2)&adcDv5R.masterPixData(3)&adcDv5R.masterPixData(4)&adcDv5R.masterPixData(5)&adcDv5R.masterPixData(6)&adcDv5R.masterPixData(7)&adcDv5R.masterPixData(8)&adcDv5R.masterPixData(9)                       when BIT_REV_G = '1'
              else adcDv5R.masterPixData;
 
@@ -224,18 +190,18 @@ begin
       )
     port map (
       CASC_OUT => OPEN,       -- 1-bit output: Cascade delay output to ODELAY input cascade
-      CNTVALUEOUT => masterCntValue, -- 9-bit output: Counter value output
+      CNTVALUEOUT => delayValueOut, -- 9-bit output: Counter value output
       DATAOUT => sData_d,         -- 1-bit output: Delayed data output
       CASC_IN => '1',         -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
       CASC_RETURN => '1', -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
-      CE => adcR.masterCE,                   -- 1-bit input: Active high enable increment/decrement input
+      CE => '0',                   -- 1-bit input: Active high enable increment/decrement input
       CLK => dClkDiv4,                 -- 1-bit input: Clock input
-      CNTVALUEIN => adcR.masterCntValueIn,   -- 9-bit input: Counter value input
+      CNTVALUEIN => delay,   -- 9-bit input: Counter value input
       DATAIN => '1',           -- 1-bit input: Data input from the logic
-      EN_VTC => adcR.masterEn_Vtc,           -- 1-bit input: Keep delay constant over VT
+      EN_VTC => '0',           -- 1-bit input: Keep delay constant over VT
       IDATAIN => sData_i,         -- 1-bit input: Data input from the IOBUF
       INC => '0',                 -- 1-bit input: Increment / Decrement tap delay input
-      LOAD => adcR.masterLoad,               -- 1-bit input: Load DELAY_VALUE input
+      LOAD => loadDelay,               -- 1-bit input: Load DELAY_VALUE input
       RST => adcClkRst                  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       );    
    
@@ -268,94 +234,9 @@ begin
       RST => adcClkRst              -- 1-bit input: Asynchronous Reset
       );
 
-
-  -----------------------------------------------------------------------------
-  -- crossing clock domain
-  -----------------------------------------------------------------------------
-  U_sync_0: entity work.SynchronizerOneShot 
-   generic map(
-      TPD_G           => 1 ns,   -- Simulation FF output delay
-      RST_POLARITY_G  => '1',    -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     => false,  -- Reset is asynchronous
-      BYPASS_SYNC_G   => false,  -- Bypass RstSync module for synchronous data configuration
-      RELEASE_DELAY_G => 3,      -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   => '1',    -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G  => '1',    -- 0 for active LOW, 1 for active HIGH
-      PULSE_WIDTH_G   => 1)      -- one-shot pulse width duration (units of clk cycles)
-   port map(
-      clk     => dClkDiv4,
-      rst     => adcClkRst,
-      dataIn  => loadDelay,
-      dataOut => loadDelaySync); -- synced one-shot pulse
-  
   -----------------------------------------------------------------------------
   -- custom logic 
   -----------------------------------------------------------------------------
-  adcComb : process (adcR, loadDelaySync, masterCntValue, idelayCtrlRdy, idelayRdy_n, delay) is
-    variable v : AdcClkRegType;
-  begin
-    v := adcR;
-
-    case (adcR.state) is
-      when WAIT_IDELAY_CTRL_RDY_S =>
-        if idelayCtrlRdy = '1' then
-          v.state := LOAD_VALUE_S;
-        else
-          v.state := IDLE_S;            -- can't program the delay if control is
-                                        -- not ready yet.
-        end if;
-      when LOAD_VALUE_S =>
-        v.masterEn_Vtc := '0'; -- needed to readback the tapdelay value
-        v.masterLoad := '0';
-        v.waitStateCnt := (others => '0');
-        v.state := WAIT_LOAD_S;
-      when WAIT_LOAD_S =>
-        v.waitStateCnt := adcR.waitStateCnt + '1';
-        if adcR.waitStateCnt = X"1" then
-          v.state := LOAD_PULSE_S;
-        end if;
-      when LOAD_PULSE_S =>
-        v.masterLoad := '1';
-        v.waitStateCnt := (others => '0');
-        v.state := WAIT_READ_S;
-      when WAIT_READ_S =>
-        v.masterLoad := '0';
-        v.waitStateCnt := adcR.waitStateCnt + '1';
-        if adcR.waitStateCnt = X"9" then
-          v.state := READ_VALUE_S;
-        end if;
-      when READ_VALUE_S =>
-        v.masterCntValue := masterCntValue;
-        v.state          := IDLE_S;
-      when IDLE_S =>
-        v.masterLoad       := '0';
-        v.masterCE         := '0';
-        v.masterEn_Vtc     := idelayRdy_n; 
-        v.masterCntValueIn := delay;  -- save new delay value
-        if loadDelaySync = '1' then       
-          v.state := WAIT_IDELAY_CTRL_RDY_S; --loopthrough load delay routine
-        end if;
-      when others =>
-        v.state := IDLE_S;
-    end case;
-    
-    adcRin <= v;
-         
-    --outputs
-    delayValueOut <= adcR.masterCntValue;
-   
-  end process adcComb;
-
-
-   adcSeq : process (dClkDiv4, adcClkRst) is
-   begin
-      if (adcClkRst = '1') then
-         adcR <= ADC_CLK_REG_INIT_C after TPD_G;
-      elsif (rising_edge(dClkDiv4)) then
-         adcR <= adcRin after TPD_G;
-      end if;
-   end process adcSeq;
-   
 
   -----------------------------------------------------------------------------
   -- 8 to 16, 56 gearbox and bitSlip control logic
@@ -521,6 +402,7 @@ begin
          
     --outputs
     dataValid <= adcDv5R.valid;
+    tenbData  <= adcDv5R.tenbData;
     
   end process;
    

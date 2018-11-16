@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-11-14
+-- Last update: 2018-11-16
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -486,7 +486,27 @@ begin  --
     wait until sysClk = '0';
     axiLiteBusSimWrite (sysClk, sAxilWriteMaster(READOUT_GROUP_ID), sAxilWriteSlave(READOUT_GROUP_ID), x"00000000", x"00000001", true);
     wait for 1 us;
-    
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(READOUT_GROUP_ID), sAxilWriteSlave(READOUT_GROUP_ID), x"00000010", x"000000f1", true);
+    wait for 1 us;
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(READOUT_GROUP_ID), sAxilWriteSlave(READOUT_GROUP_ID), x"00000010", x"000000f1", true);
+
+    wait for 1 us;
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(READOUT_GROUP_ID), sAxilReadSlave(READOUT_GROUP_ID), x"00000100", registerData, true);
+
+    wait for 1 us;
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(READOUT_GROUP_ID), sAxilReadSlave(READOUT_GROUP_ID), x"00000200", registerData, true);
     
     wait for 10 us;
     EncValidIn <= '1';                  -- starts sending realData

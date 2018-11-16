@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-11-13
+-- Last update: 2018-11-16
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -91,7 +91,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       resync         : sl;
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
-      delay          : slv(8 downto 0);
+      delay          : slv9Array(NUM_CHANNELS_G-1 downto 0);
       dataDelaySet   : slv(NUM_CHANNELS_G-1 downto 0);
       idelayCtrlRdy  : sl;     
       freezeDebug    : sl;
@@ -105,7 +105,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       resync         => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      delay          => DEFAULT_DELAY_G,
+      delay          => (others => DEFAULT_DELAY_G),
       dataDelaySet   => (others => '1'),
       idelayCtrlRdy  => '0',
       freezeDebug    => '0',
@@ -128,8 +128,6 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       count          : Slv6Array(NUM_CHANNELS_G-1 downto 0);
       lockedCounter  : Slv16Array(NUM_CHANNELS_G-1 downto 0);
       gearBoxOffset  : Slv2Array(NUM_CHANNELS_G-1 downto 0); 
-      --loadDelay      : sl;
-      --delayValue     : slv(8 downto 0);
       idleWord       : slv(NUM_CHANNELS_G-1 downto 0);
       locked         : slv(NUM_CHANNELS_G-1 downto 0);
       dataValidAll   : sl;
@@ -141,8 +139,6 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       count          => (others => (others => '0')),
       lockedCounter  => (others => (others => '0')),
       gearBoxOffset  => (others => (others => '0')),
-      --loadDelay      => '0',
-      --delayValue     => (others => '0'),
       idleWord       => (others => '0'),
       locked         => (others => '0'),
       dataValidAll   => '0',
@@ -162,6 +158,9 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    signal resync         : sl;
    signal adcSEnSync     : slv(NUM_CHANNELS_G-1 downto 0);
 
+   type Slv10bData is array (natural range<>) of slv10Array(63 downto 0);
+   signal tenbData       : Slv10bData(NUM_CHANNELS_G-1 downto 0);
+
    signal fifoDataValid  : sl;
    signal fifoDataOut    : slv(NUM_CHANNELS_G*NUM_BITS_C-1 downto 0);
    signal fifoDataIn     : slv(NUM_CHANNELS_G*NUM_BITS_C-1 downto 0);
@@ -176,6 +175,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
   attribute keep of adcData       : signal is "true";
   attribute keep of dataValid     : signal is "true";
   attribute keep of adcR          : signal is "true";
+  attribute keep of tenbData      : signal is "true";
+  
 
 begin
 
@@ -245,9 +246,10 @@ begin
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
    axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy) is
-      variable v      : AxilRegType;
-      variable axilEp : AxiLiteEndpointType;
+                       debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy, tenbData) is
+      variable v        : AxilRegType;
+      variable axilEp   : AxiLiteEndpointType;
+      variable local10b : slv10Array(63 downto 0);
    begin
       v := axilR;
 
@@ -272,7 +274,7 @@ begin
       -- Write delay values to IDELAY primatives
       -- All writes go to same r.delay register,
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegister(axilEp, X"10"+toSlv((i*4), 8), 0, v.delay);
+         axiSlaveRegister(axilEp, X"10"+toSlv((i*4), 8), 0, v.delay(i));
          axiSlaveRegister(axilEp, X"10"+toSlv((i*4), 8), 9, v.dataDelaySet(i), '1');
       end loop;
 
@@ -296,6 +298,14 @@ begin
       end loop;
 
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
+
+      for i in 0 to NUM_CHANNELS_G-1 loop
+        local10b := tenbData(i);
+        for j in 0 to 63 loop
+          axiSlaveRegisterR(axilEp, X"100"+toSlv((i*64*4+j*4),12), 0,  local10b(j));
+        end loop;  -- j
+      end loop;
+      
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
@@ -336,18 +346,18 @@ begin
         MSB_LSB_G         => '0')
       port map (
         adcClkRst     => adcBitRst,
-        idelayCtrlRdy => axilR.idelayCtrlRdy,
         dClk          => bitClk,                         -- Data clock
         dClkDiv4      => deserClk,
         dClkDiv5      => byteClk,
         sDataP        => adcSerial.chP(i),                       
         sDataN        => adcSerial.chN(i),
         loadDelay     => axilR.dataDelaySet(i),
-        delay         => axilR.delay,
+        delay         => axilR.delay(i),
         delayValueOut => curDelayData(i),
         bitSlip       => adcR.slip(i),
         gearboxOffset => adcR.gearboxOffset(i),
         dataValid     => dataValid(i),
+        tenbData      => tenbData(i),
         pixData       => adcData(i)
         );
    end generate;
