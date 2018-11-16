@@ -301,7 +301,7 @@ begin
 
       for i in 0 to NUM_CHANNELS_G-1 loop
         local10b := tenbData(i);
-        for j in 0 to 63 loop
+        for j in 0 to 7 loop
           axiSlaveRegisterR(axilEp, X"100"+toSlv((i*64*4+j*4),12), 0,  local10b(j));
         end loop;  -- j
       end loop;
