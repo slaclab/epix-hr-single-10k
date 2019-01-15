@@ -32,7 +32,7 @@ import pyrogue.utilities.prbs
 import pyrogue.utilities.fileio
 import pyrogue.gui
 import rogue.hardware.pgp
-import rogue.hardware.data
+
 
 import surf
 import surf.axi
@@ -89,14 +89,14 @@ if ( args.type == 'pgp-gen3' ):
     
 elif ( args.type == 'kcu1500' ):
     # Create the PGP interfaces for ePix hr camera
-    pgpL0Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(0*32)+0) # Data & cmds
-    pgpL0Vc1 = rogue.hardware.data.DataCard('/dev/datadev_0',(0*32)+1) # Registers for ePix board
-    pgpL0Vc2 = rogue.hardware.data.DataCard('/dev/datadev_0',(0*32)+2) # PseudoScope
-    pgpL0Vc3 = rogue.hardware.data.DataCard('/dev/datadev_0',(0*32)+3) # Monitoring (Slow ADC)
+    pgpL0Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*32)+0, True) # Data & cmds
+    pgpL0Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*32)+1, True) # Registers for ePix board
+    pgpL0Vc2 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*32)+2, True) # PseudoScope
+    pgpL0Vc3 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*32)+3, True) # Monitoring (Slow ADC)
 
     #pgpL1Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(0*32)+0) # Data (when using all four lanes it should be swapped back with L0)
-    pgpL2Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(2*32)+0) # Data
-    pgpL3Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(3*32)+0) # Data
+    pgpL2Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(2*32)+0, True) # Data
+    pgpL3Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(3*32)+0, True) # Data
 elif ( args.type == 'dataFile' ):
     print("Bypassing hardware.")
 

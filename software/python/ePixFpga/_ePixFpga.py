@@ -187,24 +187,26 @@ class EpixHRGen1Cryo(pr.Device):
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
             # app registers
-            MMCM7Registers(          name='MMCM7Registers',                    offset=0x80000000, expand=False, enabled=False),
-            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x82100000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x82200000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x82300000, expand=False, enabled=False),
-            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x82400000, expand=False, enabled=False, numberLanes=4),
-            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x83000000, expand=False),
-            CryoAppCoreFpgaRegisters(name="AppFpgaRegisters",                  offset=0x8C000000, expand=False),
-            powerSupplyRegisters(    name='PowerSupply',                       offset=0x85000000, expand=False),            
-            HighSpeedDacRegisters(   name='HSDac',                             offset=0x86000000, expand=False,HsDacEnum=HsDacEnum),
+            MMCM7Registers(                  name='MMCM7Registers',                    offset=0x80000000, expand=False, enabled=False),
+            TriggerRegisters(                name="TriggerRegisters",                  offset=0x81000000, expand=False),
+            ssiPrbsTxRegisters(              name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(              name='ssiPrbs1PktRegisters',              offset=0x82100000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(              name='ssiPrbs2PktRegisters',              offset=0x82200000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(              name='ssiPrbs3PktRegisters',              offset=0x82300000, expand=False, enabled=False),
+            axi.AxiStreamMonitoring(         name='AxiStreamMon',                      offset=0x82400000, expand=False, enabled=False, numberLanes=4),
+            axi.AxiMemTester(                name='AxiMemTester',                      offset=0x83000000, expand=False),
+            CryoAppCoreFpgaRegisters(        name="AppFpgaRegisters",                  offset=0x8C000000, expand=False),
+            powerSupplyRegisters(            name='PowerSupply',                       offset=0x85000000, expand=False),            
+            HighSpeedDacRegisters(           name='HSDac',                             offset=0x86000000, expand=False,HsDacEnum=HsDacEnum),
             #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
-            sDacRegisters(           name='SlowDacs'    ,                      offset=0x86200000, expand=False, enabled=False),
-            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x87000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
-            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x88000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',    offset=0x88100000, expand=False, enabled=False),
-            SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x88200000, expand=False),
-            DigitalPktRegisters(     name="PacketRegisters",                   offset=0x8B000000, expand=False)
+            sDacRegisters(                   name='SlowDacs'    ,                      offset=0x86200000, expand=False, enabled=False),
+            OscilloscopeRegisters(           name='Oscilloscope',                      offset=0x87000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
+            MonAdcRegisters(                 name='FastADCsDebug',                     offset=0x88000000, expand=False, enabled=False),
+            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',                offset=0x88100000, expand=False, enabled=False),
+            SlowAdcRegisters(                name="SlowAdcRegisters",                  offset=0x88200000, expand=False),
+            ProgrammablePowerSupplyCryo(     name="ProgPowerSupply",                   offset=0x89100000, expand=False, enabled=False),
+            ClockJitterCleanerRegisters(     name="Clock Jitter Cleaner",              offset=0x89200000, expand=False, enabled=False),
+            DigitalPktRegisters(             name="PacketRegisters",                   offset=0x8B000000, expand=False)
             ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -1145,6 +1147,66 @@ class ProgrammablePowerSupply(pr.Device):
          return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
       return func
 
+
+class ProgrammablePowerSupplyCryo(pr.Device):
+   def __init__(self, **kwargs):
+      super().__init__(description='Two channel programmable power supply', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables
+      
+      self.add((
+                  pr.RemoteVariable(name='Vdd1',    description='',                  offset=0x00004, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),                
+                  pr.RemoteVariable(name='Vdd2',    description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
+               )
+      self.add((
+                  pr.LinkVariable  (name='Vdd1_V',         linkedGet=self.convtFloatP7p0,    dependencies=[self.Vdd1]),
+                  pr.LinkVariable  (name='Vdd2_V',         linkedGet=self.convtFloatP7p0,    dependencies=[self.Vdd2]))
+               )
+      
+      
+      #####################################
+      # Create commands
+      #####################################
+      
+      # A command has an associated function. The function can be a series of
+      # python commands in a string. Function calls are executed in the command scope
+      # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+      # A command can also be a call to a local function with local scope.
+      # The command object and the arg are passed
+   @staticmethod
+   def convtFloatP10p0(dev, var):
+        value   = var.dependencies[0].get(read=False)
+        fpValue = value*(10.0/65536.0)
+        return '%0.3f'%(fpValue)            
+
+   @staticmethod
+   def convtFloatM2p5(dev, var):
+        value   = var.dependencies[0].get(read=False)
+        fpValue = value*(-2.5/65536.0)
+        return '%0.3f'%(fpValue)            
+
+   @staticmethod
+   def convtFloatP7p0(dev, var):
+        value   = var.dependencies[0].get(read=False)
+        fpValue = value*(7.0/65536.0)
+        return '%0.3f'%(fpValue)            
+
+   @staticmethod   
+   def frequencyConverter(self):
+      def func(dev, var):         
+         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+      return func
 
 class SlowAdcRegisters(pr.Device):
    def __init__(self, **kwargs):
