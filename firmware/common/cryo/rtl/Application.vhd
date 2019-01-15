@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-08-16
+-- Last update: 2019-01-15
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -288,14 +288,14 @@ architecture mapping of Application is
    signal dacCsbProgSupplyOut : slv(1 downto 0);
    signal dacClrbProgSupplyOut: sl;
    -- CJC
-   signal cjcRst            : sl;
-   signal cjcDec            : sl;
-   signal cjcInc            : sl;
-   signal cjcFrqtbl         : sl;
-   signal cjcRate           : slv(1 downto 0);
-   signal cjcBwSel          : slv(1 downto 0);
-   signal cjcFrqSel         : slv(3 downto 0);
-   signal cjcSfout          : slv(1 downto 0);
+   signal cjcRst            : slv(1 downto 0);
+   signal cjcDec            : slv(1 downto 0);
+   signal cjcInc            : slv(1 downto 0);
+   signal cjcFrqtbl         : slv(1 downto 0);
+   signal cjcRate           : slv(3 downto 0);
+   signal cjcBwSel          : slv(3 downto 0);
+   signal cjcFrqSel         : slv(7 downto 0);
+   signal cjcSfout          : slv(3 downto 0);
    signal cjcLos            : sl;
    signal cjcLol            : sl;
 
@@ -349,24 +349,25 @@ begin
   -----------------------------------------------------------------------------
   -- Clock Jitter Cleaner IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DATAP_1 : IOBUF port map (O => open,   I => cjcFrqtbl,    IO => asicDataP(1),  T => '0');
-  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcDec,       IO => asicDataP(7),  T => '0');
-  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcInc,       IO => asicDataP(8),  T => '0');
-  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(9),  T => '0');
-  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(10), T => '0');
-  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(11), T => '0');
-  IOBUF_DATAP_12: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(12), T => '0');
+  IOBUF_DATAP_1 : IOBUF port map (O => open,   I => cjcFrqtbl(0),    IO => asicDataP(1),  T => cjcFrqtbl(1));
+  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcDec(0),       IO => asicDataP(7),  T => cjcDec(1));
+  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcInc(0),       IO => asicDataP(8),  T => cjcInc(1));
+  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(9),  T => cjcFrqSel(4));
+  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(10), T => cjcFrqSel(5));
+  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(11), T => cjcFrqSel(6));
+  IOBUF_DATAP_12: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(12), T => cjcFrqSel(7));
   IOBUF_DATAP_13: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(13), T => '1');
   --
-  IOBUF_DATAN_1 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(1),  T => '0');
-  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(7),  T => '0');
-  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(8),  T => '0');
-  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(9),  T => '0');
-  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(10), T => '0');
-  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(11), T => '0');
-  IOBUF_DATAN_12: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(12), T => '0');
+  IOBUF_DATAN_1 : IOBUF port map (O => open,   I => cjcRst(0),       IO => asicDataN(1),  T => cjcRst(1));
+  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(7),  T => cjcRate(2));
+  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(8),  T => cjcRate(3));
+  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(9),  T => cjcBwSel(2));
+  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(10), T => cjcBwSel(3));
+  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(11), T => cjcSfout(2));
+  IOBUF_DATAN_12: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(12), T => cjcSfout(3));
   IOBUF_DATAN_13: IOBUF port map (O => cjcLol, I => '0',          IO => asicDataN(13), T => '1');
-    
+
+  OBUFDS_CLK     : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(0),OB => asicRoClkN(0));
   
    ---------------------
    -- Heart beat LED  --
@@ -492,13 +493,20 @@ begin
    ----------------------------------------------------------------------------
    mbIrq           <= (others => '0');  
    asicR0          <= '0';
-   asicRoClkP      <= (others => '0');
-   asicRoClkN      <= (others => '1');
+   asicRoClkN(3 downto 1) <= (others => '0');
+   asicRoClkP(3 downto 1) <= (others => '1');  
    gtTxP           <= '0';
    gtTxN           <= '1';
    smaTxP          <= '0';
    smaTxN          <= '1';
-
+   asicDataN(4)    <= '0';
+   asicDataN(6)    <= '0';
+   asicDataN(15 downto 14)  <= (others => '0');
+   asicDataN(23 downto 20)  <= (others => '0');
+   asicDataP(4)    <= '0';
+   asicDataP(6)    <= '0';
+   asicDataP(15 downto 14)  <= (others => '0');
+   asicDataP(23 downto 20)  <= (others => '0');
 
    ------------------------------------------
    -- Generate clocks from 156.25 MHz PGP  --
@@ -564,8 +572,8 @@ begin
       rstOut(4)       => open,
       locked          => clkLocked,
       -- AXI-Lite Interface 
-      axilClk         => sysClk,
-      axilRst         => sysRst,
+      axilClk         => appClk,
+      axilRst         => appRst,
       axilReadMaster  => mAxiReadMasters(PLLREGS_AXI_INDEX_C),
       axilReadSlave   => mAxiReadSlaves(PLLREGS_AXI_INDEX_C),
       axilWriteMaster => mAxiWriteMasters(PLLREGS_AXI_INDEX_C),
@@ -842,7 +850,7 @@ begin
       adcSerial         => monAdc,
 
       -- Deserialized ADC Data
-      adcStreamClk      => appClk,
+      adcStreamClk      => sysClk,
       adcStreams        => adcStreams
    );
 
@@ -909,14 +917,14 @@ begin
    -------------------------------------------- 
    U_AdcCntrl: entity work.SlowAdcCntrlAxi
    generic map (
-      SYS_CLK_PERIOD_G  => 10.0E-9,	-- 100MHz
+      SYS_CLK_PERIOD_G  => 6.4E-9,	-- 100MHz
       ADC_CLK_PERIOD_G  => 200.0E-9,	-- 5MHz
       SPI_SCLK_PERIOD_G => 2.0E-6  	-- 500kHz
    )
    port map ( 
       -- Master system clock
-      sysClk            => appClk,
-      sysClkRst         => appRst,
+      sysClk            => sysClk,
+      sysClkRst         => sysRst,
       
       -- Trigger Control
       adcStart          => acqStart,
@@ -930,8 +938,8 @@ begin
       sAxilReadSlave    => mAxiReadSlaves(MONADC_REG_AXI_INDEX_C),
       
       -- AXI stream output
-      axisClk           => appClk,
-      axisRst           => appRst,
+      axisClk           => sysClk,
+      axisRst           => sysRst,
       mAxisMaster       => sAuxAxisMasters(1),
       mAxisSlave        => sAuxAxisSlaves(1),
 
@@ -1131,7 +1139,7 @@ begin
         adcSerial => adcSerial(i),
 
         -- Deserialized ADC Data
-        adcStreamClk => asicRdClk,--fClkP,--sysClk,
+        adcStreamClk => byteClk,--fClkP,--sysClk,
         adcStreams   => asicStreams      
         );
 
@@ -1152,8 +1160,8 @@ begin
          )
        port map( 
          -- Deserialized data port
-         rxClk             => asicRdClk, --fClkP,    --use frame clock
-         rxRst             => asicRdClkRst,
+         rxClk             => byteClk, --asicRdClk, --fClkP,    --use frame clock
+         rxRst             => byteClkRst,--asicRdClkRst,
          adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
       
          -- AXI lite slave port for register access
