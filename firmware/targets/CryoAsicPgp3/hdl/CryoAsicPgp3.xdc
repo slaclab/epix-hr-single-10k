@@ -35,7 +35,7 @@ set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_Core/U
 
 #requierd becase we repurpose the IO lines to get the clock from the cryo ADC debug lines
 #set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/AdcClk_I_Ibufds/O] 
-
+a
 # ASIC Gbps Ports
 
 set_property -dict {PACKAGE_PIN V20 IOSTANDARD LVDS}     [get_ports {asicDataP[0]}]
@@ -95,10 +95,10 @@ set_property -dict {PACKAGE_PIN AF12 IOSTANDARD LVCMOS25} [get_ports asicGlblRst
 set_property -dict {PACKAGE_PIN AG15 IOSTANDARD LVCMOS25} [get_ports asicSync]
 set_property -dict {PACKAGE_PIN AG14 IOSTANDARD LVCMOS25} [get_ports asicAcq]
 
-set_property -dict {PACKAGE_PIN AE11 IOSTANDARD LVCMOS25} [get_ports {asicRoClkP[0]}]
-set_property -dict {PACKAGE_PIN AE10 IOSTANDARD LVCMOS25} [get_ports {asicRoClkN[0]}]
+set_property -dict {PACKAGE_PIN AE11 IOSTANDARD LVDS_25}  [get_ports {asicRoClkP[0]}]
+set_property -dict {PACKAGE_PIN AE10 IOSTANDARD LVDS_25}  [get_ports {asicRoClkN[0]}]
 set_property -dict {PACKAGE_PIN AF10 IOSTANDARD LVCMOS25} [get_ports {asicRoClkP[1]}]
-set_property -dict {PACKAGE_PIN AF9 IOSTANDARD LVCMOS25} [get_ports {asicRoClkN[1]}]
+set_property -dict {PACKAGE_PIN AF9  IOSTANDARD LVCMOS25} [get_ports {asicRoClkN[1]}]
 set_property -dict {PACKAGE_PIN AC13 IOSTANDARD LVCMOS25} [get_ports {asicRoClkP[2]}]
 set_property -dict {PACKAGE_PIN AC12 IOSTANDARD LVCMOS25} [get_ports {asicRoClkN[2]}]
 set_property -dict {PACKAGE_PIN AD14 IOSTANDARD LVCMOS25} [get_ports {asicRoClkP[3]}]
