@@ -1170,8 +1170,8 @@ class ProgrammablePowerSupplyCryo(pr.Device):
                   pr.RemoteVariable(name='Vdd2',    description='',                  offset=0x00008, bitSize=16,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'))
                )
       self.add((
-                  pr.LinkVariable  (name='Vdd1_V',         linkedGet=self.convtFloatP7p0,    dependencies=[self.Vdd1]),
-                  pr.LinkVariable  (name='Vdd2_V',         linkedGet=self.convtFloatP7p0,    dependencies=[self.Vdd2]))
+                  pr.LinkVariable  (name='Vdd1_V',         linkedGet=self.convtFloatP5p0,    dependencies=[self.Vdd1]),
+                  pr.LinkVariable  (name='Vdd2_V',         linkedGet=self.convtFloatP5p0,    dependencies=[self.Vdd2]))
                )
       
       
@@ -1185,21 +1185,9 @@ class ProgrammablePowerSupplyCryo(pr.Device):
       # A command can also be a call to a local function with local scope.
       # The command object and the arg are passed
    @staticmethod
-   def convtFloatP10p0(dev, var):
+   def convtFloatP5p0(dev, var):
         value   = var.dependencies[0].get(read=False)
-        fpValue = value*(10.0/65536.0)
-        return '%0.3f'%(fpValue)            
-
-   @staticmethod
-   def convtFloatM2p5(dev, var):
-        value   = var.dependencies[0].get(read=False)
-        fpValue = value*(-2.5/65536.0)
-        return '%0.3f'%(fpValue)            
-
-   @staticmethod
-   def convtFloatP7p0(dev, var):
-        value   = var.dependencies[0].get(read=False)
-        fpValue = value*(7.0/65536.0)
+        fpValue = value*(5.0/65536.0)
         return '%0.3f'%(fpValue)            
 
    @staticmethod   
