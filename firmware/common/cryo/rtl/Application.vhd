@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-01-15
+-- Last update: 2019-01-17
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -74,6 +74,8 @@ entity Application is
       mAxiWriteSlave   : in    AxiWriteSlaveType;
       -- Microblaze's Interrupt bus (sysClk domain)
       mbIrq            : out   slv(7 downto 0);
+      -- ssi commands (Lane and Vc 0)
+      ssiCmd           : in    SsiCmdMasterType;
       -----------------------
       -- Application Ports --
       -----------------------
@@ -261,9 +263,6 @@ architecture mapping of Application is
    signal sDacClrb_i   : sl;
 
 
-   -- Command interface
-   signal ssiCmd               : SsiCmdMasterType;
-   
    -- External Signals 
    signal serialIdIo           : slv(1 downto 0) := "00";
 
@@ -349,16 +348,16 @@ begin
   -----------------------------------------------------------------------------
   -- Clock Jitter Cleaner IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DATAP_1 : IOBUF port map (O => open,   I => cjcFrqtbl(0),    IO => asicDataP(1),  T => cjcFrqtbl(1));
-  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcDec(0),       IO => asicDataP(7),  T => cjcDec(1));
-  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcInc(0),       IO => asicDataP(8),  T => cjcInc(1));
+  IOBUF_DATAP_1 : IOBUF port map (O => open,   I => cjcFrqtbl(0), IO => asicDataP(1),  T => cjcFrqtbl(1));
+  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcDec(0),    IO => asicDataP(7),  T => cjcDec(1));
+  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcInc(0),    IO => asicDataP(8),  T => cjcInc(1));
   IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(9),  T => cjcFrqSel(4));
   IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(10), T => cjcFrqSel(5));
   IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(11), T => cjcFrqSel(6));
   IOBUF_DATAP_12: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(12), T => cjcFrqSel(7));
   IOBUF_DATAP_13: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(13), T => '1');
   --
-  IOBUF_DATAN_1 : IOBUF port map (O => open,   I => cjcRst(0),       IO => asicDataN(1),  T => cjcRst(1));
+  IOBUF_DATAN_1 : IOBUF port map (O => open,   I => cjcRst(0),    IO => asicDataN(1),  T => cjcRst(1));
   IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(7),  T => cjcRate(2));
   IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(8),  T => cjcRate(3));
   IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(9),  T => cjcBwSel(2));

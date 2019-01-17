@@ -185,6 +185,7 @@ class Board(pyrogue.Root):
             coreMap = rogue.hardware.axi.AxiMemMap('/dev/datadev_0')
             self.add(XilinxKcu1500Pgp3(memBase=coreMap))        
         self.add(fpga.EpixHRGen1Cryo(name='EpixHRGen1Cryo', offset=0, memBase=srp, hidden=False, enabled=True))
+        self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 
 if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
 if (args.verbose): dbgData.setDebug(60, "DATA Verbose 0[{}]".format(0))

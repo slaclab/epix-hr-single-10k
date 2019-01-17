@@ -2,7 +2,7 @@
 -- File       : CryoAsicPgp3.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-06-22
+-- Last update: 2019-01-17
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -163,6 +163,8 @@ architecture top_level of CryoAsicPgp3 is
    -- Auxiliary AXI Stream, (sysClk domain)
    signal sAuxAxisMasters : AxiStreamMasterArray(1 downto 0);
    signal sAuxAxisSlaves  : AxiStreamSlaveArray(1 downto 0);
+   -- ssi commands (Lane and Vc 0)
+   signal ssiCmd          : SsiCmdMasterType;
    -- DDR's AXI Memory Interface (sysClk domain)
    signal axiReadMaster   : AxiReadMasterType;
    signal axiReadSlave    : AxiReadSlaveType;
@@ -197,6 +199,8 @@ begin
          -- Auxiliary AXI Stream, (sysClk domain)
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
+         -- ssi commands (Lane and Vc 0)
+         ssiCmd           => ssiCmd,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          mAxiReadMaster   => axiReadMaster,
@@ -303,6 +307,8 @@ begin
          -- Auxiliary AXI Stream, (sysClk domain)
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
+         -- ssi commands (Lane and Vc 0)
+         ssiCmd           => ssiCmd,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          sAxiReadMaster   => axiReadMaster,
