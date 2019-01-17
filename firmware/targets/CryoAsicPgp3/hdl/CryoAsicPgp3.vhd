@@ -24,6 +24,7 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.EpixHrCorePkg.all;
 use work.AppPkg.all;
+use work.SsiCmdMasterPkg.all;
 
 entity CryoAsicPgp3 is
    generic (
