@@ -37,17 +37,3 @@ class XilinxKcu1500Pgp3(pr.Device):
                 offset = (0x00800000 + i*0x00010000), 
                 expand = False,
             ))  
-            
-        self.add(AxiStreamMonitoring(            
-            name        = 'RxLaneMon', 
-            offset      = 0x00880000, 
-            numberLanes = 8,
-            expand      = False,
-        )) 
-        
-        self.add(AxiStreamMonitoring(            
-            name        = 'TxLaneMon', 
-            offset      = 0x00890000, 
-            numberLanes = 8,
-            expand      = False,
-        ))
