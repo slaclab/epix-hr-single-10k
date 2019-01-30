@@ -28,11 +28,16 @@ import surf.protocols.pgp as pgp
 import surf.devices.analog_devices as analog_devices
 import surf.misc
 import surf
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtGui import *
 import numpy as np
 
-#import epix.Epix100aAsic
+try:
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore    import *
+    from PyQt5.QtGui     import *
+except ImportError:
+    from PyQt4.QtCore    import *
+    from PyQt4.QtGui     import *
+
 
 
 ################################################################################################

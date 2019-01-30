@@ -18,32 +18,49 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
+
+import rogue.hardware.pgp
+import pyrogue.utilities.prbs
+import pyrogue.utilities.fileio
+
+import pyrogue as pr
+import pyrogue.interfaces.simulation
+import pyrogue.gui
+import surf
 import threading
 import signal
 import atexit
 import yaml
 import time
-import sys
 import argparse
+import sys
+#import testBridge
+import ePixViewer as vi
+import ePixFpga as fpga
 
-import PyQt4.QtGui
-import PyQt4.QtCore
-import pyrogue.utilities.prbs
-import pyrogue.utilities.fileio
-import pyrogue.gui
-import rogue.hardware.pgp
-
+#import pyrogue.utilities.prbs
+#import pyrogue.utilities.fileio
 
 import surf
 import surf.axi
 import surf.protocols.ssi
-
-import ePixViewer as vi
-import ePixFpga as fpga
 from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3 import *
+
+try:
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore    import *
+    from PyQt5.QtGui     import *
+except ImportError:
+    from PyQt4.QtCore    import *
+    from PyQt4.QtGui     import *
 
 # Set the argument parser
 parser = argparse.ArgumentParser()
+
+
+# Convert str to bool
+argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
+
 
 # Add arguments
 parser.add_argument(
@@ -55,15 +72,23 @@ parser.add_argument(
 
 parser.add_argument(
     "--start_gui", 
-    type     = bool,
+    type     = argBool,
     required = False,
     default  = True,
     help     = "true to show gui",
 )  
 
 parser.add_argument(
+    "--viewer", 
+    type     = argBool,
+    required = False,
+    default  = True,
+    help     = "Start viewer",
+)  
+
+parser.add_argument(
     "--verbose", 
-    type     = bool,
+    type     = argBool,
     required = False,
     default  = False,
     help     = "true for verbose printout",
@@ -71,6 +96,11 @@ parser.add_argument(
 
 # Get the arguments
 args = parser.parse_args()
+
+#############################################
+START_VIEWER = args.viewer
+print(args.viewer)
+#############################################
 
 # Add PGP virtual channels
 if ( args.type == 'pgp-gen3' ):
@@ -204,7 +234,7 @@ if (args.verbose): dbgData.setDebug(60, "DATA Verbose 3[{}]".format(0))
 if (args.verbose): pyrogue.streamTap(pgpL3Vc0, dbgData)
 
 # Create GUI
-appTop = PyQt4.QtGui.QApplication(sys.argv)
+appTop = QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='cryoAsicGui')
 cryoAsicBoard = Board(guiTop, cmd, dataWriter, srp)
 if ( args.type == 'dataFile' ):
@@ -215,12 +245,13 @@ guiTop.addTree(cryoAsicBoard)
 guiTop.resize(800,800)
 
 # Viewer gui
-onlineViewer = vi.Window(cameraType='cryo64xN')
-onlineViewer.eventReader.frameIndex = 0
-onlineViewer.setReadDelay(0)
-pyrogue.streamTap(pgpL0Vc0, onlineViewer.eventReader)
-if ( args.type != 'dataFile' ):
-    pyrogue.streamTap(pgpL0Vc2, onlineViewer.eventReaderScope)# PseudoScope
+if START_VIEWER:
+    onlineViewer = vi.Window(cameraType='cryo64xN')
+    onlineViewer.eventReader.frameIndex = 0
+    onlineViewer.setReadDelay(0)
+    pyrogue.streamTap(pgpL0Vc0, onlineViewer.eventReader)
+    if ( args.type != 'dataFile' ):
+        pyrogue.streamTap(pgpL0Vc2, onlineViewer.eventReaderScope)# PseudoScope
 #pyrogue.streamTap(pgpL0Vc3, onlineViewer.eventReaderMonitoring) # Slow Monitoring
 
 # Create GUI
@@ -228,11 +259,6 @@ if (args.start_gui):
     appTop.exec_()
 
 # Close window and stop polling
-def stop():
-    mNode.stop()
-    cryoAsicBoard.stop()
-    exit()
-
-# Start with: ipython -i scripts/epix10kaDAQ.py for interactive approach
-print("Started rogue mesh and epics V3 server. To exit type stop()")
+cryoAsicBoard.stop()
+exit()
 
