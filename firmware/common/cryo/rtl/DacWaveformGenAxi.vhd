@@ -58,10 +58,10 @@ entity DacWaveformGenAxi is
       -- AXI lite slave port for register access
       axilClk           : in  std_logic;
       axilRst           : in  std_logic;
-      sAxilWriteMaster  : in  AxiLiteWriteMasterArray(NUM_MASTER_SLOTS_G-1 downto 0);
-      sAxilWriteSlave   : out AxiLiteWriteSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0);
-      sAxilReadMaster   : in  AxiLiteReadMasterArray(NUM_MASTER_SLOTS_G-1 downto 0);
-      sAxilReadSlave    : out AxiLiteReadSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0)
+      sAxilWriteMaster  : in  AxiLiteWriteMasterArray(1 downto 0);
+      sAxilWriteSlave   : out AxiLiteWriteSlaveArray(1 downto 0);
+      sAxilReadMaster   : in  AxiLiteReadMasterArray(1 downto 0);
+      sAxilReadSlave    : out AxiLiteReadSlaveArray(1 downto 0)
    );
 
 
@@ -239,10 +239,10 @@ begin
             -- Axi Port
             axiClk         => sysClk,
             axiRst         => sysClkRst,
-            axiReadMaster  => sAxilReadMaster(DACWFMEM_REG_AXI_INDEX_C),
-            axiReadSlave   => sAxilReadSlave(DACWFMEM_REG_AXI_INDEX_C),
-            axiWriteMaster => sAxilWriteMaster(DACWFMEM_REG_AXI_INDEX_C),
-            axiWriteSlave  => sAxilWriteSlave(DACWFMEM_REG_AXI_INDEX_C),
+            axiReadMaster  => sAxilReadMaster(1),
+            axiReadSlave   => sAxilReadSlave(1),
+            axiWriteMaster => sAxilWriteMaster(1),
+            axiWriteSlave  => sAxilWriteSlave(1),
             -- Standard Port
             clk           => sysClk,
             en            => waveform_en,
@@ -269,7 +269,7 @@ begin
       v := r;
             
       v.sAxilReadSlave.rdata := (others => '0');
-      axiSlaveWaitTxn(regCon, sAxilWriteMaster(DAC8812_REG_AXI_INDEX_C), sAxilReadMaster(DAC8812_REG_AXI_INDEX_C), v.sAxilWriteSlave, v.sAxilReadSlave);
+      axiSlaveWaitTxn(regCon, sAxilWriteMaster(0), sAxilReadMaster(0), v.sAxilWriteSlave, v.sAxilReadSlave);
       
       axiSlaveRegister (regCon, x"0000",  0, v.waveform.enabled);
       axiSlaveRegister (regCon, x"0000",  1, v.waveform.run);
@@ -286,8 +286,8 @@ begin
 
       rin <= v;
 
-      sAxilWriteSlave(DAC8812_REG_AXI_INDEX_C)   <= r.sAxilWriteSlave;
-      sAxilReadSlave(DAC8812_REG_AXI_INDEX_C)    <= r.sAxilReadSlave;
+      sAxilWriteSlave(0)   <= r.sAxilWriteSlave;
+      sAxilReadSlave(0)    <= r.sAxilReadSlave;
 
    end process comb;
 

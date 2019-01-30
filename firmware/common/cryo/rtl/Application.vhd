@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-01-17
+-- Last update: 2019-01-30
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -486,12 +486,12 @@ begin
    asicGlblRst     <= iAsicGrst;
    asicSync        <= iasicSync;
    asicAcq         <= iasicAcq;
-
+   asicR0          <= iAsicSR0;
+  
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
    mbIrq           <= (others => '0');  
-   asicR0          <= '0';
    asicRoClkN(3 downto 1) <= (others => '0');
    asicRoClkP(3 downto 1) <= (others => '1');  
    gtTxP           <= '0';
@@ -1001,10 +1001,10 @@ begin
       externalTrigger   => acqStart,
       axilClk           => appClk,
       axilRst           => appRst,
-      sAxilWriteMaster  => mAxiWriteMasters,
-      sAxilWriteSlave   => mAxiWriteSlaves,
-      sAxilReadMaster   => mAxiReadMasters,
-      sAxilReadSlave    => mAxiReadSlaves);
+      sAxilWriteMaster  => mAxiWriteMasters(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilReadMaster   => mAxiReadMasters(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilReadSlave    => mAxiReadSlaves(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C));
 
   --------------------------------------------
   -- ePix HR analog board SPI DACs          --
