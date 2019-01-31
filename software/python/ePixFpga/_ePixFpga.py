@@ -193,27 +193,27 @@ class EpixHRGen1Cryo(pr.Device):
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
             # app registers
             MMCM7Registers(                  name='MMCM7Registers',                    offset=0x80000000, expand=False, enabled=False),
-            TriggerRegisters(                name="TriggerRegisters",                  offset=0x81000000, expand=False),
+            TriggerRegisters(                name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(              name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(              name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(              name='ssiPrbs2PktRegisters',              offset=0x84000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(              name='ssiPrbs3PktRegisters',              offset=0x85000000, expand=False, enabled=False),
             axi.AxiStreamMonitoring(         name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
-            axi.AxiMemTester(                name='AxiMemTester',                      offset=0x87000000, expand=False),
-            epix.EpixHrAdcAsic(              name='HrAdcAsic0',                        offset=0x88000000, expand=False, enabled=False),
-            CryoAppCoreFpgaRegisters(        name="AppFpgaRegisters",                  offset=0x96000000, expand=False),
-            powerSupplyRegisters(            name='PowerSupply',                       offset=0x89000000, expand=False),            
-            HighSpeedDacRegisters(           name='HSDac',                             offset=0x8A000000, expand=False,HsDacEnum=HsDacEnum),
+            axi.AxiMemTester(                name='AxiMemTester',                      offset=0x87000000, expand=False, enabled=False),
+            epix.CryoAsic(                   name='CryoAsic0',                         offset=0x88000000, expand=False, enabled=False),
+            CryoAppCoreFpgaRegisters(        name="AppFpgaRegisters",                  offset=0x96000000, expand=False, enabled=False),
+            powerSupplyRegisters(            name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
+            HighSpeedDacRegisters(           name='HSDac',                             offset=0x8A000000, expand=False, enabled=False, HsDacEnum=HsDacEnum),
             #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
             sDacRegisters(                   name='SlowDacs'    ,                      offset=0x8C000000, expand=False, enabled=False),
-            OscilloscopeRegisters(           name='Oscilloscope',                      offset=0x8D000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
+            OscilloscopeRegisters(           name='Oscilloscope',                      offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(                 name='FastADCsDebug',                     offset=0x8E000000, expand=False, enabled=False),
             analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',                offset=0x8F000000, expand=False, enabled=False),
-            SlowAdcRegisters(                name="SlowAdcRegisters",                  offset=0x90000000, expand=False),
+            SlowAdcRegisters(                name="SlowAdcRegisters",                  offset=0x90000000, expand=False, enabled=False),
             ProgrammablePowerSupplyCryo(     name="ProgPowerSupply",                   offset=0x92000000, expand=False, enabled=False),
             ClockJitterCleanerRegisters(     name="Clock Jitter Cleaner",              offset=0x93000000, expand=False, enabled=False),
             AsicDeserHr12bRegisters(         name="DeserRegisters",                    offset=0x94000000, expand=False, enabled=False), 
-            DigitalPktRegisters(             name="PacketRegisters",                   offset=0x95000000, expand=False)
+            DigitalPktRegisters(             name="PacketRegisters",                   offset=0x95000000, expand=False, enabled=False)
             ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
