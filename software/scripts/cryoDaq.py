@@ -127,6 +127,15 @@ elif ( args.type == 'kcu1500' ):
     #pgpL1Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(0*32)+0) # Data (when using all four lanes it should be swapped back with L0)
     pgpL2Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(2*32)+0, True) # Data
     pgpL3Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(3*32)+0, True) # Data
+elif ( args.type == 'SIM' ):          
+    print('Sim mode')
+    rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
+    pgpL0Vc0 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=1, ssi=True)
+    pgpL0Vc1 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=1, ssi=True)
+    pgpL0Vc2 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=2, uid=1, ssi=True)
+    pgpL0Vc3 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=3, uid=1, ssi=True)
+    pgpL2Vc0 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=2, ssi=True)
+    pgpL3Vc0 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=3, ssi=True)
 elif ( args.type == 'dataFile' ):
     print("Bypassing hardware.")
 
@@ -237,7 +246,7 @@ if (args.verbose): pyrogue.streamTap(pgpL3Vc0, dbgData)
 appTop = QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='cryoAsicGui')
 cryoAsicBoard = Board(guiTop, cmd, dataWriter, srp)
-if ( args.type == 'dataFile' ):
+if ( args.type == 'dataFile' or args.type == 'SIM'):
     cryoAsicBoard.start(pollEn=False, pyroGroup=None)
 else:
     cryoAsicBoard.start(pollEn=True, pyroGroup=None)

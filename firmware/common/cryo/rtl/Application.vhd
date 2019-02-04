@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-01-30
+-- Last update: 2019-02-01
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -268,6 +268,7 @@ architecture mapping of Application is
 
    -- DDR signals
    signal startDdrTest_n       : sl;
+   signal startDdrTest         : sl;
    -- DDR sconstants
    constant DDR_AXI_CONFIG_C : AxiConfigType := axiConfig(
       ADDR_WIDTH_C => 15,
@@ -1239,7 +1240,7 @@ begin
       -- DDR Memory Interface
       axiClk          => sysClk,
       axiRst          => sysRst,
-      start           => not startDdrTest_n, -- input signal that starts the test 
+      start           => startDdrTest, -- input signal that starts the test 
       axiWriteMaster  => mAxiWriteMaster,
       axiWriteSlave   => mAxiWriteSlave,
       axiReadMaster   => mAxiReadMaster,
