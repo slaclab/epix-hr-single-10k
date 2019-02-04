@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-02-01
+-- Last update: 2019-02-04
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -625,7 +625,7 @@ begin
       TPD_G            => 1 ns,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
       COMMON_CLK_G     => false,
-      NUM_ADDR_BITS_G  => 31,
+      NUM_ADDR_BITS_G  => 32,
       PIPE_STAGES_G    => 0)
    port map(
       -- Slave Port
@@ -1202,8 +1202,8 @@ begin
       -- AXIS Stream Interface
       axisClk         => sysClk,
       axisRst         => sysRst,
-      axisMaster      => imAxisMasters,
-      axisSlave       => mAxisSlaves,
+      axisMasters     => imAxisMasters,
+      axisSlaves      => mAxisSlaves,
       -- AXI lite slave port for register access
       axilClk         => appClk,  
       axilRst         => appRst,   
