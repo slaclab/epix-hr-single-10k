@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-07-10
+-- Last update: 2019-02-11
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -164,6 +164,7 @@ architecture rtl of Hr12bAdcReadoutGroupUS is
   attribute keep of adcBitClkR    : signal is "true";  
   attribute keep of adcFrame      : signal is "true";
   attribute keep of adcBitClkIo   : signal is "true";
+  attribute keep of adcDataPad    : signal is "true";
 
 begin
    -------------------------------------------------------------------------------------------------
