@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-10-08
+-- Last update: 2019-02-11
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -50,7 +50,9 @@ use unisim.vcomponents.all;
 entity cryo_full_tb is
      generic (
       TPD_G        : time := 1 ns;
-      BUILD_INFO_G : BuildInfoType := BUILD_INFO_C);
+      BUILD_INFO_G : BuildInfoType := BUILD_INFO_C;
+      IDLE_PATTERN_C : slv(11 downto 0) := x"03F"  -- "11 0100 0000 0111"
+      );
 end cryo_full_tb;
 
 -------------------------------------------------------------------------------
@@ -58,8 +60,10 @@ end cryo_full_tb;
 architecture arch of cryo_full_tb is
 
 
+  
+
   --file definitions
-  constant DATA_BITS   : natural := 16;
+  constant DATA_BITS   : natural := 12;
   constant DEPTH_C     : natural := 1024;
   constant FILENAME_C  : string  := "/afs/slac.stanford.edu/u/re/ddoering/localGit/epix-hr-dev/firmware/simulations/CryoEncDec/sin.csv";
   subtype word_t  is slv(DATA_BITS - 1 downto 0);
@@ -212,6 +216,7 @@ architecture arch of cryo_full_tb is
   -- System Clock and Reset
   signal sysClk          : sl;
   signal sysRst          : sl;
+  signal sysRst_n        : sl;
   -- AXI-Lite Register Interface (sysClk domain)
   signal axilReadMaster  : AxiLiteReadMasterType;
   signal axilReadSlave   : AxiLiteReadSlaveType;
@@ -231,6 +236,24 @@ architecture arch of cryo_full_tb is
   -- Microblaze's Interrupt bus (sysClk domain)
   signal mbIrq           : slv(7 downto 0);
 
+  -- encoder
+  signal EncValidIn  : sl              := '1';
+  signal EncReadyIn  : sl;
+  signal EncDataIn   : slv(11 downto 0);
+  signal EncDispIn   : slv(1 downto 0) := "00";
+  signal EncDataKIn  : sl;
+  signal EncValidOut : sl;
+  signal EncReadyOut : sl              := '1';
+  signal EncDataOut  : slv(13 downto 0);
+  signal EncDispOut  : slv(1 downto 0);
+  signal EncSof      : sl := '0';
+  signal EncEof      : sl := '0';
+
+  signal dClkP : sl := '1'; -- Data clock
+  signal dClkN : sl := '0';
+  signal fClkP : sl := '0'; -- Frame clock
+  signal fClkN : sl := '1';
+  signal serialDataOut : sl;
 
 begin  --
 
@@ -240,6 +263,11 @@ begin  --
 
   ddrClkP  <= not ddrCkP after 6.4 ns;
   ddrClkN  <= not ddrCkP;
+  
+  fClkP <= not fClkP after 7 * 2 ns;
+  fClkN <= not fClkP;
+  dClkP <= not dClkP after 2 ns; 
+  dClkN <= not dClkP;
 
   
   -- waveform generation
@@ -255,6 +283,64 @@ begin  --
     wait;
   end process WaveGen_Proc;
 
+  EncDataIn_Proc: process
+    variable dataIndex : integer := 0;
+  begin
+    wait until fClkP = '1';
+    if EncValidIn = '1' then
+      EncDataIn <= ramWaveform(dataIndex);
+      dataIndex := dataIndex + 1;
+      if dataIndex = DEPTH_C then
+        dataIndex := 0;
+      end if;
+    else
+      EncDataIn <= IDLE_PATTERN_C;
+    end if;
+  end process;
+  
+  U_encoder : entity work.SspEncoder12b14b 
+   generic map (
+     TPD_G          => TPD_G,
+     RST_POLARITY_G => '1',
+     RST_ASYNC_G    => false,
+     AUTO_FRAME_G   => true,
+     FLOW_CTRL_EN_G => false)
+   port map(
+      clk      => fClkP,
+      rst      => sysRst,
+      validIn  => EncValidIn,
+      readyIn  => EncReadyIn,
+      sof      => EncSof,
+      eof      => EncEof,
+      dataIn   => EncDataIn,
+      validOut => EncValidOut,
+      readyOut => EncReadyOut,
+      dataOut  => EncDataOut);
+
+  U_serializer :  entity work.serializerSim 
+    generic map(
+        g_dwidth => 14 
+    )
+    port map(
+        clk_i     => dClkP,
+        reset_n_i => sysRst_n,
+        data_i    => EncDataOut,        -- "00"&EncDataIn, --
+        data_o    => serialDataOut
+    );
+
+  EncValidIn <= asicR0;
+  sysRst_n   <= not sysRst;
+    
+  asicDataP(0) <=     serialDataOut;
+  asicDataN(0) <= not serialDataOut;
+  asicDataP(3) <=     serialDataOut;
+  asicDataN(3) <= not serialDataOut;
+
+  asicDataP(2) <= fClkP;
+  asicDataN(2) <= fClkN;
+  asicDataP(5) <= dClkP;
+  asicDataN(5) <= dClkN;
+ 
   U_App : entity work.Application
       generic map (
          TPD_G => TPD_G,
