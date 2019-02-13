@@ -179,8 +179,6 @@ architecture RTL of DigitalAsicStreamAxi is
    signal s   : StrType := STR_INIT_C;
    signal sin : StrType;
 
-   signal rxValid       : slv(STREAMS_PER_ASIC_G-1 downto 0);
-   
    signal decDataOut    : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
    signal decValidOut   : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decSof        : slv(STREAMS_PER_ASIC_G-1 downto 0);

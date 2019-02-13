@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-02-04
+-- Last update: 2019-02-13
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -158,6 +158,9 @@ architecture mapping of Application is
 
    attribute keep : string;
 
+   -- ASIC signals
+   constant STREAMS_PER_ASIC_C : natural := 2;
+
    --heart beat signal
    signal heartBeat      : sl;
    
@@ -166,13 +169,14 @@ architecture mapping of Application is
 
    -- clock signals
    signal appClk         : sl;
-   signal asicClk        : sl;
+   signal bitClk         : sl;
    signal byteClk        : sl;
+   signal deserClk       : sl;
    signal asicRdClk      : sl;
    signal idelayCtrlClk  : sl;
    signal appRst         : sl;
    signal axiRst         : sl;
-   signal asicRst        : sl;
+   signal bitRst         : sl;
    signal byteClkRst     : sl;
    signal asicRdClkRst   : sl;
    signal idelayCtrlRst  : sl;
@@ -242,6 +246,7 @@ architecture mapping of Application is
    signal adcValid         : slv(3 downto 0);
    signal adcData          : Slv16Array(3 downto 0);
    signal adcStreams       : AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+   signal adcStreamsEn_n   : slv(STREAMS_PER_ASIC_C-1 downto 0) := (others => '0');
    signal monAdc           : Ad9249SerialGroupType;
    signal adcSpiCsL_i      : slv(1 downto 0);
    signal adcPdwn_i        : slv(0 downto 0);
@@ -298,9 +303,6 @@ architecture mapping of Application is
    signal cjcSfout          : slv(3 downto 0);
    signal cjcLos            : sl;
    signal cjcLol            : sl;
-
-   -- ASIC signals
-   constant STREAMS_PER_ASIC_C : natural := 2;
    --
    signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
    signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);   
@@ -524,7 +526,7 @@ begin
       INPUT_BUFG_G           => true,
       FB_BUFG_G              => true,
       RST_IN_POLARITY_G      => '1',     -- '0' for active low
-      NUM_CLOCKS_G           => 5,
+      NUM_CLOCKS_G           => 3,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
@@ -533,43 +535,29 @@ begin
       CLKFBOUT_MULT_G        => 5,
       CLKOUT0_DIVIDE_F_G     => 1.0,
       CLKOUT0_DIVIDE_G       => 6,
-      CLKOUT1_DIVIDE_G       => 6,
-      CLKOUT2_DIVIDE_G       => 6,
-      CLKOUT3_DIVIDE_G       => 2,
-      CLKOUT4_DIVIDE_G       => 12,
+      CLKOUT1_DIVIDE_G       => 2,
+      CLKOUT2_DIVIDE_G       => 12,
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
-      CLKOUT3_PHASE_G        => 0.0,
-      CLKOUT4_PHASE_G        => 0.0,
       CLKOUT0_DUTY_CYCLE_G   => 0.5,
       CLKOUT1_DUTY_CYCLE_G   => 0.5,
       CLKOUT2_DUTY_CYCLE_G   => 0.5,
-      CLKOUT3_DUTY_CYCLE_G   => 0.5,
-      CLKOUT4_DUTY_CYCLE_G   => 0.5,
       CLKOUT0_RST_HOLD_G     => 3,
       CLKOUT1_RST_HOLD_G     => 3,
       CLKOUT2_RST_HOLD_G     => 3,
-      CLKOUT3_RST_HOLD_G     => 3,
-      CLKOUT4_RST_HOLD_G     => 3,
       CLKOUT0_RST_POLARITY_G => '1',
       CLKOUT1_RST_POLARITY_G => '1',
-      CLKOUT2_RST_POLARITY_G => '1',
-      CLKOUT3_RST_POLARITY_G => '1',
-      CLKOUT4_RST_POLARITY_G => '1')
+      CLKOUT2_RST_POLARITY_G => '1')
    port map(
       clkIn           => sysClk,
       rstIn           => sysRst,
       clkOut(0)       => appClk,
-      clkOut(1)       => asicClk,
-      clkOut(2)       => asicRdClk,
-      clkOut(3)       => idelayCtrlClk,
-      clkOut(4)       => adcClk,
+      clkOut(1)       => idelayCtrlClk, 
+      clkOut(2)       => adcClk, 
       rstOut(0)       => appRst,
-      rstOut(1)       => asicRst,
-      rstOut(2)       => asicRdClkRst,
-      rstOut(3)       => open,
-      rstOut(4)       => open,
+      rstOut(1)       => open,
+      rstOut(2)       => open,
       locked          => clkLocked,
       -- AXI-Lite Interface 
       axilClk         => appClk,
@@ -581,24 +569,10 @@ begin
    );      
 
 
-   U_BUFGCE_DIV_0 : BUFGCE_DIV
-   generic map (
-      BUFGCE_DIVIDE => 5,     -- 1-8
-      -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
-      IS_CE_INVERTED => '0',  -- Optional inversion for CE
-      IS_CLR_INVERTED => '0', -- Optional inversion for CLR
-      IS_I_INVERTED => '0'    -- Optional inversion for I
-   )
-   port map (
-      O => byteClk,     -- 1-bit output: Buffer
-      CE => '1',   -- 1-bit input: Buffer enable
-      CLR => '0', -- 1-bit input: Asynchronous clear
-      I => asicClk      -- 1-bit input: Buffer
-   );
-
    U_RdPwrUpRst : entity work.PwrUpRst
    generic map (
-      DURATION_G => 20000000
+     SIM_SPEEDUP_G  => SIMULATION_G,
+     DURATION_G     => 200000000
    )
    port map (
       clk      => byteClk,
@@ -616,6 +590,124 @@ begin
       RST => idelayCtrlRst_i   -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
                                -- REFCLK.
    );
+
+  ----------------------------------------------------------------------------
+  -- adc clock for cryo
+  -----------------------------------------------------------------------------
+  -------------------------------------------------------------------------------------------------
+  -- Create Clocks
+  -------------------------------------------------------------------------------------------------
+
+   ------------------------------------------
+   -- Generate clocks from 156.25 MHz PGP  --
+   ------------------------------------------
+   -- clkIn     : 156.25 MHz PGP
+   -- clkOut(0) : 448.00 MHz -- 8x cryo clock (default  56MHz)
+   -- clkOut(1) : 112.00 MHz -- 448 clock div 4
+   -- clkOut(2) : 64.00 MHz  -- 448 clock div 7
+   -- clkOut(3) : 56.00 MHz  -- cryo input clock default is 56MHz
+
+   U_iserdesClockGen : entity work.ClockManagerUltraScale 
+   generic map(
+      TPD_G                  => 1 ns,
+      TYPE_G                 => "MMCM",  -- or "PLL"
+      INPUT_BUFG_G           => true,
+      FB_BUFG_G              => true,
+      RST_IN_POLARITY_G      => '1',     -- '0' for active low
+      NUM_CLOCKS_G           => 4,
+      -- MMCM attributes
+      BANDWIDTH_G            => "OPTIMIZED",
+      CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
+      DIVCLK_DIVIDE_G        => 8,
+      CLKFBOUT_MULT_F_G      => 45.875,
+      CLKFBOUT_MULT_G        => 5,
+      CLKOUT0_DIVIDE_F_G     => 1.0,
+      CLKOUT0_DIVIDE_G       => 2,
+      CLKOUT0_PHASE_G        => 0.0,
+      CLKOUT0_DUTY_CYCLE_G   => 0.5,
+      CLKOUT0_RST_HOLD_G     => 3,
+      CLKOUT0_RST_POLARITY_G => '1',
+      CLKOUT1_DIVIDE_G       => 8,
+      CLKOUT1_PHASE_G        => 0.0,
+      CLKOUT1_DUTY_CYCLE_G   => 0.5,
+      CLKOUT1_RST_HOLD_G     => 3,
+      CLKOUT1_RST_POLARITY_G => '1',
+      CLKOUT2_DIVIDE_G       => 14,
+      CLKOUT2_PHASE_G        => 0.0,
+      CLKOUT2_DUTY_CYCLE_G   => 0.5,
+      CLKOUT2_RST_HOLD_G     => 3,
+      CLKOUT2_RST_POLARITY_G => '1',
+      CLKOUT3_DIVIDE_G       => 16,
+      CLKOUT3_PHASE_G        => 0.0,
+      CLKOUT3_DUTY_CYCLE_G   => 0.5,
+      CLKOUT3_RST_HOLD_G     => 3,
+      CLKOUT3_RST_POLARITY_G => '1')
+   port map(
+      clkIn           => sysClk,
+      rstIn           => sysRst,
+      clkOut(0)       => bitClk,       --bit clk
+      clkOut(1)       => deserClk,
+      clkOut(2)       => byteClk,
+      clkOut(3)       => asicRdClk,
+      rstOut(0)       => bitRst,
+      rstOut(1)       => open,
+      rstOut(2)       => open,
+      rstOut(3)       => asicRdClkRst,
+      locked          => open,
+      -- AXI-Lite Interface
+      axilClk         => appClk,
+      axilRst         => appRst,
+      axilReadMaster  => mAxiReadMasters(PLL2REGS_AXI_INDEX_C),
+      axilReadSlave   => mAxiReadSlaves(PLL2REGS_AXI_INDEX_C),
+      axilWriteMaster => mAxiWriteMasters(PLL2REGS_AXI_INDEX_C),
+      axilWriteSlave  => mAxiWriteSlaves(PLL2REGS_AXI_INDEX_C)
+      );
+
+--   AdcClk_I_Ibufds : IBUFDS
+--      generic map (
+--        DQS_BIAS => "FALSE"  -- (FALSE, TRUE)
+--      )
+--      port map (
+--         I  => adcSerial.dClkP,
+--         IB => adcSerial.dClkN,
+--         O  => adcBitClkIoIn);
+--
+--   U_bitClkBufG : BUFG
+--     port map (
+--       O => adcBitClkIo,
+--       I => tmpAdcClk);
+--     
+--   -- Regional clock
+--   U_AdcBitClkR : BUFGCE_DIV
+--      generic map (
+--        BUFGCE_DIVIDE => 7,     -- 1-8
+--        -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
+--        IS_CE_INVERTED => '0',  -- Optional inversion for CE
+--        IS_CLR_INVERTED => '0', -- Optional inversion for CLR
+--        IS_I_INVERTED => '0'    -- Optional inversion for I
+--        )
+--      port map (
+--         I   => adcBitClkIo,
+--         O   => adcBitClkR,
+--         CE  => '1',
+--         CLR => '0');
+--
+--   -- Regional clock
+--   U_AdcBitClkRD4 : BUFGCE_DIV
+--      generic map (
+--        BUFGCE_DIVIDE => 4,     -- 1-8
+--        -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
+--        IS_CE_INVERTED => '0',  -- Optional inversion for CE
+--        IS_CLR_INVERTED => '0', -- Optional inversion for CLR
+--        IS_I_INVERTED => '0'    -- Optional inversion for I
+--        )
+--      port map (
+--         I   => adcBitClkIo,
+--         O   => adcBitClkRD4,
+--         CE  => '1',
+--         CLR => '0');
+
+  
    
    ---------------------------------------------
    -- AXI Lite Async - cross clock domain     --
@@ -1123,24 +1215,20 @@ begin
         ADC_INVERT_CH_G   => "00000000")
       port map (
         -- Master system clock, 125Mhz
-        axilClk => appClk,
-        axilRst => appRst,
-
-        -- Reset for adc deserializer
-        adcClkRst => sysRst,
-
-        -- Axi Interface
+        axilClk         => appClk,
+        axilRst         => appRst,          
         axilWriteMaster => mAxiWriteMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
         axilWriteSlave  => mAxiWriteSlaves(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
         axilReadMaster  => mAxiReadMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
         axilReadSlave   => mAxiReadSlaves(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
- 
-        -- Serial Data from ADC
-        adcSerial => adcSerial(i),
-
-        -- Deserialized ADC Data
-        adcStreamClk => byteClk,--fClkP,--sysClk,
-        adcStreams   => asicStreams      
+        bitClk          => bitClk,
+        byteClk         => byteClk,
+        deserClk        => deserClk,
+        adcClkRst       => sysRst,
+        adcSerial       => adcSerial(i),
+        adcStreamClk    => byteClk,--fClkP,--sysClk,
+        adcStreams      => asicStreams,
+        adcStreamsEn_n  => adcStreamsEn_n
         );
 
      -------------------------------------------------------------------------------

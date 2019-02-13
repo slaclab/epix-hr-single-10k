@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2019-02-11
+-- Last update: 2019-02-13
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -264,11 +264,54 @@ begin  --
   ddrClkP  <= not ddrCkP after 6.4 ns;
   ddrClkN  <= not ddrCkP;
   
-  fClkP <= not fClkP after 7 * 2 ns;
+--  fClkP <= not fClkP after 7 * 2 ns;
   fClkN <= not fClkP;
-  dClkP <= not dClkP after 2 ns; 
+--  dClkP <= not dClkP after 2 ns; 
   dClkN <= not dClkP;
 
+  ------------------------------------------
+  -- Generate clocks from 156.25 MHz PGP  --
+  ------------------------------------------
+  -- clkIn     : 156.25 MHz PGP
+  -- clkOut(0) : 448.00 MHz -- 8x cryo clock (default  56MHz)
+  -- clkOut(1) : 112.00 MHz -- 448 clock div 4
+  -- clkOut(2) : 64.00 MHz  -- 448 clock div 7
+  -- clkOut(3) : 56.00 MHz  -- cryo input clock default is 56MHz
+
+  U_TB_ClockGen : entity work.ClockManagerUltraScale 
+    generic map(
+      TPD_G                  => 1 ns,
+      TYPE_G                 => "MMCM",  -- or "PLL"
+      INPUT_BUFG_G           => true,
+      FB_BUFG_G              => true,
+      RST_IN_POLARITY_G      => '1',     -- '0' for active low
+      NUM_CLOCKS_G           => 2,
+      -- MMCM attributes
+      BANDWIDTH_G            => "OPTIMIZED",
+      CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
+      DIVCLK_DIVIDE_G        => 8,
+      CLKFBOUT_MULT_F_G      => 45.875,
+      CLKFBOUT_MULT_G        => 5,
+      CLKOUT0_DIVIDE_F_G     => 1.0,
+      CLKOUT0_DIVIDE_G       => 2,
+      CLKOUT0_PHASE_G        => 0.0,
+      CLKOUT0_DUTY_CYCLE_G   => 0.5,
+      CLKOUT0_RST_HOLD_G     => 3,
+      CLKOUT0_RST_POLARITY_G => '1',
+      CLKOUT1_DIVIDE_G       => 14,
+      CLKOUT1_PHASE_G        => 0.0,
+      CLKOUT1_DUTY_CYCLE_G   => 0.5,
+      CLKOUT1_RST_HOLD_G     => 3,
+      CLKOUT1_RST_POLARITY_G => '1')
+   port map(
+      clkIn           => sysClk,
+      rstIn           => sysRst,
+      clkOut(0)       => dClkP,       --bit clk
+      clkOut(1)       => fClkP,
+      rstOut(0)       => open,
+      rstOut(1)       => open,
+      locked          => open
+   );
   
   -- waveform generation
   WaveGen_Proc: process
@@ -282,7 +325,9 @@ begin  --
    
     wait;
   end process WaveGen_Proc;
-
+-------------------------------------------------------------------------------
+--  
+-------------------------------------------------------------------------------  
   EncDataIn_Proc: process
     variable dataIndex : integer := 0;
   begin
@@ -333,6 +378,8 @@ begin  --
     
   asicDataP(0) <=     serialDataOut;
   asicDataN(0) <= not serialDataOut;
+--  asicDataP(0) <= fClkP;
+--  asicDataN(0) <= fClkN;  
   asicDataP(3) <=     serialDataOut;
   asicDataN(3) <= not serialDataOut;
 
@@ -344,6 +391,7 @@ begin  --
   U_App : entity work.Application
       generic map (
          TPD_G => TPD_G,
+         SIMULATION_G => true,
          BUILD_INFO_G => BUILD_INFO_G)
       port map (
          ----------------------

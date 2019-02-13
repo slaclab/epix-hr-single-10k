@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-02-04
+-- Last update: 2019-02-12
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ package AppPkg is
    constant NUMBER_OF_ASICS_C : natural := 1;   
    constant NUMBER_OF_LANES_C : natural := 4;   
    
-   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 23;
+   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 24;
    constant HR_FD_NUM_AXI_SLAVE_SLOTS_C   : natural := 1;
    
    constant PLLREGS_AXI_INDEX_C            : natural := 0;
@@ -55,6 +55,7 @@ package AppPkg is
    constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 21;
    --constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 2x;
    constant APP_REG_AXI_INDEX_C            : natural := 22;
+   constant PLL2REGS_AXI_INDEX_C           : natural := 23;
    
    
    constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"80000000";--0
@@ -82,6 +83,7 @@ package AppPkg is
    constant DIG_ASIC0_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95000000";--21
    --constant DIG_ASIC1_STREAM_AXI_ADDR_C      : slv(31 downto 0) := X"0B000000";--2X
    constant APP_REG_AXI_ADDR_C              : slv(31 downto 0) := X"96000000";--22
+   constant PLL2REGS_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"97000000";--0
    
    
    constant HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0) := (
@@ -175,6 +177,10 @@ package AppPkg is
          connectivity         => x"FFFF"),
       APP_REG_AXI_INDEX_C                => ( 
          baseAddr             => APP_REG_AXI_ADDR_C,
+         addrBits             => 24,
+         connectivity         => x"FFFF"),
+      PLL2REGS_AXI_INDEX_C    => (
+         baseAddr             => PLL2REGS_AXI_BASE_ADDR_C,
          addrBits             => 24,
          connectivity         => x"FFFF")
    );

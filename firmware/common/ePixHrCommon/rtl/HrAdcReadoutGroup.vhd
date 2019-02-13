@@ -2,7 +2,7 @@
 -- File       : HrAdcReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-11-14
+-- Last update: 2019-02-12
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -80,7 +80,7 @@ architecture rtl of HrAdcReadoutGroup is
 begin
 
  GEN_ULTRASCALE_HRADC : if ((XIL_DEVICE_G = "ULTRASCALE") and (DATA_TYPE_G = "12b14b")) generate
-    U_HrADC_0 : entity work.Hr12bAdcReadoutGroupUS
+    U_HrADC_0 : entity work.Hr12bAdcReadoutGroupVsA
       generic map (
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => NUM_CHANNELS_G,
@@ -96,10 +96,14 @@ begin
         axilReadSlave     => axilReadSlave,
         axilWriteMaster   => axilWriteMaster,
         axilWriteSlave    => axilWriteSlave,
+        bitClk            => bitClk,
+        byteClk           => byteClk,
+        deserClk          => deserClk,
         adcClkRst         => adcClkRst,
         adcSerial         => adcSerial,
         adcStreamClk      => adcStreamClk,
-        adcStreams        => adcStreams
+        adcStreams        => adcStreams,
+        adcStreamsEn_n    => adcStreamsEn_n
         );
   end generate GEN_ULTRASCALE_HRADC;
 
