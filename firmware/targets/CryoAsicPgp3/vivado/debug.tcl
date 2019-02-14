@@ -38,12 +38,12 @@ set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
 #################################
 ## Set the clock for the ILA core
 #################################
-SetDebugCoreClk ${ilaName} {U_App/appClk}
+#SetDebugCoreClk ${ilaName} {U_App/appClk}
 #SetDebugCoreClk ${ilaName} {U_App/sysClk}
 #SetDebugCoreClk ${ilaName} {U_Core/U_DdrMem/ddrClk}
 #SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}
 #SetDebugCoreClk ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkIo}
-
+SetDebugCoreClk ${ilaName} {U_App/byteClk}
 #######################
 ## Set the debug Probes
 #######################
@@ -92,6 +92,14 @@ SetDebugCoreClk ${ilaName} {U_App/appClk}
 #ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/U_FRAME_DESERIALIZER/loadDelaySync}
 #ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkRD4}
 #ConfigProbe ${ilaName} {U_App/U_MonAdcReadout/GEN_ULTRASCALE_AD9249.U_AD9249_0/adcBitClkR}
+
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/adcDV4R[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/adcDV7R[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/GenData[1].U_DATA_DESERIALIZER/adcDV4R[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/GenData[1].U_DATA_DESERIALIZER/adcDV7R[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/adcData[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/dataValid[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/adcR[*]}
 
 
 ConfigProbe ${ilaName} {U_App/iAsicAcq}

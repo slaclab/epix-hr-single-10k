@@ -358,7 +358,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Bit Clocked Logic
    -------------------------------------------------------------------------------------------------
-   adcComb : process (adcData, adcFrame, adcR) is
+   adcComb : process (adcData, adcFrame, adcR, dataValid, adcSEnSync, resync) is
       variable v : AdcRegType;
    begin
       v := adcR;      

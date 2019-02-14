@@ -24,9 +24,11 @@ set_property -dict {PACKAGE_PIN G27 IOSTANDARD LVCMOS18} [get_ports userSmaN]
 ##########################
 ## Misc. Configurations ##
 ##########################
-create_generated_clock -name appClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
-create_generated_clock -name asicClk[get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]
-create_generated_clock -name byteClk[get_pins U_App/U_BUFGCE_DIV_0/O]
+create_generated_clock -name appClk    [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
+create_generated_clock -name bitClk    [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT0]
+create_generated_clock -name deserClk  [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT1]
+create_generated_clock -name byteClk   [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT2]
+create_generated_clock -name asicRdClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT3]
 
 set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks appClk]
 set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks asicClk]

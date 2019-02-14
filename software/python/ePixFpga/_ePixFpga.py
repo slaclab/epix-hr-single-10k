@@ -193,6 +193,7 @@ class EpixHRGen1Cryo(pr.Device):
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
             # app registers
             MMCM7Registers(                  name='MMCM7Registers',                    offset=0x80000000, expand=False, enabled=False),
+            MMCM7Registers(                  name='MMCMSerdesRegisters',               offset=0x97000000, expand=False, enabled=False),
             TriggerRegisters(                name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(              name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(              name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
