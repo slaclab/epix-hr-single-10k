@@ -448,7 +448,8 @@ begin
     -- latch whole double word
     v.valid := '1'; 
     
-    -- 10 bit words pipeline
+    -- 14 bit words pipeline
+    v.debugData(0) := adcDv7R.masterAdcData;
     for i in 1 to 7 loop
          v.debugData(i) := adcDv7R.debugData(i-1);
     end loop;

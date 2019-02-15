@@ -95,6 +95,7 @@ architecture RTL of DigitalAsicStreamAxi is
       testRowCnt     : natural;
       testTrig       : slv(2 downto 0);
       testMode       : slv(STREAMS_PER_ASIC_G-1 downto 0);
+      forceAdcData   : sl;
       streamDataMode : sl;
       stopDataTx     : sl;
       testBitFlip    : sl;
@@ -121,6 +122,7 @@ architecture RTL of DigitalAsicStreamAxi is
       testRowCnt     => 0,
       testTrig       => "000",
       testMode       => (others=>'0'),
+      forceAdcData   => '0',
       streamDataMode => '0',
       stopDataTx     => '0',
       testBitFlip    => '0',
@@ -142,6 +144,7 @@ architecture RTL of DigitalAsicStreamAxi is
    
    type RegType is record
       testMode          : slv(STREAMS_PER_ASIC_G-1 downto 0);
+      forceAdcData      : sl;
       streamDataMode    : sl;
       stopDataTx        : sl;
       frmSize           : slv(15 downto 0);
@@ -159,6 +162,7 @@ architecture RTL of DigitalAsicStreamAxi is
 
    constant REG_INIT_C : RegType := (
       testMode          => (others=>'0'),
+      forceAdcData      => '0',
       streamDataMode    => '0',
       stopDataTx        => '0',
       frmSize           => (others=>'0'),
@@ -347,7 +351,7 @@ begin
 
 
 
-   comb : process (axilRst, axisRst, sAxilReadMaster, sAxilWriteMaster, sAxisSlave, r, s, 
+   comb : process (axilRst, axisRst, sAxilReadMaster, sAxilWriteMaster, sAxisSlave, r, s, decDataOut,
       acqNoSync, dFifoOut, dFifoExtData, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, testTrig, errInhibit) is
       variable sv       : StrType;
       variable rv       : RegType;
@@ -364,17 +368,18 @@ begin
       
       -- cross clock sync
       
-      rv.frmSize    := s.frmSize;
-      rv.frmMax     := s.frmMax;
-      rv.frmMin     := s.frmMin;
-      rv.frmCnt     := s.frmCnt;
-      rv.sofError   := s.sofError;
-      rv.eofError   := s.eofError;
-      rv.ovError    := s.ovError;
-      sv.testMode   := r.testMode;
-      sv.stopDataTx := r.stopDataTx;
+      rv.frmSize        := s.frmSize;
+      rv.frmMax         := s.frmMax;
+      rv.frmMin         := s.frmMin;
+      rv.frmCnt         := s.frmCnt;
+      rv.sofError       := s.sofError;
+      rv.eofError       := s.eofError;
+      rv.ovError        := s.ovError;
+      sv.testMode       := r.testMode;
+      sv.forceAdcData   := r.forceAdcData;
+      sv.stopDataTx     := r.stopDataTx;
       sv.streamDataMode := r.streamDataMode;
-      sv.asicDataReq := r.asicDataReq;
+      sv.asicDataReq    := r.asicDataReq;
       
       if r.rstCnt /= "000" then
          sv.rstCnt := '1';
@@ -395,10 +400,15 @@ begin
       axiSlaveRegisterR(regCon, x"14",  0, r.eofError);
       axiSlaveRegisterR(regCon, x"18",  0, r.ovError);
       axiSlaveRegister (regCon, x"1C",  0, rv.testMode);
+      axiSlaveRegister (regCon, x"1C",  2, rv.forceAdcData);
       axiSlaveRegister (regCon, x"20",  0, rv.streamDataMode);
       axiSlaveRegister (regCon, x"20",  1, rv.stopDataTx);   
       axiSlaveRegister (regCon, x"24",  0, rv.rstCnt);
       axiSlaveRegister (regCon, x"28",  0, rv.asicDataReq);
+
+      for i in 0 to STREAMS_PER_ASIC_G-1 loop
+        axiSlaveRegisterR(regCon, X"80"+toSlv((i*4), 8), 0, decDataOut(i));
+      end loop;
       
       axiSlaveDefault(regCon, rv.sAxilWriteSlave, rv.sAxilReadSlave, AXIL_ERR_RESP_G);
       
@@ -534,60 +544,76 @@ begin
            end if;
              
          when DATA_S =>
-            if dFifoValid /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or (s.testMode /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and (sAxisSlave.tReady='1')) then
+           if (s.testMode /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) or
+             (s.forceAdcData = '1' and  dFifoValid /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) then
+             -- test mode row and col counters
+             if s.testColCnt < (ASIC_WIDTH_G/STREAMS_PER_ASIC_G)-1 then  -- why -1 here??
+               sv.testColCnt := s.testColCnt + 1;
+             else
+               sv.testColCnt := 0;
+               sv.testRowCnt := s.testRowCnt + 1;
+             end if;
                
-               -- test mode row and col counters
-               if s.testColCnt < (ASIC_WIDTH_G/STREAMS_PER_ASIC_G)-1 then  -- why -1 here??
-                  sv.testColCnt := s.testColCnt + 1;
+             sv.axisMaster.tValid := '1';
+             -- test or real data readout
+             if s.forceAdcData = '1' then
+               sv.axisMaster.tData(16*STREAMS_PER_ASIC_G-1 downto 0) := dFifoExtData;
+             else
+               sv.axisMaster.tData(16*STREAMS_PER_ASIC_G-1 downto 0) := (others => '0');
+               if s.testColCnt = ASIC_WIDTH_G/(2*STREAMS_PER_ASIC_G)-1 then
+                 sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & s.acqNo(1)(4 downto 0) & "00" & toSlv(s.testRowCnt, 6);
+               elsif s.testRowCnt = 15 then
+                 sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & s.acqNo(1)(4 downto 0) & "00" & toSlv(s.testColCnt, 6);
                else
-                  sv.testColCnt := 0;
-                  sv.testRowCnt := s.testRowCnt + 1;
+                 sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & "00000" & x"ff";
                end if;
-               
+             end if;
+             sv.dFifoRd := '1';                           
+             sv.stCnt := s.stCnt + 1;
+             -- data package completed
+             if s.stCnt = s.asicDataReq then 
+               sv.frmSize := toSlv(s.stCnt, 16);
+               sv.stCnt := 0;
+               if s.frmMax <= sv.frmSize then
+                 sv.frmMax := sv.frmSize;
+               end if;
+               if s.frmMin >= sv.frmSize then
+                 sv.frmMin := sv.frmSize;
+               end if;                 
+               sv.frmCnt := s.frmCnt + 1;                 
+               sv.axisMaster.tLast := '1';           
+               sv.state := IDLE_S;
+             end if;               
+           else
+             --read data
+             if dFifoValid /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) then             
                sv.axisMaster.tValid := '1';
-               -- test or real data readout
-               if s.testMode(0) = '0' then
-                 sv.axisMaster.tData(16*STREAMS_PER_ASIC_G-1 downto 0) := dFifoExtData;
-               else
-                 sv.axisMaster.tData(16*STREAMS_PER_ASIC_G-1 downto 0) := (others => '0');
-                 if s.testColCnt = ASIC_WIDTH_G/(2*STREAMS_PER_ASIC_G)-1 then
-                   sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & s.acqNo(1)(4 downto 0) & "00" & toSlv(s.testRowCnt, 6);
-                 elsif s.testRowCnt = 15 then
-                   sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & s.acqNo(1)(4 downto 0) & "00" & toSlv(s.testColCnt, 6);
-                 else
-                   sv.axisMaster.tData(15 downto 0) := ASIC_NO_G(1 downto 0) & s.testBitFlip & "00000" & x"ff";
-                 end if;
-               end if;
-               
-               sv.dFifoRd := '1';
-                           
+               sv.axisMaster.tData(16*STREAMS_PER_ASIC_G-1 downto 0) := dFifoExtData;                           
+               sv.dFifoRd := '1';                       
                sv.stCnt := s.stCnt + 1;
-               if ((dFifoEof /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) and s.testMode /= VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0)) or s.stCnt = s.asicDataReq then 
-                  sv.frmSize := toSlv(s.stCnt, 16);
-                  sv.stCnt := 0;
-                  if s.frmMax <= sv.frmSize then
-                     sv.frmMax := sv.frmSize;
-                  end if;
-                  if s.frmMin >= sv.frmSize then
-                     sv.frmMin := sv.frmSize;
-                  end if;
-                  
-                  if dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or sv.frmSize /= s.asicDataReq then
-                     ssiSetUserEofe(AXI_STREAM_CONFIG_I_C, sv.axisMaster, '1');
-                     sv.eofError := s.eofError + 1;
-                  else
-                     sv.frmCnt := s.frmCnt + 1;
-                  end if;
-                  sv.axisMaster.tLast := '1';
-                  if s.testMode(0) = '0' then
-                     sv.state := IDLE_S;
-                  else
-                    sv.state := IDLE_S;
-                  end if;
+               if ((dFifoEof /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) or s.stCnt = s.asicDataReq) then 
+                 sv.frmSize := toSlv(s.stCnt, 16);
+                 sv.stCnt := 0;
+                 if s.frmMax <= sv.frmSize then
+                   sv.frmMax := sv.frmSize;
+                 end if;
+                 if s.frmMin >= sv.frmSize then
+                   sv.frmMin := sv.frmSize;
+                 end if;
+                     
+                 if dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or sv.frmSize /= s.asicDataReq then
+                   ssiSetUserEofe(AXI_STREAM_CONFIG_I_C, sv.axisMaster, '1');
+                   sv.eofError := s.eofError + 1;
+                 else
+                   sv.frmCnt := s.frmCnt + 1;
+                 end if;
+                 sv.axisMaster.tLast := '1';
+                 sv.state := IDLE_S;
                end if;               
-            end if;
-         
+             end if;
+           end if;
          when others =>
+            sv.state := IDLE_S;
       end case;
       
       -- reset counters
