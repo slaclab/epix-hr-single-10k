@@ -1729,8 +1729,8 @@ class AsicDeserHr12bRegisters(pr.Device):
          self.add(pr.RemoteVariable(name='IserdeseOutA'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
          self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=16, base=pr.UInt, disp = '{:#x}', mode='RO'))
 
-      self.add(AsicDeser10bDataRegisters(name='tenbData_ser0',      offset=0x00000100, expand=False))
-      self.add(AsicDeser10bDataRegisters(name='tenbData_ser1',      offset=0x00000200, expand=False))
+      self.add(AsicDeser14bDataRegisters(name='14bData_ser0',      offset=0x00000100, expand=False))
+      self.add(AsicDeser14bDataRegisters(name='14bData_ser1',      offset=0x00000200, expand=False))
       #####################################
       # Create commands
       #####################################
@@ -1805,5 +1805,18 @@ class AsicDeser10bDataRegisters(pr.Device):
       #Setup registers & variables  
       for i in range(0, 8):
          self.add(pr.RemoteVariable(name='tenbData_'+str(i),   description='Sample N_'+str(i),  offset=0x00000000+i*4, bitSize=10, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
+
+class AsicDeser14bDataRegisters(pr.Device):
+   def __init__(self, **kwargs):
+      super().__init__(description='10b data of 20 bit Deserializer Registers', **kwargs) 
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      
+      
+      #Setup registers & variables  
+      for i in range(0, 8):
+         self.add(pr.RemoteVariable(name='tenbData_'+str(i),   description='Sample N_'+str(i),  offset=0x00000000+i*4, bitSize=14, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
 
       
