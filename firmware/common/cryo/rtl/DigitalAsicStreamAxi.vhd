@@ -89,57 +89,59 @@ architecture RTL of DigitalAsicStreamAxi is
    type StateType is (IDLE_S, HDR_S, DATA_S);
    
    type StrType is record
-      state          : StateType;
-      stCnt          : natural;
-      testColCnt     : natural;
-      testRowCnt     : natural;
-      testTrig       : slv(2 downto 0);
-      testMode       : slv(STREAMS_PER_ASIC_G-1 downto 0);
-      forceAdcData   : sl;
-      streamDataMode : sl;
-      stopDataTx     : sl;
-      testBitFlip    : sl;
-      frmSize        : slv(15 downto 0);
-      frmMax         : slv(15 downto 0);
-      frmMin         : slv(15 downto 0);
-      acqNo          : Slv32Array(1 downto 0);
-      frmCnt         : slv(31 downto 0);
-      sofError       : slv(15 downto 0);
-      eofError       : slv(15 downto 0);
-      ovError        : slv(15 downto 0);
-      asicDataReq    : slv(15 downto 0);
-      rstCnt         : sl;
-      errInhibit     : sl;
-      dFifoRd        : sl;
-      tReady         : sl;
-      axisMaster     : AxiStreamMasterType;
+      state            : StateType;
+      stCnt            : natural;
+      testColCnt       : natural;
+      testRowCnt       : natural;
+      testTrig         : slv(2 downto 0);
+      testMode         : slv(STREAMS_PER_ASIC_G-1 downto 0);
+      forceAdcData     : sl;
+      decDataBitOrder  : sl;
+      streamDataMode   : sl;
+      stopDataTx       : sl;
+      testBitFlip      : sl;
+      frmSize          : slv(15 downto 0);
+      frmMax           : slv(15 downto 0);
+      frmMin           : slv(15 downto 0);
+      acqNo            : Slv32Array(1 downto 0);
+      frmCnt           : slv(31 downto 0);
+      sofError         : slv(15 downto 0);
+      eofError         : slv(15 downto 0);
+      ovError          : slv(15 downto 0);
+      asicDataReq      : slv(15 downto 0);
+      rstCnt           : sl;
+      errInhibit       : sl;
+      dFifoRd          : sl;
+      tReady           : sl;
+      axisMaster       : AxiStreamMasterType;
    end record;
 
    constant STR_INIT_C : StrType := (
-      state          => IDLE_S,
-      stCnt          => 0,
-      testColCnt     => 0,
-      testRowCnt     => 0,
-      testTrig       => "000",
-      testMode       => (others=>'0'),
-      forceAdcData   => '0',
-      streamDataMode => '0',
-      stopDataTx     => '0',
-      testBitFlip    => '0',
-      frmSize        => (others=>'0'),
-      frmMax         => (others=>'0'),
-      frmMin         => (others=>'1'),
-      acqNo          => (others=>(others=>'0')),
-      frmCnt         => (others=>'0'),
-      sofError       => (others=>'0'),
-      eofError       => (others=>'0'),
-      ovError        => (others=>'0'),
-      asicDataReq    => (others=>'0'),
-      rstCnt         => '0',
-      errInhibit     => '0',
-      dFifoRd        => '0',
-      tReady         => '0',
-      axisMaster     => AXI_STREAM_MASTER_INIT_C
+      state           => IDLE_S,
+      stCnt           => 0,
+      testColCnt      => 0,
+      testRowCnt      => 0,
+      testTrig        => "000",
+      testMode        => (others=>'0'),
+      forceAdcData    => '0',
+      decDataBitOrder => '0',
+      streamDataMode  => '0',
+      stopDataTx      => '0',
+      testBitFlip     => '0',
+      frmSize         => (others=>'0'),
+      frmMax          => (others=>'0'),
+      frmMin          => (others=>'1'),
+      acqNo           => (others=>(others=>'0')),
+      frmCnt          => (others=>'0'),
+      sofError        => (others=>'0'),
+      eofError        => (others=>'0'),
+      ovError         => (others=>'0'),
+      asicDataReq     => (others=>'0'),
+      rstCnt          => '0',
+      errInhibit      => '0',
+      dFifoRd         => '0',
+      tReady          => '0',
+      axisMaster      => AXI_STREAM_MASTER_INIT_C
    );
    
    type RegType is record
@@ -147,6 +149,7 @@ architecture RTL of DigitalAsicStreamAxi is
       forceAdcData      : sl;
       streamDataMode    : sl;
       stopDataTx        : sl;
+      decDataBitOrder   : sl;
       frmSize           : slv(15 downto 0);
       frmMax            : slv(15 downto 0);
       frmMin            : slv(15 downto 0);
@@ -165,6 +168,7 @@ architecture RTL of DigitalAsicStreamAxi is
       forceAdcData      => '0',
       streamDataMode    => '0',
       stopDataTx        => '0',
+      decDataBitOrder   => '0',
       frmSize           => (others=>'0'),
       frmMax            => (others=>'0'),
       frmMin            => (others=>'0'),
@@ -184,6 +188,7 @@ architecture RTL of DigitalAsicStreamAxi is
    signal sin : StrType;
 
    signal decDataOut    : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
+   signal decDataInt    : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
    signal decValidOut   : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decSof        : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decEof        : slv(STREAMS_PER_ASIC_G-1 downto 0);
@@ -291,6 +296,14 @@ begin
          dispError   => decDispError(i)
          );
 
+     decDataBitReorder : process(s)
+     begin
+       if s.decDataBitOrder = '0' then
+         decDataInt(i) <= decDataOut(i);
+       else
+         decDataInt(i) <= bitReverse(decDataOut(i));
+       end if;
+     end process;
    
      -- disable decoder in test mode (fake ASIC data)
      iRxValid(i) <= adcStreams(i).tValid and not testModeSync(i);
@@ -310,7 +323,7 @@ begin
          rst               => rxRst,
          wr_clk            => rxClk,
          wr_en             => decValidOut(i),
-         din(11 downto 0)  => decDataOut(i),
+         din(11 downto 0)  => decDataInt(i),
          din(12)           => decEofe(i),
          din(13)           => decEof(i),
          din(14)           => decSof(i),
@@ -351,7 +364,7 @@ begin
 
 
 
-   comb : process (axilRst, axisRst, sAxilReadMaster, sAxilWriteMaster, sAxisSlave, r, s, decDataOut,
+   comb : process (axilRst, axisRst, sAxilReadMaster, sAxilWriteMaster, sAxisSlave, r, s, decDataInt,
       acqNoSync, dFifoOut, dFifoExtData, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, testTrig, errInhibit) is
       variable sv       : StrType;
       variable rv       : RegType;
@@ -368,18 +381,20 @@ begin
       
       -- cross clock sync
       
-      rv.frmSize        := s.frmSize;
-      rv.frmMax         := s.frmMax;
-      rv.frmMin         := s.frmMin;
-      rv.frmCnt         := s.frmCnt;
-      rv.sofError       := s.sofError;
-      rv.eofError       := s.eofError;
-      rv.ovError        := s.ovError;
-      sv.testMode       := r.testMode;
-      sv.forceAdcData   := r.forceAdcData;
-      sv.stopDataTx     := r.stopDataTx;
-      sv.streamDataMode := r.streamDataMode;
-      sv.asicDataReq    := r.asicDataReq;
+      rv.frmSize          := s.frmSize;
+      rv.frmMax           := s.frmMax;
+      rv.frmMin           := s.frmMin;
+      rv.frmCnt           := s.frmCnt;
+      rv.sofError         := s.sofError;
+      rv.eofError         := s.eofError;
+      rv.ovError          := s.ovError;
+      sv.testMode         := r.testMode;
+      sv.forceAdcData     := r.forceAdcData;
+      sv.decDataBitOrder  := r.decDataBitOrder;
+      sv.stopDataTx       := r.stopDataTx;
+      sv.streamDataMode   := r.streamDataMode;
+      sv.asicDataReq      := r.asicDataReq;
+
       
       if r.rstCnt /= "000" then
          sv.rstCnt := '1';
@@ -401,13 +416,14 @@ begin
       axiSlaveRegisterR(regCon, x"18",  0, r.ovError);
       axiSlaveRegister (regCon, x"1C",  0, rv.testMode);
       axiSlaveRegister (regCon, x"1C",  2, rv.forceAdcData);
+      axiSlaveRegister (regCon, x"1C",  3, rv.decDataBitOrder);
       axiSlaveRegister (regCon, x"20",  0, rv.streamDataMode);
       axiSlaveRegister (regCon, x"20",  1, rv.stopDataTx);   
       axiSlaveRegister (regCon, x"24",  0, rv.rstCnt);
       axiSlaveRegister (regCon, x"28",  0, rv.asicDataReq);
 
       for i in 0 to STREAMS_PER_ASIC_G-1 loop
-        axiSlaveRegisterR(regCon, X"80"+toSlv((i*4), 8), 0, decDataOut(i));
+        axiSlaveRegisterR(regCon, X"80"+toSlv((i*4), 8), 0, decDataInt(i));
       end loop;
       
       axiSlaveDefault(regCon, rv.sAxilWriteSlave, rv.sAxilReadSlave, AXIL_ERR_RESP_G);
