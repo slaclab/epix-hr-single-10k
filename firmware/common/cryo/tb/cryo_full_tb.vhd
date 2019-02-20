@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2019-02-13
+-- Last update: 2019-02-20
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -245,6 +245,7 @@ architecture arch of cryo_full_tb is
   signal EncValidOut : sl;
   signal EncReadyOut : sl              := '1';
   signal EncDataOut  : slv(13 downto 0);
+  signal EncDataOut_d: Slv14Array(7 downto 0);
   signal EncDispOut  : slv(1 downto 0);
   signal EncSof      : sl := '0';
   signal EncEof      : sl := '0';
@@ -253,7 +254,8 @@ architecture arch of cryo_full_tb is
   signal dClkN : sl := '0';
   signal fClkP : sl := '0'; -- Frame clock
   signal fClkN : sl := '1';
-  signal serialDataOut : sl;
+  signal serialDataOut1 : sl;
+  signal serialDataOut2 : sl;
 
 begin  --
 
@@ -341,6 +343,10 @@ begin  --
     else
       EncDataIn <= IDLE_PATTERN_C;
     end if;
+    EncDataOut_d(0) <= EncDataOut;
+    for i in 1 to 7 loop
+      EncDataOut_d(i) <= EncDataOut_d(i-1);
+    end loop;
   end process;
   
   U_encoder : entity work.SspEncoder12b14b 
@@ -370,18 +376,30 @@ begin  --
         clk_i     => dClkP,
         reset_n_i => sysRst_n,
         data_i    => EncDataOut,        -- "00"&EncDataIn, --
-        data_o    => serialDataOut
+        data_o    => serialDataOut1
+    );
+
+
+  U_serializer2 :  entity work.serializerSim 
+    generic map(
+        g_dwidth => 14 
+    )
+    port map(
+        clk_i     => dClkP,
+        reset_n_i => sysRst_n,
+        data_i    => EncDataOut_d(7),        -- "00"&EncDataIn, --
+        data_o    => serialDataOut2
     );
 
   EncValidIn <= asicR0;
   sysRst_n   <= not sysRst;
     
-  asicDataP(0) <=     serialDataOut;
-  asicDataN(0) <= not serialDataOut;
+  asicDataP(0) <=     serialDataOut1;
+  asicDataN(0) <= not serialDataOut1;
 --  asicDataP(0) <= fClkP;
 --  asicDataN(0) <= fClkN;  
-  asicDataP(3) <=     serialDataOut;
-  asicDataN(3) <= not serialDataOut;
+  asicDataP(3) <=     serialDataOut2;
+  asicDataN(3) <= not serialDataOut2;
 
   asicDataP(2) <= fClkP;
   asicDataN(2) <= fClkN;

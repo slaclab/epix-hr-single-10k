@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-02-13
+-- Last update: 2019-02-20
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -1251,6 +1251,7 @@ begin
          rxClk             => byteClk, --asicRdClk, --fClkP,    --use frame clock
          rxRst             => byteClkRst,--asicRdClkRst,
          adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
+         adcStreamsEn_n    => adcStreamsEn_n,
       
          -- AXI lite slave port for register access
          axilClk           => appClk,
