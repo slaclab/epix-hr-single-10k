@@ -226,7 +226,13 @@ architecture RTL of DigitalAsicStreamAxi is
    attribute keep of rxValidCs    : signal is "true";    -- for chipscope
    attribute keep of sAxisMaster  : signal is "true";    -- for chipscope
    attribute keep of imAxisMaster : signal is "true";    -- for chipscope 
-   attribute keep of imAxisSlave  : signal is "true";    -- for chipscope 
+   attribute keep of imAxisSlave  : signal is "true";    -- for chipscope
+   attribute keep of decSof       : signal is "true";    -- for chipscope                                                          -- 
+   attribute keep of decEof       : signal is "true";    -- for chipscope 
+   attribute keep of decValidOut  : signal is "true";    -- for chipscope 
+   attribute keep of decDataOut   : signal is "true";    -- for chipscope 
+   
+
 
 
 begin

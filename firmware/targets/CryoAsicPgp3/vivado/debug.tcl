@@ -104,9 +104,17 @@ ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC
 
 ConfigProbe ${ilaName} {U_App/iAsicAcq}
 ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}
+ConfigProbe ${ilaName} {rxDataCs[*]}
+ConfigProbe ${ilaName} {rxValidCs}
+ConfigProbe ${ilaName} {decSof[*]}
+ConfigProbe ${ilaName} {decEof[*]}
+ConfigProbe ${ilaName} {decValidOut[*]}
+ConfigProbe ${ilaName} {decDataOut[*]}
+ConfigProbe ${ilaName} {dFifoSof[*]}
+ConfigProbe ${ilaName} {dFifoEof[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}
 
 
 ### Delete the last unused port
