@@ -777,7 +777,7 @@ class CryoAsic(pr.Device):
         
         # CMD = 1, Addr = XXX offset = 0xCCCCCAAA where C and command bits and A are address bits
         CMD_TYPE_1 = 0x00001000
-        #self.add((pr.RemoteVariable(name='RowStart',     description='Config1',  offset=(CMD_TYPE_1 + 0x01)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))
+        self.add((pr.RemoteVariable(name='RowStart',     description='Config1',  offset=(CMD_TYPE_1 + 0x01)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))
         #self.add((pr.RemoteVariable(name='RowStop',      description='Config2',  offset=(CMD_TYPE_1 + 0x02)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))
         #self.add((pr.RemoteVariable(name='ColStart',     description='Config3',  offset=(CMD_TYPE_1 + 0x03)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))        
         #self.add((pr.RemoteVariable(name='StartPixel',   description='Config4',  offset=(CMD_TYPE_1 + 0x04)*addrSize, bitSize=16, bitOffset=0, base=pr.UInt, mode='RW')))        
@@ -929,7 +929,7 @@ class CryoAsic(pr.Device):
         
         # CMD = 6, Addr = 17 : Row counter[8:0]
         self.add((
-            pr.RemoteCommand(name='RowCounter', description='', offset=0x00006001*addrSize, bitSize=8, bitOffset=0, function=pr.Command.touch, hidden=False)))
+            pr.RemoteCommand(name='RowCounter', description='', offset=0x00006001*addrSize, bitSize=8, bitOffset=0, function=pr.Command.postedTouch, hidden=False)))
 
         # CMD = 6, Addr = 19 : Bank select [3:0] & Col counter[6:0]
         self.add((
@@ -973,23 +973,60 @@ class CryoAsic(pr.Device):
         # The command object and the arg are passed
 
         self.add(
-            pr.LocalCommand(name='ClearMatrix',description='Clear configuration bits of all pixels', function=self.fnClearMatrix))
+            pr.LocalCommand(name='ClearMatrix',description='Clear configuration bits of all channels', function=self.fnClearMatrix))
 
         self.add(
-            pr.LocalCommand(name='SetPixelBitmap',description='Set pixel bitmap of the matrix', function=self.fnSetPixelBitmap))
+            pr.LocalCommand(name='SetChannelBitmap',description='Set channel bitmap of the matrix', function=self.fnSetChannelBitmap))
         
         self.add(
-            pr.LocalCommand(name='GetPixelBitmap',description='Get pixel bitmap of the matrix', function=self.fnGetPixelBitmap))
+            pr.LocalCommand(name='GetChannelBitmap',description='Get channel bitmap of the matrix', function=self.fnGetChannelBitmap))
 
 
-    def fnSetPixelBitmap(self, dev,cmd,arg):
-        """SetPixelBitmap command function"""
+    def fnSetChannelBitmap(self, dev,cmd,arg):
+        """SetChannelBitmap command function"""
         print("Warning: Function not implemented.")             
 
 
-    def fnGetPixelBitmap(self, dev,cmd,arg):
-        """GetPixelBitmap command function"""
-        print("Warning: Function not implemented.")             
+    def fnGetChannelBitmap(self, dev,cmd,arg):
+        """GetChannelBitmap command function"""
+
+        addrSize = 4
+        #set r0mode in order to have saci cmd to work properly on legacy firmware
+        #self.root.Epix10ka.EpixFpgaRegisters.AsicR0Mode.set(True)
+
+        if (self.enable.get()):
+
+            self.reportCmd(dev,cmd,arg)
+            if len(arg) > 0:
+               self.filename = arg
+            else:
+               self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+            if usingPyQt5:
+               self.filename = self.filename[0]
+            if os.path.splitext(self.filename)[1] == '.csv':
+                readBack = np.zeros((64),dtype='uint16')
+                #self._rawWrite(0x00000000*addrSize,0)
+                #self._rawWrite(0x00008000*addrSize,0)
+                for x in range (0, 63):
+                   #for y in range (0, 192):
+                      #bankToWrite = int(y/48);
+                      #if (bankToWrite == 0):
+                      #   colToWrite = 0x700 + y%48;
+                      #elif (bankToWrite == 1):
+                      #   colToWrite = 0x680 + y%48;
+                      #elif (bankToWrite == 2):
+                      #   colToWrite = 0x580 + y%48;
+                      #elif (bankToWrite == 3):
+                      #   colToWrite = 0x380 + y%48;
+                      #else:
+                      #   print('unexpected bank number')
+                      self._rawWrite(0x00006001*addrSize, x, verify=False)
+                      #self._rawWrite(0x00006013*addrSize, colToWrite)
+                      readBack[x] = self._rawRead(0x00005000*addrSize)
+                np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
+        else:
+            print("Warning: ASIC enable is set to False!")
+
 
     def fnClearMatrix(self, dev,cmd,arg):
         """ClearMatrix command function"""
