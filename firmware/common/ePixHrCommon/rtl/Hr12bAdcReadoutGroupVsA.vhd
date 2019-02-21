@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-07-10
+-- Last update: 2019-02-20
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -282,8 +282,8 @@ begin
 
       -- Debug output to see how many times the shift has needed a relock
       for i in 0 to NUM_CHANNELS_G-1 loop
-        axiSlaveRegisterR(axilEp, X"30", 0,  lockedFallCount(i));
-        axiSlaveRegisterR(axilEp, X"30", 16, lockedSync(i));
+        axiSlaveRegisterR(axilEp, X"30"+toSlv((i*4), 8), 0,  lockedFallCount(i));
+        axiSlaveRegisterR(axilEp, X"30"+toSlv((i*4), 8), 16, lockedSync(i));
       end loop;        
       axiSlaveRegister (axilEp, X"50", 0, v.lockedCountRst);
 
