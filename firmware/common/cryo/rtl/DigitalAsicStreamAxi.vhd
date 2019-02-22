@@ -39,7 +39,7 @@ entity DigitalAsicStreamAxi is
                                          -- prototype has 2 final version 6
       ASIC_DATA_G         : natural := (32*32); --workds
       ASIC_WIDTH_G        : natural := 32; --workds
-      ASIC_DATA_PADDING_G : string := "LSB";  -- or "MSB"      
+      ASIC_DATA_PADDING_G : string := "MSB";  --"LSB" or "MSB"      
       AXIL_ERR_RESP_G     : slv(1 downto 0)  := AXI_RESP_DECERR_C
    );
    port ( 
@@ -87,7 +87,7 @@ architecture RTL of DigitalAsicStreamAxi is
    constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
    -- PGP3 protocol is using 128bit (check for global constant for this configuration)
    
-   type StateType is (IDLE_S, HDR_S, WAIT_SOF_S, DATA_S);
+   type StateType is (IDLE_S, HDR_S, WAIT_SOF_S, WAIT_SAMPLE_ZERO, DATA_S);
    
    type StrType is record
       state            : StateType;
@@ -99,6 +99,7 @@ architecture RTL of DigitalAsicStreamAxi is
       forceAdcData     : sl;
       decDataBitOrder  : sl;
       streamDataMode   : sl;
+      sampleCounter    : slv(4 downto 0);
       stopDataTx       : sl;
       testBitFlip      : sl;
       frmSize          : slv(15 downto 0);
@@ -127,6 +128,7 @@ architecture RTL of DigitalAsicStreamAxi is
       forceAdcData    => '0',
       decDataBitOrder => '0',
       streamDataMode  => '0',
+      sampleCounter   => (others=>'0'),
       stopDataTx      => '0',
       testBitFlip     => '0',
       frmSize         => (others=>'0'),
@@ -324,7 +326,7 @@ begin
        generic map (
          GEN_SYNC_FIFO_G   => false,
          FWFT_EN_G         => true,
-         ADDR_WIDTH_G      => 4,
+         ADDR_WIDTH_G      => 5,
          DATA_WIDTH_G      => 15
          )
        port map (
@@ -480,9 +482,9 @@ begin
                sv.testBitFlip := '0';
                sv.testColCnt := 0;
                sv.testRowCnt := 0;
-            elsif s.streamDataMode='1' then
+            elsif s.streamDataMode='1' and s.testTrig(1) = '1' and s.testTrig(2) = '0' then
                sv.acqNo(1) := s.acqNo(0);
-               sv.state := HDR_S;
+               sv.state := WAIT_SAMPLE_ZERO;
                sv.testBitFlip := '0';
                sv.testColCnt := 0;
                sv.testRowCnt := 0;
@@ -495,9 +497,13 @@ begin
                if s.errInhibit = '0' then
                   sv.sofError := s.sofError + 1;
                end if;
-               sv.dFifoRd := (others=>'1');
+               if dFifoValid = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) then
+                 sv.dFifoRd := (others=>'1');
+               end if;
             else
-               sv.dFifoRd := (others=>'1');              
+               if dFifoValid = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) then                
+                 sv.dFifoRd := (others=>'1');
+               end if;
             end if;
 
          when WAIT_SOF_S =>
@@ -510,6 +516,17 @@ begin
                sv.dFifoRd(i) := '1';
              end if;             
            end loop;  -- i
+
+           
+        when WAIT_SAMPLE_ZERO =>
+           if (s.sampleCounter = 0) and (dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) then
+             sv.state := HDR_S;
+           else
+             --keeps flushing data until all SOF show up
+             if dFifoValid = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) then
+               sv.dFifoRd := (others=>'1');
+             end if;
+           end if;
             
          -- header is 6 x 16 bit words
          when HDR_S =>
@@ -659,6 +676,13 @@ begin
          when others =>
             sv.state := IDLE_S;
       end case;
+
+      -- sampleCounter
+      if s.dFifoRd = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) then
+        sv.sampleCounter := s.sampleCounter + '1';
+      elsif dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) then       
+        sv.sampleCounter := (others=>'0');
+      end if;
       
       -- reset counters
       if s.rstCnt = '1' then

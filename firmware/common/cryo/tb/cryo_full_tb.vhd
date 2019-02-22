@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2019-02-20
+-- Last update: 2019-02-22
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -66,6 +66,11 @@ architecture arch of cryo_full_tb is
   constant DATA_BITS   : natural := 12;
   constant DEPTH_C     : natural := 1024;
   constant FILENAME_C  : string  := "/afs/slac.stanford.edu/u/re/ddoering/localGit/epix-hr-dev/firmware/simulations/CryoEncDec/sin.csv";
+  --simulation constants to select data type
+  constant CH_ID       : natural := 0;
+  constant CH_WF       : natural := 1;
+  constant DATA_TYPE_C : natural := CH_ID;
+  
   subtype word_t  is slv(DATA_BITS - 1 downto 0);
   type    ram_t   is array(0 to DEPTH_C - 1) of word_t;
 
@@ -256,6 +261,7 @@ architecture arch of cryo_full_tb is
   signal fClkN : sl := '1';
   signal serialDataOut1 : sl;
   signal serialDataOut2 : sl;
+  signal chId           : slv(11 downto 0);
 
 begin  --
 
@@ -327,15 +333,50 @@ begin  --
    
     wait;
   end process WaveGen_Proc;
+
+
+
+
+-------------------------------------------------------------------------------
+--  simulation process for channel ID. Counter from 0 to 31
+-------------------------------------------------------------------------------  
+  EncValid_Proc: process  
+  begin
+    wait until fClkP = '1';
+    EncValidIn <= asicR0;
+  end process;  
+  
+-------------------------------------------------------------------------------
+--  simulation process for channel ID. Counter from 0 to 31
+-------------------------------------------------------------------------------  
+  chId_Proc: process
+    variable chIdCounter : integer := 0;
+  begin
+    wait until fClkP = '1';
+    if asicR0 = '1' then
+      chIdCounter := ChIdCounter + 1;
+      if chIdCounter = 32 then
+        chIdCounter := 0;
+      end if;
+    else
+      chIdCounter := 0;
+    end if;
+    chId <= toSlv(chIdCounter, 12);
+  end process;  
 -------------------------------------------------------------------------------
 --  
--------------------------------------------------------------------------------  
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
   EncDataIn_Proc: process
     variable dataIndex : integer := 0;
   begin
     wait until fClkP = '1';
-    if EncValidIn = '1' then
-      EncDataIn <= ramWaveform(dataIndex);
+    if asicR0 = '1' then
+      if DATA_TYPE_C = CH_ID then
+        EncDataIn <= chId;
+      else
+        EncDataIn <= ramWaveform(dataIndex);
+      end if;
       dataIndex := dataIndex + 1;
       if dataIndex = DEPTH_C then
         dataIndex := 0;
@@ -391,7 +432,7 @@ begin  --
         data_o    => serialDataOut2
     );
 
-  EncValidIn <= asicR0;
+
   sysRst_n   <= not sysRst;
     
   asicDataP(0) <=     serialDataOut1;

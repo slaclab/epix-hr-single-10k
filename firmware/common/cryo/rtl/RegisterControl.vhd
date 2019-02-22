@@ -4,7 +4,7 @@
 -- File       : RegControlEpixHR.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 2019-01-30
+-- Last update: 2019-02-22
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -317,12 +317,12 @@ begin
          end if;
          
          -- single pulse. zero value corresponds to infinite delay/width
-         if r.asicAcqReg.SR0Delay /= 0 and r.asicAcqReg.SR0Delay <= r.asicAcqTimeCnt then
-            v.asicAcqReg.SR0 := not r.asicAcqReg.SR0Polarity;
-            if r.asicAcqReg.SR0Width /= 0 and (r.asicAcqReg.SR0Width + r.asicAcqReg.SR0Delay) <= r.asicAcqTimeCnt then
-               v.asicAcqReg.SR0 := r.asicAcqReg.SR0Polarity;
-            end if;
-         end if;
+         --if r.asicAcqReg.SR0Delay /= 0 and r.asicAcqReg.SR0Delay <= r.asicAcqTimeCnt then
+         --   v.asicAcqReg.SR0 := not r.asicAcqReg.SR0Polarity;
+         --   if r.asicAcqReg.SR0Width /= 0 and (r.asicAcqReg.SR0Width + r.asicAcqReg.SR0Delay) <= r.asicAcqTimeCnt then
+         --      v.asicAcqReg.SR0 := r.asicAcqReg.SR0Polarity;
+         --   end if;
+         --end if;
          
          -- single pulse. zero value corresponds to infinite delay/width
          --if r.asicAcqReg.GlblRstDelay /= 0 and r.asicAcqReg.GlblRstDelay <= r.asicAcqTimeCnt then
@@ -440,7 +440,7 @@ begin
       asicPpmat      <= r.asicAcqReg.Ppmat;
       asicTpulse     <= r.asicAcqReg.Tpulse;
       asicStart      <= r.asicAcqReg.Start;
-      asicSR0        <= r.asicAcqReg.SR0;
+      asicSR0        <= r.asicAcqReg.SR0Polarity;--r.asicAcqReg.SR0;
       asicGlblRst    <= r.asicAcqReg.GlblRst;
       asicSync       <= r.asicAcqReg.Sync;
       asicAcq        <= r.asicAcqReg.Acq;

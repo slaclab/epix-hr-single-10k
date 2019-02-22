@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-02-20
+-- Last update: 2019-02-22
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -1243,7 +1243,7 @@ begin
          STREAMS_PER_ASIC_G  => STREAMS_PER_ASIC_C,
          ASIC_DATA_G         => (64*16),
          ASIC_WIDTH_G        => 64,
-         ASIC_DATA_PADDING_G => "LSB",
+         ASIC_DATA_PADDING_G => "MSB",
          AXIL_ERR_RESP_G     => AXI_RESP_DECERR_C
          )
        port map( 
