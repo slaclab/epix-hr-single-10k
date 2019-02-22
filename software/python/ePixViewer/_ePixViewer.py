@@ -397,6 +397,18 @@ class Window(QMainWindow, QObject):
 
         chAdata = -1.0 + data[0:int(oscWords/2)] * (2.0/2**14)
         chBdata = -1.0 + data[int(oscWords/2): oscWords] * (2.0/2**14)
+
+        #TODO: add radio button to make the inversion selectable.
+        invertPolarityChA = True
+        invertPolarityChB = True
+
+        if invertPolarityChA == True :
+            chAdata = chAdata * (-1.0)
+
+        if invertPolarityChB == True :
+            chBdata = chBdata * (-1.0)
+
+            
         
         if (self.LinePlot2_RB1.isChecked()):
             self.lineDisplay2.update_plot(self.cbScopeCh0.isChecked(), "Scope Trace A", 'r',  chAdata, 
