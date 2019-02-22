@@ -392,7 +392,7 @@ class Window(QMainWindow, QObject):
 
         #header are 8 32 bit words
         #footer are 5 32 bit words
-        data  = data[16:-10]
+        data  = data[16:-14]
         oscWords = len(data)
 
         chAdata = -1.0 + data[0:int(oscWords/2)] * (2.0/2**14)

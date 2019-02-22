@@ -778,9 +778,9 @@ class CryoAsic(pr.Device):
         # CMD = 1, Addr = XXX offset = 0xCCCCCAAA where C and command bits and A are address bits
         CMD_TYPE_1 = 0x00001000
         self.add((pr.RemoteVariable(name='RowStart',     description='Config1',  offset=(CMD_TYPE_1 + 0x01)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))
-        #self.add((pr.RemoteVariable(name='RowStop',      description='Config2',  offset=(CMD_TYPE_1 + 0x02)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))
-        #self.add((pr.RemoteVariable(name='ColStart',     description='Config3',  offset=(CMD_TYPE_1 + 0x03)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))        
-        #self.add((pr.RemoteVariable(name='StartPixel',   description='Config4',  offset=(CMD_TYPE_1 + 0x04)*addrSize, bitSize=16, bitOffset=0, base=pr.UInt, mode='RW')))        
+        self.add((pr.RemoteVariable(name='RowStop',      description='Config2',  offset=(CMD_TYPE_1 + 0x02)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))
+        self.add((pr.RemoteVariable(name='ColStart',     description='Config3',  offset=(CMD_TYPE_1 + 0x03)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))        
+        self.add((pr.RemoteVariable(name='StartPixel',   description='Config4',  offset=(CMD_TYPE_1 + 0x04)*addrSize, bitSize=16, bitOffset=0, base=pr.UInt, mode='RW')))        
         # CMD = 1, Addr = 5
         self.add((
             pr.RemoteVariable(name='TPS_DAC',   description='Config5', offset=(CMD_TYPE_1 + 0x05)*addrSize, bitSize=6,  bitOffset=2,  base=pr.UInt, mode='RW'),
@@ -933,22 +933,22 @@ class CryoAsic(pr.Device):
 
         # CMD = 6, Addr = 19 : Bank select [3:0] & Col counter[6:0]
         self.add((
-            pr.RemoteCommand(name='ColCounter', description='', offset=0x00006003*addrSize, bitSize=8, bitOffset=0, function=pr.Command.touch, hidden=False)))
+            pr.RemoteCommand(name='ColCounter', description='', offset=0x00006003*addrSize, bitSize=8, bitOffset=0, function=pr.Command.postedTouch, hidden=False)))
 
         # CMD = 2, Addr = X  : Write Row with data
         self.add((
-            pr.RemoteCommand(name='WriteRowData',    description='', offset=0x00002000*addrSize, bitSize=4, bitOffset=0, function=pr.Command.touch, hidden=False)))
+            pr.RemoteCommand(name='WriteRowData',    description='', offset=0x00002000*addrSize, bitSize=13, bitOffset=0, function=pr.Command.postedTouch, hidden=False)))
 
         # CMD = 3, Addr = X  : Write Column with data
         self.add(
-            pr.RemoteCommand(name='WriteColData',    description='', offset=0x00003000*addrSize, bitSize=4, bitOffset=0, function=pr.Command.touch, hidden=False))
+            pr.RemoteCommand(name='WriteColData',    description='', offset=0x00003000*addrSize, bitSize=13, bitOffset=0, function=pr.Command.postedTouch, hidden=False))
 
         # CMD = 4, Addr = X  : Write Matrix with data  
         self.add((    
-            pr.RemoteCommand(name='WriteMatrixData', description='', offset=0x00004000*addrSize, bitSize=4, bitOffset=0, function=pr.Command.touch, hidden=False)))
+            pr.RemoteCommand(name='WriteMatrixData', description='', offset=0x00004000*addrSize, bitSize=13, bitOffset=0, function=pr.Command.touch, hidden=False)))
    
         # CMD = 5, Addr = X  : Read/Write Pixel with data
-        self.add(pr.RemoteCommand(name='WritePixelData',  description='WritePixelData',  offset=0x00005000*addrSize, bitSize=4, bitOffset=0,  function=pr.Command.touch, hidden=False))
+        self.add(pr.RemoteCommand(name='WritePixelData',  description='WritePixelData',  offset=0x00005000*addrSize, bitSize=13, bitOffset=0,  function=pr.Command.postedTouch, hidden=False))
  
         # CMD = 7, Addr = X  : Prepare to write chip ID
         #self.add((
@@ -981,6 +981,10 @@ class CryoAsic(pr.Device):
         self.add(
             pr.LocalCommand(name='GetChannelBitmap',description='Get channel bitmap of the matrix', function=self.fnGetChannelBitmap))
 
+        self.add(
+            pr.LocalCommand(name='rawGetChannelValuep',description='Get channel value', function=self.fnReadChannel))
+
+
 
     def fnSetChannelBitmap(self, dev,cmd,arg):
         """SetChannelBitmap command function"""
@@ -1005,8 +1009,8 @@ class CryoAsic(pr.Device):
                self.filename = self.filename[0]
             if os.path.splitext(self.filename)[1] == '.csv':
                 readBack = np.zeros((64),dtype='uint16')
-                #self._rawWrite(0x00000000*addrSize,0)
-                #self._rawWrite(0x00008000*addrSize,0)
+                self._rawWrite(0x00000000*addrSize,0,posted=True)
+                self._rawWrite(0x00008000*addrSize,0,posted=True)
                 for x in range (0, 63):
                    #for y in range (0, 192):
                       #bankToWrite = int(y/48);
@@ -1020,7 +1024,7 @@ class CryoAsic(pr.Device):
                       #   colToWrite = 0x380 + y%48;
                       #else:
                       #   print('unexpected bank number')
-                      self._rawWrite(0x00006001*addrSize, x, verify=False)
+                      self._rawWrite(0x00006001*addrSize, x, posted=True)
                       #self._rawWrite(0x00006013*addrSize, colToWrite)
                       readBack[x] = self._rawRead(0x00005000*addrSize)
                 np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
@@ -1031,6 +1035,11 @@ class CryoAsic(pr.Device):
     def fnClearMatrix(self, dev,cmd,arg):
         """ClearMatrix command function"""
         print("Warning: Function not implemented.")             
+
+    def fnReadChannel(self, dev,cmd,arg):
+        """ReadMatrix command function"""
+        addrSize = 4
+        print("Read back value: " + str(self._rawRead(0x00005000*addrSize)))
 
     # standard way to report a command has been executed
     def reportCmd(self, dev,cmd,arg):
