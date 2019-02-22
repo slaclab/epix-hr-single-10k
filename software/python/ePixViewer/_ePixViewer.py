@@ -395,20 +395,20 @@ class Window(QMainWindow, QObject):
         data  = data[16:-14]
         oscWords = len(data)
 
-        chAdata = -1.0 + data[0:int(oscWords/2)] * (2.0/2**14)
-        chBdata = -1.0 + data[int(oscWords/2): oscWords] * (2.0/2**14)
+        chAdata = -0.0 + data[0:int(oscWords/2)] * (2.0/2**14)
+        chBdata = -0.0 + data[int(oscWords/2): oscWords] * (2.0/2**14)
 
         #TODO: add radio button to make the inversion selectable.
         invertPolarityChA = True
         invertPolarityChB = True
 
         if invertPolarityChA == True :
-            chAdata = chAdata * (-1.0)
+            chAdata = (2.0-0.053) + chAdata * (-1.04)
 
         if invertPolarityChB == True :
-            chBdata = chBdata * (-1.0)
+            chBdata = (2.0-0.053) + chBdata * (-1.04)
 
-            
+        print("avgValueChA", str(np.mean(chAdata)))
         
         if (self.LinePlot2_RB1.isChecked()):
             self.lineDisplay2.update_plot(self.cbScopeCh0.isChecked(), "Scope Trace A", 'r',  chAdata, 
@@ -770,6 +770,7 @@ class MplCanvas(FigureCanvas):
                 ##if (PRINT_VERBOSE): print(lineName)
                 if (lineEnabled):
                     l = arg #[random.randint(0, 10) for i in range(4)]
+                    self.axes.set_ylim((-0.1,2.1))
                     self.axes.plot(l, lineColor)
                 argIndex = -1
             argIndex = argIndex + 1    
