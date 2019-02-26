@@ -777,10 +777,10 @@ class CryoAsic(pr.Device):
         
         # CMD = 1, Addr = XXX offset = 0xCCCCCAAA where C and command bits and A are address bits
         CMD_TYPE_1 = 0x00001000
-        self.add((pr.RemoteVariable(name='RowStart',     description='Config1',  offset=(CMD_TYPE_1 + 0x01)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))
-        self.add((pr.RemoteVariable(name='RowStop',      description='Config2',  offset=(CMD_TYPE_1 + 0x02)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))
-        self.add((pr.RemoteVariable(name='ColStart',     description='Config3',  offset=(CMD_TYPE_1 + 0x03)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RW')))        
-        self.add((pr.RemoteVariable(name='StartPixel',   description='Config4',  offset=(CMD_TYPE_1 + 0x04)*addrSize, bitSize=16, bitOffset=0, base=pr.UInt, mode='RW')))        
+        self.add((pr.RemoteVariable(name='RowStart',     description='Config1',  offset=(CMD_TYPE_1 + 0x01)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RO')))
+        self.add((pr.RemoteVariable(name='RowStop',      description='Config2',  offset=(CMD_TYPE_1 + 0x02)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RO')))
+        self.add((pr.RemoteVariable(name='ColStart',     description='Config3',  offset=(CMD_TYPE_1 + 0x03)*addrSize, bitSize=8,  bitOffset=0, base=pr.UInt, mode='RO')))        
+        self.add((pr.RemoteVariable(name='StartPixel',   description='Config4',  offset=(CMD_TYPE_1 + 0x04)*addrSize, bitSize=16, bitOffset=0, base=pr.UInt, mode='RO')))        
         # CMD = 1, Addr = 5
         self.add((
             pr.RemoteVariable(name='TPS_DAC',   description='Config5', offset=(CMD_TYPE_1 + 0x05)*addrSize, bitSize=6,  bitOffset=2,  base=pr.UInt, mode='RW'),

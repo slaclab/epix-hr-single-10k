@@ -503,7 +503,7 @@ class Window(QMainWindow, QObject):
     """Save the enabled series to file"""
     def SaveSeriesToFile(self):
         #open a pop up menu to set the filename
-        self.filename = QFileDialog.getOpenFileName(self, 'Save File', '', 'csv file (*.csv);; Any (*.*)')
+        self.filename = QFileDialog.getSaveFileName(self, 'Save File', '', 'csv file (*.csv);; Any (*.*)')
         if (self.cbHorizontalLineEnabled.isChecked()):
             if (self.imgTool.imgDark_isSet):
                 np.savetxt(os.path.splitext(self.filename)[0] + "_horizontal" + os.path.splitext(self.filename)[1], self.ImgDarkSub[self.mouseY,:], fmt='%d', delimiter=',', newline='\n')
@@ -770,8 +770,11 @@ class MplCanvas(FigureCanvas):
                 ##if (PRINT_VERBOSE): print(lineName)
                 if (lineEnabled):
                     l = arg #[random.randint(0, 10) for i in range(4)]
-                    self.axes.set_ylim((-0.1,2.1))
+                    #self.axes.set_ylim((-0.1,2.1))
+                    #self.axes.set_xticks(np.arange(0, len(l), 20))
+                    #self.axes.set_yticks(np.arange(0, 2., 0.25))
                     self.axes.plot(l, lineColor)
+                    self.axes.grid()
                 argIndex = -1
             argIndex = argIndex + 1    
         self.axes.set_title(self.MyTitle)        
