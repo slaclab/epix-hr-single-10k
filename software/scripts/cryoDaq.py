@@ -146,6 +146,8 @@ else:
 dataWriter = pyrogue.utilities.fileio.StreamWriter(name='dataWriter')
 if ( args.type != 'dataFile' ):
     pyrogue.streamConnect(pgpL0Vc0, dataWriter.getChannel(0x1))
+    pyrogue.streamConnect(pgpL0Vc2, dataWriter.getChannel(0x2))
+    
 
 cmd = rogue.protocols.srp.Cmd()
 if ( args.type != 'dataFile' ):
