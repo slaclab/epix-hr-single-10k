@@ -1761,25 +1761,31 @@ class AsicDeserHr12bRegisters(pr.Device):
        
 #       parent.Ad9249Config_Adc_0.OutputTestMode.set(9) # one bit on
        self.testResult = np.zeros(256)
+       self.testDelay  = np.zeros(256)
        #check adc 0
        for delay in range (0, 256):
            self.Delay0.set(delay)
+           self.testDelay[delay] = self.Delay0.get()
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
            self.testResult[delay] = ((self.IserdeseOutA0.get()==0x3407)or(self.IserdeseOutA0.get()==0xBF8)) 
        print("Test result adc 0:")
+       print(self.testDelay)
        print(self.testResult)
 
        #check adc 1   
        self.testResult = np.zeros(256)
+       self.testDelay  = np.zeros(256)
        for delay in range (0, 256):
            self.Delay1.set(delay)
+           self.testDelay[delay] = self.Delay1.get()
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
            self.testResult[delay] = ((self.IserdeseOutA1.get()==0x3407)or(self.IserdeseOutA1.get()==0xBF8)) 
        print("Test result adc 1:")
+       print(self.testDelay)
        print(self.testResult)
    
    @staticmethod   

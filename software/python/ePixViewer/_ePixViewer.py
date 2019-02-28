@@ -492,13 +492,16 @@ class Window(QMainWindow, QObject):
         ##if (PRINT_VERBOSE): print('Horizontal plot processing')
    
         #full line plot
-        if (self.imgTool.imgDark_isSet):
-            self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.ImgDarkSub[self.mouseY,self.mouseY])
-        else:
-            self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.imgDesc[self.mouseY,self.mouseY])
+        try:
+            if (self.imgTool.imgDark_isSet):
+                self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.ImgDarkSub[self.mouseY,self.mouseY])
+            else:
+                self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.imgDesc[self.mouseY,self.mouseY])
 
-        if(not self.cbpixelTimeSeriesEnabled.isChecked()):
-            self. clearPixelTimeSeriesLinePlot()
+            if(not self.cbpixelTimeSeriesEnabled.isChecked()):
+                self. clearPixelTimeSeriesLinePlot()
+        except:
+            print ("Message\n", e)
 
     """Save the enabled series to file"""
     def SaveSeriesToFile(self):
