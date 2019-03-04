@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-02-20
+-- Last update: 2019-03-03
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -34,6 +34,7 @@ use work.HrAdcPkg.all;
 entity Hr12bAdcReadoutGroupVsA is
    generic (
       TPD_G             : time                 := 1 ns;
+      SIMULATION_G      : boolean              := false;
       NUM_CHANNELS_G    : natural range 1 to 8 := 2;
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
       IDELAYCTRL_FREQ_G : real                 := 200.0;
@@ -66,7 +67,8 @@ entity Hr12bAdcReadoutGroupVsA is
       -- Deserialized ADC Data
       adcStreamClk      : in  sl;
       adcStreams        : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) := (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C)));
-      adcStreamsEn_n    : out slv(NUM_CHANNELS_G-1 downto 0)
+      adcStreamsEn_n    : out slv(NUM_CHANNELS_G-1 downto 0);
+      monitoringSig     : out slv(NUM_CHANNELS_G-1 downto 0)
       );
 end Hr12bAdcReadoutGroupVsA;
 
@@ -81,7 +83,7 @@ architecture rtl of Hr12bAdcReadoutGroupVsA is
   constant IDLE_PATTERN_2_C : slv((NUM_BITS_C-1) downto 0) := "11010000000111"; --x3407
   constant IDLE_PATTERN_3_C : slv((NUM_BITS_C-1) downto 0) := "00011111110100"; --x0bf8
   constant IDLE_PATTERN_4_C : slv((NUM_BITS_C-1) downto 0) := "11100000001011"; --x3407
-  constant LOCKED_COUNTER_VALUE_C : slv(15 downto 0) := x"0100";
+  constant LOCKED_COUNTER_VALUE_C : slv(15 downto 0) := ite(SIMULATION_G, x"0100", x"1000");
   constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
                                                   
    -------------------------------------------------------------------------------------------------
@@ -177,6 +179,8 @@ architecture rtl of Hr12bAdcReadoutGroupVsA is
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
 begin
+
+  monitoringSig <= adcR.idleWord;
   
    -- Regional clock reset
    ADC_BITCLK_RST_SYNC : entity work.RstSync
@@ -326,6 +330,9 @@ begin
    -- Data Input, upto 8 channels
    --------------------------------
    GenData : for i in NUM_CHANNELS_G-1 downto 0 generate
+      signal dataDelaySet : slv(NUM_CHANNELS_G-1 downto 0);
+      signal dataDelay    : slv9Array(NUM_CHANNELS_G-1 downto 0);
+   begin  
       U_DATA_DESERIALIZER : entity work.Hr12bAdcDeserializerUSVsA
       generic map (
         TPD_G             => TPD_G,
@@ -344,8 +351,8 @@ begin
         dClkDiv7      => byteClk,
         sDataP        => adcSerial.chP(i),                       -- Frame clock
         sDataN        => adcSerial.chN(i),
-        loadDelay     => axilR.dataDelaySet(i),
-        delay         => axilR.delay(i),
+        loadDelay     => dataDelaySet(i),
+        delay         => dataDelay(i),
         delayValueOut => curDelayData(i),
         bitSlip       => adcR.slip(i),
         gearboxOffset => adcR.gearboxOffset(i),
@@ -353,6 +360,24 @@ begin
         debugData     => debugData(i),
         adcData       => adcData(i)
         );
+
+      U_DataDlyFifo : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            BRAM_EN_G    => false,
+            DATA_WIDTH_G => 9,
+            ADDR_WIDTH_G => 4,
+            INIT_G       => "0")
+         port map (
+            rst    => axilRst,
+            wr_clk => axilClk,
+            wr_en  => axilR.dataDelaySet(i),
+            din    => axilR.delay(i),
+            rd_clk => deserClk,
+            rd_en  => '1',
+            valid  => dataDelaySet(i),
+            dout   => dataDelay(i)
+         );         
    end generate;
 
    -------------------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-02-22
+-- Last update: 2019-03-02
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -230,6 +230,7 @@ architecture mapping of Application is
    signal iSaciClk             : sl;
    signal iSaciCmd             : sl;
    signal boardConfig          : AppConfigType;
+   signal monitoringSig        : slv(1 downto 0);
    
    signal adcClk               : sl;
    signal errInhibit           : sl;
@@ -439,7 +440,7 @@ begin
    connTgOut <= 
       iAsic01DM1        when boardConfig.epixhrDbgSel1 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel1 = "00001" else
-      --iAsicStart        when boardConfig.epixhrDbgSel1 = "00010" else
+      monitoringSig(0)  when boardConfig.epixhrDbgSel1 = "00010" else
       iAsicAcq          when boardConfig.epixhrDbgSel1 = "00011" else
       --iAsicTpulse       when boardConfig.epixhrDbgSel1 = "00100" else
       iAsicSR0          when boardConfig.epixhrDbgSel1 = "00101" else
@@ -462,7 +463,7 @@ begin
    connMps <=
       iAsic01DM2        when boardConfig.epixhrDbgSel2 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel2 = "00001" else
-      --iAsicStart        when boardConfig.epixhrDbgSel2 = "00010" else
+      monitoringSig(1)  when boardConfig.epixhrDbgSel2 = "00010" else
       iAsicAcq          when boardConfig.epixhrDbgSel2 = "00011" else
       --iAsicTpulse       when boardConfig.epixhrDbgSel2 = "00100" else
       iAsicSR0          when boardConfig.epixhrDbgSel2 = "00101" else
@@ -1209,6 +1210,7 @@ begin
       generic map (
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => STREAMS_PER_ASIC_C,
+        SIMULATION_G      => SIMULATION_G,
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
         XIL_DEVICE_G      => "ULTRASCALE",
         DEFAULT_DELAY_G   => (others => '0'),
@@ -1228,7 +1230,8 @@ begin
         adcSerial       => adcSerial(i),
         adcStreamClk    => byteClk,--fClkP,--sysClk,
         adcStreams      => asicStreams,
-        adcStreamsEn_n  => adcStreamsEn_n
+        adcStreamsEn_n  => adcStreamsEn_n,
+        monitoringSig   => monitoringSig
         );
 
      -------------------------------------------------------------------------------

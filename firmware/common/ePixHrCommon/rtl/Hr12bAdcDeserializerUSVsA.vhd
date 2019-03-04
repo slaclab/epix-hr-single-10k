@@ -2,7 +2,7 @@
 -- File       : Hr12bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-07-10
+-- Last update: 2019-03-02
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -195,20 +195,20 @@ begin
                                   -- SYNC)
       )
     port map (
-      CASC_OUT => OPEN,       -- 1-bit output: Cascade delay output to ODELAY input cascade
+      CASC_OUT => OPEN,             -- 1-bit output: Cascade delay output to ODELAY input cascade
       CNTVALUEOUT => delayValueOut, -- 9-bit output: Counter value output
-      DATAOUT => sData_d,         -- 1-bit output: Delayed data output
-      CASC_IN => '1',         -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
-      CASC_RETURN => '1', -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
-      CE => '0',                   -- 1-bit input: Active high enable increment/decrement input
-      CLK => dClkDiv4,                 -- 1-bit input: Clock input
-      CNTVALUEIN => delay,   -- 9-bit input: Counter value input
-      DATAIN => '1',           -- 1-bit input: Data input from the logic
-      EN_VTC => '0',           -- 1-bit input: Keep delay constant over VT
-      IDATAIN => sData_i,         -- 1-bit input: Data input from the IOBUF
-      INC => '0',                 -- 1-bit input: Increment / Decrement tap delay input
-      LOAD => loadDelay,               -- 1-bit input: Load DELAY_VALUE input
-      RST => adcClkRst                  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+      DATAOUT => sData_d,           -- 1-bit output: Delayed data output
+      CASC_IN => '1',               -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+      CASC_RETURN => '1',           -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+      CE => '0',                    -- 1-bit input: Active high enable increment/decrement input
+      CLK => dClkDiv4,              -- 1-bit input: Clock input
+      CNTVALUEIN => delay,          -- 9-bit input: Counter value input
+      DATAIN => '1',                -- 1-bit input: Data input from the logic
+      EN_VTC => '0',                -- 1-bit input: Keep delay constant over VT
+      IDATAIN => sData_i,           -- 1-bit input: Data input from the IOBUF
+      INC => '0',                   -- 1-bit input: Increment / Decrement tap delay input
+      LOAD => loadDelay,            -- 1-bit input: Load DELAY_VALUE input
+      RST => '0'                    -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       );    
    
   ----------------------------------------------------------------------------

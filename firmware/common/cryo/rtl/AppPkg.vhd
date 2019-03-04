@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-02-12
+-- Last update: 2019-03-02
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -207,8 +207,8 @@ package AppPkg is
       requestStartupCal    => '1',
       startupAck           => '0',
       startupFail          => '0',
-      epixhrDbgSel1        => (others => '0'),
-      epixhrDbgSel2        => (others => '0')
+      epixhrDbgSel1        => "01101",
+      epixhrDbgSel2        => "01101"
    );
    
    type HR_FDConfigType is record
