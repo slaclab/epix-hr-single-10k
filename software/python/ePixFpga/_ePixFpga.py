@@ -1739,6 +1739,10 @@ class AsicDeserHr12bRegisters(pr.Device):
          self.add(pr.RemoteVariable(name='IserdeseOutA'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
          self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=16, base=pr.UInt, disp = '{:#x}', mode='RO'))
 
+      self.add(pr.RemoteVariable(name='BERTRst',      description='Restart BERT',         offset=0x000000A0, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))      
+      for i in range(0, 2):
+         self.add(pr.RemoteVariable(name='BERTCounter'+str(i),   description='Counter value.'+str(i),  offset=0x000000A4+i*4, bitSize=32, bitOffset=0, base=pr.UInt,  disp = '{}', mode='RO'))
+
       self.add(AsicDeser14bDataRegisters(name='14bData_ser0',      offset=0x00000100, expand=False))
       self.add(AsicDeser14bDataRegisters(name='14bData_ser1',      offset=0x00000200, expand=False))
       #####################################
@@ -1756,14 +1760,14 @@ class AsicDeserHr12bRegisters(pr.Device):
    def fnSetFindAndSetDelays(self,dev,cmd,arg):
        """Find and set Monitoring ADC delays"""
        parent = self.parent
-#       if not(parent.Ad9249Config_Adc_0.enable.get()):
-#           parent.Ad9249Config_Adc_0.enable.set(True)
-       
-#       parent.Ad9249Config_Adc_0.OutputTestMode.set(9) # one bit on
-       self.testResult = np.zeros(256)
-       self.testDelay  = np.zeros(256)
+       numDelayTaps = 512
+
+       print("Executing delay test for cryo")
+
+       self.testResult = np.zeros(numDelayTaps)
+       self.testDelay  = np.zeros(numDelayTaps)
        #check adc 0
-       for delay in range (0, 256):
+       for delay in range (0, numDelayTaps):
            self.Delay0.set(delay)
            self.testDelay[delay] = self.Delay0.get()
            self.Resync.set(True)
@@ -1771,22 +1775,20 @@ class AsicDeserHr12bRegisters(pr.Device):
            time.sleep(1.0 / float(100))
            self.testResult[delay] = ((self.IserdeseOutA0.get()==0x3407)or(self.IserdeseOutA0.get()==0xBF8)) 
        print("Test result adc 0:")
-       print(self.testDelay)
-       print(self.testResult)
+       print(self.testResult*self.testDelay)
 
        #check adc 1   
-       self.testResult = np.zeros(256)
-       self.testDelay  = np.zeros(256)
-       for delay in range (0, 256):
+       self.testResult = np.zeros(numDelayTaps)
+       self.testDelay  = np.zeros(numDelayTaps)
+       for delay in range (0, numDelayTaps):
            self.Delay1.set(delay)
            self.testDelay[delay] = self.Delay1.get()
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
            self.testResult[delay] = ((self.IserdeseOutA1.get()==0x3407)or(self.IserdeseOutA1.get()==0xBF8)) 
-       print("Test result adc 1:")
-       print(self.testDelay)
-       print(self.testResult)
+       print("Test result adc 1:")     
+       print(self.testResult*self.testDelay)
    
    @staticmethod   
    def frequencyConverter(self):

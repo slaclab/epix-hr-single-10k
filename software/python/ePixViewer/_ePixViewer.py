@@ -501,7 +501,7 @@ class Window(QMainWindow, QObject):
             if(not self.cbpixelTimeSeriesEnabled.isChecked()):
                 self. clearPixelTimeSeriesLinePlot()
         except:
-            print ("Message\n", e)
+            print ("Error at updatePixelTimeSeriesLinePlot().\n")
 
     """Save the enabled series to file"""
     def SaveSeriesToFile(self):
