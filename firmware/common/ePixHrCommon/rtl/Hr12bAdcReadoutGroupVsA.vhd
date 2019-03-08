@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-03-04
+-- Last update: 2019-03-08
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -97,8 +97,8 @@ architecture rtl of Hr12bAdcReadoutGroupVsA is
       dataDelaySet   : slv(NUM_CHANNELS_G-1 downto 0);  
       frameDelaySet  : sl;
       freezeDebug    : sl;
-      readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
-      readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
+      readoutDebug0  : slv16Array(9 downto 0);
+      readoutDebug1  : slv16Array(9 downto 0);
       adcStreamsEn_n : slv(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
       restartBERT    : sl;
@@ -138,7 +138,7 @@ architecture rtl of Hr12bAdcReadoutGroupVsA is
       dataValidAll   : sl;
       fifoWrData     : Slv16Array(NUM_CHANNELS_G-1 downto 0);
       countBertEn    : slv(NUM_CHANNELS_G-1 downto 0);
-      counterBERT    : Slv32Array(NUM_CHANNELS_G-1 downto 0);
+      counterBERT    : Slv44Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant ADC_REG_INIT_C : AdcRegType := (
@@ -163,7 +163,7 @@ architecture rtl of Hr12bAdcReadoutGroupVsA is
    signal resync          : sl;
    signal adcSEnSync      : slv(NUM_CHANNELS_G-1 downto 0);
    signal restartBERTsync : sl;
-   signal counterBERTsync : Slv32Array(NUM_CHANNELS_G-1 downto 0);
+   signal counterBERTsync : Slv44Array(NUM_CHANNELS_G-1 downto 0);
 
    type Slv14bData is array (natural range<>) of slv14Array(7 downto 0);
    signal debugData       : Slv14bData(NUM_CHANNELS_G-1 downto 0);
@@ -248,7 +248,7 @@ begin
        generic map(
          TPD_G          => TPD_G,
          STAGES_G       => 2,
-         WIDTH_G        => 32)
+         WIDTH_G        => 44)
        port map(
          clk     => axilClk,
          rst     => axilRst,
@@ -294,8 +294,12 @@ begin
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
-         v.readoutDebug0 := debugDataTmp;
-         v.readoutDebug1 := axilR.readoutDebug0;
+         v.readoutDebug0(0) := debugDataTmp(0);
+         v.readoutDebug1(0) := debugDataTmp(1);
+         for i in 1 to 9 loop
+           v.readoutDebug0(i) := axilR.readoutDebug0(i-1);
+           v.readoutDebug1(i) := axilR.readoutDebug1(i-1);
+         end loop;
       end if;
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -325,23 +329,29 @@ begin
       axiSlaveRegister (axilEp, X"50", 0, v.lockedCountRst);
 
       -- Debug registers. Output the last 2 words received
-      for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 0, axilR.readoutDebug0(i));
-         axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 16, axilR.readoutDebug1(i));
-      end loop;
+      --for i in 0 to NUM_CHANNELS_G-1 loop     i
+         axiSlaveRegisterR(axilEp, X"80"+toSlv((0*4), 8), 0, axilR.readoutDebug0(0));
+         axiSlaveRegisterR(axilEp, X"80"+toSlv((0*4), 8), 16, axilR.readoutDebug0(1));
+         axiSlaveRegisterR(axilEp, X"80"+toSlv((1*4), 8), 0, axilR.readoutDebug1(0));
+         axiSlaveRegisterR(axilEp, X"80"+toSlv((1*4), 8), 16, axilR.readoutDebug1(1));
+      --end loop;
 
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
       axiSlaveRegister(axilEp, X"A0", 1, v.restartBERT);
       for i in 0 to NUM_CHANNELS_G-1 loop
-        axiSlaveRegisterR(axilEp, X"A4"+toSlv((i*4),8), 0,  counterBERTsync(i));
+        axiSlaveRegisterR(axilEp, X"A4"+toSlv((i*8),8), 0,  counterBERTsync(i));
       end loop;
 
-      for i in 0 to NUM_CHANNELS_G-1 loop
-        localDebugData := debugData(i);
-        for j in 0 to 7 loop
-          axiSlaveRegisterR(axilEp, X"100"+toSlv((i*64*4+j*4),12), 0,  localDebugData(j));
-        end loop;  -- j
-      end loop;
+      --for i in 0 to NUM_CHANNELS_G-1 loop
+      --  localDebugData := debugData(i);
+      --  for j in 0 to 7 loop
+      --    axiSlaveRegisterR(axilEp, X"100"+toSlv((i*64*4+j*4),12), 0,  localDebugData(j));
+      --  end loop;  -- j
+      --end loop;
+      for j in 2 to 9 loop
+          axiSlaveRegisterR(axilEp, X"100"+toSlv((0*64*4+(j-2)*4),12), 0,  axilR.readoutDebug0(j));
+          axiSlaveRegisterR(axilEp, X"100"+toSlv((1*64*4+(j-2)*4),12), 0,  axilR.readoutDebug1(j));
+      end loop;  -- j
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 

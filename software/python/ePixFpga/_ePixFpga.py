@@ -1484,6 +1484,7 @@ class DigitalPktRegisters(pr.Device):
       self.add(pr.RemoteVariable(name='TestModeCh1',     description='TestMode',                                    offset=0x0000001C, bitSize=1,   bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='forceAdcData',    description='TestMode',                                    offset=0x0000001C, bitSize=1,   bitOffset=2, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='decDataBitOrder', description='when enabled reverse bit order',              offset=0x0000001C, bitSize=1,   bitOffset=3, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='decBypass',       description='bypass decoder to display 14 bit data.',      offset=0x0000001C, bitSize=1,   bitOffset=4, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='StreamDataMode',  description='Streams data cont.',                          offset=0x00000020, bitSize=1,   bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='StopDataTx',      description='Interrupt data stream',                       offset=0x00000020, bitSize=1,   bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='ResetCounters',   description='ResetCounters',                               offset=0x00000024, bitSize=1,   bitOffset=0, base=pr.Bool, mode='WO'))
@@ -1831,6 +1832,6 @@ class AsicDeser14bDataRegisters(pr.Device):
       
       #Setup registers & variables  
       for i in range(0, 8):
-         self.add(pr.RemoteVariable(name='tenbData_'+str(i),   description='Sample N_'+str(i),  offset=0x00000000+i*4, bitSize=14, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
+         self.add(pr.RemoteVariable(name='14bData_'+str(i),   description='Sample N_'+str(i),  offset=0x00000000+i*4, bitSize=14, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
 
       

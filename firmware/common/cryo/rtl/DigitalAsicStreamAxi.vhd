@@ -38,8 +38,7 @@ entity DigitalAsicStreamAxi is
       STREAMS_PER_ASIC_G  : natural := 2;  -- 1, 2 or 6. Number of screams per ASIC HR
                                          -- prototype has 2 final version 6
       ASIC_DATA_G         : natural := (32*32); --workds
-      ASIC_WIDTH_G        : natural := 32; --workds
-      ASIC_DATA_PADDING_G : string := "MSB";  --"LSB" or "MSB"      
+      ASIC_WIDTH_G        : natural := 32; --workds    
       AXIL_ERR_RESP_G     : slv(1 downto 0)  := AXI_RESP_DECERR_C
    );
    port ( 
@@ -98,6 +97,7 @@ architecture RTL of DigitalAsicStreamAxi is
       testMode         : slv(STREAMS_PER_ASIC_G-1 downto 0);
       forceAdcData     : sl;
       decDataBitOrder  : sl;
+      decBypass        : sl;
       streamDataMode   : sl;
       sampleCounter    : slv(4 downto 0);
       stopDataTx       : sl;
@@ -127,6 +127,7 @@ architecture RTL of DigitalAsicStreamAxi is
       testMode        => (others=>'0'),
       forceAdcData    => '0',
       decDataBitOrder => '0',
+      decBypass       => '0',
       streamDataMode  => '0',
       sampleCounter   => (others=>'0'),
       stopDataTx      => '0',
@@ -153,6 +154,7 @@ architecture RTL of DigitalAsicStreamAxi is
       streamDataMode    : sl;
       stopDataTx        : sl;
       decDataBitOrder   : sl;
+      decBypass         : sl;
       frmSize           : slv(15 downto 0);
       frmMax            : slv(15 downto 0);
       frmMin            : slv(15 downto 0);
@@ -173,6 +175,7 @@ architecture RTL of DigitalAsicStreamAxi is
       streamDataMode    => '0',
       stopDataTx        => '0',
       decDataBitOrder   => '0',
+      decBypass         => '0',
       frmSize           => (others=>'0'),
       frmMax            => (others=>'0'),
       frmMin            => (others=>'0'),
@@ -201,12 +204,23 @@ architecture RTL of DigitalAsicStreamAxi is
    signal decCodeError  : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decDispError  : slv(STREAMS_PER_ASIC_G-1 downto 0);
    
-   signal dFifoRd       : slv(STREAMS_PER_ASIC_G-1 downto 0);
-   signal dFifoEofe     : slv(STREAMS_PER_ASIC_G-1 downto 0);
-   signal dFifoEof      : slv(STREAMS_PER_ASIC_G-1 downto 0);
-   signal dFifoSof      : slv(STREAMS_PER_ASIC_G-1 downto 0);
-   signal dFifoValid    : slv(STREAMS_PER_ASIC_G-1 downto 0);
-   signal dFifoOut      : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoRd           : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoEofe         : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoEof          : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoSof          : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoValid        : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoOut          : slv14Array(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoEofeDec      : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoEofDec       : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoSofDec       : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoValidDec     : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoOutDec       : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoEofeBypass   : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoEofBypass    : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoSofBypass    : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoValidBypass  : slv(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoOutBypass    : slv14Array(STREAMS_PER_ASIC_G-1 downto 0);
+
    signal dFifoExtData  : slv(16*STREAMS_PER_ASIC_G-1 downto 0) := (others => '0');
    
    signal sAxisMaster  : AxiStreamMasterType;
@@ -251,11 +265,7 @@ begin
    fifoExtData_GEN : for i in 0 to STREAMS_PER_ASIC_G-1 generate
      dataExt : process(dFifoOut)
        begin
-         if ASIC_DATA_PADDING_G = "LSB" then
-           dFifoExtData(16*i+15 downto 16*i) <= dFifoOut(i)&"0000";
-         else
-           dFifoExtData(16*i+15 downto 16*i) <= "0000"&dFifoOut(i);
-         end if;
+         dFifoExtData(16*i+15 downto 16*i) <= "00"&dFifoOut(i);
        end process;
    end generate;
    
@@ -341,12 +351,57 @@ begin
          --Read Ports (rd_clk domain)
          rd_clk            => axisClk,
          rd_en             => dFifoRd(i),
-         dout(11 downto 0) => dFifoOut(i),
-         dout(12)          => dFifoEofe(i),
-         dout(13)          => dFifoEof(i),
-         dout(14)          => dFifoSof(i),
-         valid             => dFifoValid(i)
+         dout(11 downto 0) => dFifoOutDec(i),
+         dout(12)          => dFifoEofeDec(i),
+         dout(13)          => dFifoEofDec(i),
+         dout(14)          => dFifoSofDec(i),
+         valid             => dFifoValidDec(i)
          );
+
+
+     DataFifoDecBypass_U : entity work.FifoCascade
+       generic map (
+         GEN_SYNC_FIFO_G   => false,
+         FWFT_EN_G         => true,
+         ADDR_WIDTH_G      => 5,
+         DATA_WIDTH_G      => 17
+         )
+       port map (
+         -- Resets
+         rst               => rxRst,
+         wr_clk            => rxClk,
+         wr_en             => iRxValid(i),
+         din(13 downto 0)  => adcStreams(i).tData(13 downto 0),
+         din(14)           => '0', --decEofe(i),
+         din(15)           => '0', --decEof(i),
+         din(16)           => '0', --decSof(i),
+         --Read Ports (rd_clk domain)
+         rd_clk            => axisClk,
+         rd_en             => dFifoRd(i),
+         dout(13 downto 0) => dFifoOutBypass(i),
+         dout(14)          => dFifoEofeBypass(i),
+         dout(15)          => dFifoEofBypass(i),
+         dout(16)          => dFifoSofBypass(i),
+         valid             => dFifoValidBypass(i)
+         );
+
+     decByPassMux : process(s,dFifoOutDec,    dFifoEofeDec,    dFifoEofDec,    dFifoSofDec,    dFifoValidDec,
+                              dFifoOutBypass, dFifoEofeBypass, dFifoEofBypass, dFifoSofBypass, dFifoValidBypass)
+     begin
+       if s.decBypass = '0' then
+         dFifoOut(i)    <= "00"&dFifoOutDec(i);
+         dFifoEofe(i)   <= dFifoEofeDec(i);
+         dFifoEof(i)    <= dFifoEofDec(i);
+         dFifoSof(i)    <= dFifoSofDec(i);
+         dFifoValid(i)  <= dFifoValidDec(i);
+       else
+         dFifoOut(i)    <= dFifoOutBypass(i);
+         dFifoEofe(i)   <= dFifoEofeBypass(i);
+         dFifoEof(i)    <= dFifoEofBypass(i);
+         dFifoSof(i)    <= dFifoSofBypass(i);
+         dFifoValid(i)  <= dFifoValidBypass(i);
+       end if;
+     end process;
    end generate;
 
    ----------------------------------------------------------------------------
@@ -402,6 +457,7 @@ begin
       sv.testMode         := r.testMode;
       sv.forceAdcData     := r.forceAdcData;
       sv.decDataBitOrder  := r.decDataBitOrder;
+      sv.decBypass        := r.decBypass;
       sv.stopDataTx       := r.stopDataTx;
       sv.streamDataMode   := r.streamDataMode;
       sv.asicDataReq      := r.asicDataReq;
@@ -428,6 +484,7 @@ begin
       axiSlaveRegister (regCon, x"1C",  0, rv.testMode);
       axiSlaveRegister (regCon, x"1C",  2, rv.forceAdcData);
       axiSlaveRegister (regCon, x"1C",  3, rv.decDataBitOrder);
+      axiSlaveRegister (regCon, x"1C",  4, rv.decBypass);
       axiSlaveRegister (regCon, x"20",  0, rv.streamDataMode);
       axiSlaveRegister (regCon, x"20",  1, rv.stopDataTx);   
       axiSlaveRegister (regCon, x"24",  0, rv.rstCnt);
