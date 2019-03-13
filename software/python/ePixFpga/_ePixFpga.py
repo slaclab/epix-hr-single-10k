@@ -218,8 +218,195 @@ class EpixHRGen1Cryo(pr.Device):
             DigitalPktRegisters(             name="PacketRegisters",                   offset=0x95000000, expand=False, enabled=False)
             ))
 
-        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+        self.add(pr.LocalCommand(name='SetWaveform',   description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
+        self.add(pr.LocalCommand(name='GetWaveform',   description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
+        self.add(pr.LocalCommand(name='InitCryo',      description='Inicialization routines', function=self.fnInitCryo))
+        self.add(pr.LocalCommand(name='ReSyncCryo',    description='Generates the sequence necessary to resync asic',   function=self.fnReSyncCryo))
+        self.add(pr.LocalCommand(name='EnAllCryoAdcs', description='Generates the sequence necessary to resync asic',   function=self.fnEnAllCryoAdcs))
+        self.add(pr.LocalCommand(name='BypassDecoder', description='Generates the sequence necessary to resync asic',   function=self.fnBypassDecoder))
+        self.add(pr.LocalCommand(name='SendAdcData',   description='Generates the sequence necessary to send adc data', function=self.fnSendAdcData))
+
+
+    def fnInitCryo(self, dev,cmd,arg):
+        """SetTestBitmap command function"""       
+        print("Rysync cryo started")
+        if arg == 1:
+            self.fnInitCryo1(dev,cmd,arg)        
+
+    def fnInitCryo1(self, dev,cmd,arg):
+        """SetTestBitmap command function"""       
+        print("Rysync cryo started")
+        print(arg)
+        self.AppFpgaRegisters.SR0Polarity.set(False)
+        delay = 1.0
+        USE_CRYO_PLL_1MSPS = True
+        if USE_CRYO_PLL_1MSPS :
+            print("Loading MMCM configuration")
+            self.MMCMSerdesRegisters.enable.set(True)
+            self.root.readBlocks()
+            time.sleep(delay/10) 
+            self.MMCMSerdesRegisters.CLKOUT0HighTime.set(2)   
+            self.MMCMSerdesRegisters.CLKOUT0LowTime.set(2)
+            time.sleep(delay/10) 
+            self.MMCMSerdesRegisters.CLKOUT1HighTime.set(8)
+            self.MMCMSerdesRegisters.CLKOUT1LowTime.set(8)
+            time.sleep(delay/10) 
+            self.MMCMSerdesRegisters.CLKOUT2HighTime.set(14)
+            self.MMCMSerdesRegisters.CLKOUT2LowTime.set(14)
+            time.sleep(delay/10) 
+            self.MMCMSerdesRegisters.CLKOUT3HighTime.set(8)
+            self.MMCMSerdesRegisters.CLKOUT3LowTime.set(8)
+            time.sleep(delay/10) 
+            self.root.readBlocks()
+            self.MMCMSerdesRegisters.enable.set(False)
+            time.sleep(delay) 
+            self.root.readBlocks()
+            print("Completed")
+
+        # load config that sets prog supply
+        print("Loading supply configuration")
+        self.root.ReadConfig('./yml/cryo_tunnedPowerSupply_roomTemperature_v0_224MHz_ExtClk_RoomT2_Supply.yml')
+        time.sleep(delay) 
+
+        if USE_CRYO_PLL_1MSPS :
+            # load config that sets CJC
+            print("Loading CJC configuration")
+            self.root.ReadConfig('./yml/cryo_roomTemperature_v0_InternalPLL_224MHz_CJC.yml')
+            time.sleep(delay) 
+
+        ## takes the asic off of reset
+        print("Taking asic off of reset")
+        self.AppFpgaRegisters.enable.set(True)
+        self.AppFpgaRegisters.GlblRstPolarity.set(True)
+        time.sleep(delay) 
+        self.root.readBlocks()
+        time.sleep(delay) 
+
+        if USE_CRYO_PLL_1MSPS :
+            ## load config for the asic
+            print("Loading timing configuration")
+            self.root.ReadConfig('./yml/cryo_tunnedPowerSupply_roomTemperature_v0_56MHz_pllClk_RoomT3.yml')
+            time.sleep(5*delay) 
+
+        ## start deserializer config for the asic
+        EN_DESERIALIZERS = True
+        if EN_DESERIALIZERS : 
+            print("Starting deserializer")
+            while True:
+                #make sure idle
+                self.CryoAsic0.encoder_mode_dft.set(0)
+                self.AppFpgaRegisters.SR0Polarity.set(False)
+                time.sleep(2*delay) 
+                self.DeserRegisters.enable.set(True)
+                self.root.readBlocks()
+                time.sleep(2*delay) 
+                self.DeserRegisters.InitAdcDelay()
+                time.sleep(delay)   
+                self.DeserRegisters.Delay0.set(self.DeserRegisters.sugDelay0)
+                self.DeserRegisters.Delay1.set(self.DeserRegisters.sugDelay1)
+                self.DeserRegisters.Resync.set(True)
+                time.sleep(delay) 
+                self.DeserRegisters.Resync.set(False)
+                time.sleep(5*delay) 
+                if self.DeserRegisters.Locked0.get() and self.DeserRegisters.Locked1.get():
+                    break
+
+
+        EN_SR0 = True
+        EN_ALL_CRYO_ADCS = True
+        if EN_SR0 : 
+            print("Settig SR0 set to true")
+            self.AppFpgaRegisters.enable.set(True)
+            self.root.readBlocks()
+            for i in range(2):
+                self.AppFpgaRegisters.SR0Polarity.set(False)
+                time.sleep(delay) 
+                self.AppFpgaRegisters.SR0Polarity.set(True)
+                self.root.readBlocks()
+                time.sleep(delay) 
+
+            if EN_ALL_CRYO_ADCS : 
+                self.fnEnAllCryoAdcs(dev,cmd,arg)
+
+
+        BYPASS_DECODER = True
+        if BYPASS_DECODER : 
+            self.fnBypassDecoder(dev,cmd,arg)
+
+
+    def fnReSyncCryo(self, dev,cmd,arg):
+        """SetTestBitmap command function"""       
+        print("Rysync cryo started")
+        delay = 1.0
+        self.CryoAsic0.enable.set(True)
+        self.CryoAsic0.SubBnkEn.set(0x0808) #keeps only two needed adcs
+        self.CryoAsic0.encoder_mode_dft.set(0) # makes sure idle will be set
+        self.PacketRegisters.enable.set(True)
+        self.PacketRegisters.decBypass.set(False)
+        self.PacketRegisters.StreamDataMode.set(False)
+
+        self.AppFpgaRegisters.enable.set(True)
+        self.AppFpgaRegisters.SR0Polarity.set(False)
+        time.sleep(2*delay) 
+        self.DeserRegisters.enable.set(True)
+        time.sleep(2*delay) 
+        if arg == 0 :
+            self.DeserRegisters.InitAdcDelay()
+            time.sleep(delay)   
+            self.DeserRegisters.Delay0.set(self.DeserRegisters.sugDelay0)
+            self.DeserRegisters.Delay1.set(self.DeserRegisters.sugDelay1)
+        self.DeserRegisters.Resync.set(True)
+        time.sleep(delay) 
+        self.DeserRegisters.Resync.set(False)
+        time.sleep(5*delay)        
+        self.AppFpgaRegisters.SR0Polarity.set(True)
+
+    def fnEnAllCryoAdcs(self, dev,cmd,arg):
+        """SetTestBitmap command function"""       
+        print("Enabling all cryo ADCs")
+        delay = 1.0
+        self.CryoAsic0.SubBnkEn.set(0x080a)
+        time.sleep(delay/10) 
+        self.CryoAsic0.SubBnkEn.set(0x080f)
+        time.sleep(delay/10) 
+        self.CryoAsic0.SubBnkEn.set(0x08af)
+        time.sleep(delay/10) 
+        self.CryoAsic0.SubBnkEn.set(0x08ff)
+        time.sleep(delay/10) 
+        self.CryoAsic0.SubBnkEn.set(0x0aff)
+        time.sleep(delay/10) 
+        self.CryoAsic0.SubBnkEn.set(0x0fff)
+        time.sleep(delay/10) 
+        self.CryoAsic0.SubBnkEn.set(0xafff)
+        time.sleep(delay/10) 
+        self.CryoAsic0.SubBnkEn.set(0xffff)
+        time.sleep(delay/10) 
+
+    def fnBypassDecoder(self, dev,cmd,arg):
+        print("Bypass decoder and enable counter")
+        delay = 1.0
+        self.PacketRegisters.enable.set(True)
+        self.root.readBlocks()
+        self.PacketRegisters.decBypass.set(True)
+        time.sleep(delay/10) 
+        print("Setting cryo to send counter to readout")
+        self.CryoAsic0.encoder_mode_dft.set(7)
+        print("Enabling stream readout")
+        self.PacketRegisters.enable.set(True)
+        self.PacketRegisters.StreamDataMode.set(True)
+
+    def fnSendAdcData(self, dev,cmd,arg):
+        print("Sends adc data in stream mode")
+        delay = 1.0
+        self.PacketRegisters.enable.set(True)
+        self.root.readBlocks()
+        self.PacketRegisters.decBypass.set(False)
+        time.sleep(delay/10) 
+        print("Setting cryo to send counter to readout")
+        self.CryoAsic0.encoder_mode_dft.set(0)
+        print("Enabling stream readout")
+        self.PacketRegisters.enable.set(True)
+        self.PacketRegisters.StreamDataMode.set(True)
 
 
     def fnSetWaveform(self, dev,cmd,arg):
@@ -1765,32 +1952,53 @@ class AsicDeserHr12bRegisters(pr.Device):
 
        print("Executing delay test for cryo")
 
-       self.testResult = np.zeros(numDelayTaps)
-       self.testDelay  = np.zeros(numDelayTaps)
+       self.testResult0 = np.zeros(numDelayTaps)
+       self.testDelay0  = np.zeros(numDelayTaps)
        #check adc 0
        for delay in range (0, numDelayTaps):
            self.Delay0.set(delay)
-           self.testDelay[delay] = self.Delay0.get()
+           self.testDelay0[delay] = self.Delay0.get()
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
-           self.testResult[delay] = ((self.IserdeseOutA0.get()==0x3407)or(self.IserdeseOutA0.get()==0xBF8)) 
+           self.testResult0[delay] = ((self.IserdeseOutA0.get()==0x3407)or(self.IserdeseOutA0.get()==0xBF8)) 
        print("Test result adc 0:")
-       print(self.testResult*self.testDelay)
+       print(self.testResult0*self.testDelay0)
 
        #check adc 1   
-       self.testResult = np.zeros(numDelayTaps)
-       self.testDelay  = np.zeros(numDelayTaps)
+       self.testResult1 = np.zeros(numDelayTaps)
+       self.testDelay1  = np.zeros(numDelayTaps)
        for delay in range (0, numDelayTaps):
            self.Delay1.set(delay)
-           self.testDelay[delay] = self.Delay1.get()
+           self.testDelay1[delay] = self.Delay1.get()
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
-           self.testResult[delay] = ((self.IserdeseOutA1.get()==0x3407)or(self.IserdeseOutA1.get()==0xBF8)) 
+           self.testResult1[delay] = ((self.IserdeseOutA1.get()==0x3407)or(self.IserdeseOutA1.get()==0xBF8)) 
        print("Test result adc 1:")     
-       print(self.testResult*self.testDelay)
-   
+       print(self.testResult1*self.testDelay1)
+       
+       self.resultArray0 =  np.zeros(numDelayTaps)
+       self.resultArray1 =  np.zeros(numDelayTaps)
+       for i in range(1, numDelayTaps):
+           if (self.testResult0[i] != 0):
+               self.resultArray0[i] = self.resultArray0[i-1] + self.testResult0[i]
+           if (self.testResult1[i] != 0):
+               self.resultArray1[i] = self.resultArray1[i-1] + self.testResult1[i]
+       self.longestDelay0 = np.where(self.resultArray0==np.max(self.resultArray0))
+       if len(self.longestDelay0[0])==1:
+           self.sugDelay0 = int(self.longestDelay0[0]) - int(self.resultArray0[self.longestDelay0]/2)
+       else:
+           self.sugDelay0 = int(self.longestDelay0[0][0]) - int(self.resultArray0[self.longestDelay0[0][0]]/2)
+       self.longestDelay1 = np.where(self.resultArray1==np.max(self.resultArray1))
+       if len(self.longestDelay1[0])==1:
+           self.sugDelay1 = int(self.longestDelay1[0]) - int(self.resultArray1[self.longestDelay1]/2)
+       else:
+           self.sugDelay1 = int(self.longestDelay1[0][0]) - int(self.resultArray1[self.longestDelay1[0][0]]/2)
+       print("Suggested delay_0: " + str(self.sugDelay0))     
+       print("Suggested delay_1: " + str(self.sugDelay1))     
+
+
    @staticmethod   
    def frequencyConverter(self):
       def func(dev, var):         
