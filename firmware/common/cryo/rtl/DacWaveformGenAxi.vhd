@@ -92,12 +92,16 @@ architecture DacWaveformGenAxi_arch of DacWaveformGenAxi is
     signal axiWrData          : slv(DATA_WIDTH_G-1 downto 0);
     signal dacSync            : Dac8812ConfigType;
     signal WaveformSync       : DacWaveformConfigType;
-    signal counter, nextCounter : std_logic_vector(ADDR_WIDTH_G-1 downto 0);
+    signal counter, nextCounter                 : std_logic_vector(ADDR_WIDTH_G-1 downto 0);
+    signal rampCounter, nextRampCounter         : std_logic_vector(DATA_WIDTH_G-1 downto 0);
     signal samplingCounter, nextSamplingCounter : std_logic_vector(SAMPLING_COUNTER_WIDTH_G-1 downto 0);
 
     type RegType is record
         dac               : Dac8812ConfigType;
         waveform          : DacWaveformConfigType;
+        rCStartValue      : slv(DATA_WIDTH_G-1 downto 0);
+        rCStopValue       : slv(DATA_WIDTH_G-1 downto 0);
+        rCStep            : slv(DATA_WIDTH_G-1 downto 0);
         sAxilWriteSlave   : AxiLiteWriteSlaveType;
         sAxilReadSlave    : AxiLiteReadSlaveType;
     end record RegType;
@@ -105,6 +109,9 @@ architecture DacWaveformGenAxi_arch of DacWaveformGenAxi is
     constant REG_INIT_C : RegType := (
         dac               => DAC8812_CONFIG_INIT_C,
         waveform          => DACWAVEFORM_CONFIG_INIT_C,
+        rCStartValue      => (others=>'0'),
+        rCStopValue       => (others=>'0'),
+        rCStep            => (others=>'0'),
         sAxilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
         sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C
     );
@@ -134,14 +141,18 @@ begin
     waveform_din    <= (others => '0'); --only axi writes to the memory
     waveform_addr   <= counter;
 
-    comb_mux : process (dacSync, r, waveform_dout) is
+    comb_mux : process (dacSync, r, waveform_dout, rampCounter) is
         variable v          : RegType;
         variable axiStatus  : AxiLiteStatusType;
         variable decAddrInt : integer;
     begin
         -- dacData could be written by register or by the waveform gen
         if (r.waveform.enabled = '1') then
-            dacData  <= waveform_dout;
+           if (r.waveform.source = "00") then
+             dacData  <= waveform_dout;
+           else
+             dacData  <= rampCounter;
+           end if;
         else
             dacData  <= dacSync.dacData;
         end if;
@@ -151,7 +162,7 @@ begin
     end process comb_mux;
 
 
-    comb_waveformCounters : process (r, counter, samplingCounter) is
+    comb_waveformCounters : process (r, counter, samplingCounter, rampCounter) is
         variable v          : RegType;
         variable axiStatus  : AxiLiteStatusType;
         variable decAddrInt : integer;
@@ -168,10 +179,18 @@ begin
 
             -- updates a pointer to output a new element from the waveform memory
             nextCounter <= counter + 1;
+
+            -- data width counter
+            if rampCounter = r.rCStopValue then
+              nextRampCounter <= r.rCStartValue;
+            else
+              nextRampCounter <= rampCounter + r.rCStep;
+            end if;
                         
         else
             nextSamplingCounter <= (others => '0');
             nextCounter <= (others => '0');
+            nextRampCounter <= r.rCStartValue;
         end if;
     end process comb_waveformCounters;
 
@@ -187,14 +206,17 @@ begin
          -- counter used for memory address
          if sysClkRst = '1' then
             counter <= (others => '0') after TPD_G;
+            rampCounter <= (others => '0') after TPD_G;
          else
             if (r.waveform.externalUpdateEn = '0') then
                if (samplingCounter = x"000") then
                    counter <= nextCounter after TPD_G;
+                   rampCounter <= nextRampCounter after TPD_G;
                end if;
             else
                 if (externalTrigger = '1') then
                    counter <= nextCounter after TPD_G;
+                   rampCounter <= nextRampCounter after TPD_G;
                end if;
             end if;
          end if;
@@ -274,9 +296,13 @@ begin
       axiSlaveRegister (regCon, x"0000",  0, v.waveform.enabled);
       axiSlaveRegister (regCon, x"0000",  1, v.waveform.run);
       axiSlaveRegister (regCon, x"0000",  2, v.waveform.externalUpdateEn);
+      axiSlaveRegister (regCon, x"0000",  3, v.waveform.source);
       axiSlaveRegister (regCon, x"0004",  0, v.waveform.samplingCounter);
       axiSlaveRegister (regCon, x"0008",  0, v.dac.dacData);
       axiSlaveRegister (regCon, x"0008", 16, v.dac.dacCh);
+      axiSlaveRegister (regCon, x"0010",  0, v.rCStartValue);
+      axiSlaveRegister (regCon, x"0014",  0, v.rCStopValue);
+      axiSlaveRegister (regCon, x"0018",  0, v.rCStep);
       
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
       
