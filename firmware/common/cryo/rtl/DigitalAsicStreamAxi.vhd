@@ -100,6 +100,7 @@ architecture RTL of DigitalAsicStreamAxi is
       decBypass        : sl;
       streamDataMode   : sl;
       sampleCounter    : slv(4 downto 0);
+      sampleCntOffset  : slv(4 downto 0);
       stopDataTx       : sl;
       testBitFlip      : sl;
       frmSize          : slv(15 downto 0);
@@ -130,6 +131,7 @@ architecture RTL of DigitalAsicStreamAxi is
       decBypass       => '0',
       streamDataMode  => '0',
       sampleCounter   => (others=>'0'),
+      sampleCntOffset => (others=>'0'),
       stopDataTx      => '0',
       testBitFlip     => '0',
       frmSize         => (others=>'0'),
@@ -152,6 +154,7 @@ architecture RTL of DigitalAsicStreamAxi is
       testMode          : slv(STREAMS_PER_ASIC_G-1 downto 0);
       forceAdcData      : sl;
       streamDataMode    : sl;
+      sampleCntOffset   : slv(4 downto 0);
       stopDataTx        : sl;
       decDataBitOrder   : sl;
       decBypass         : sl;
@@ -173,6 +176,7 @@ architecture RTL of DigitalAsicStreamAxi is
       testMode          => (others=>'0'),
       forceAdcData      => '0',
       streamDataMode    => '0',
+      sampleCntOffset   => (others=>'0'),
       stopDataTx        => '0',
       decDataBitOrder   => '0',
       decBypass         => '0',
@@ -461,6 +465,7 @@ begin
       sv.stopDataTx       := r.stopDataTx;
       sv.streamDataMode   := r.streamDataMode;
       sv.asicDataReq      := r.asicDataReq;
+      sv.sampleCntOffset  := r.sampleCntOffset;
 
       
       if r.rstCnt /= "000" then
@@ -490,6 +495,7 @@ begin
       axiSlaveRegister (regCon, x"24",  0, rv.rstCnt);
       axiSlaveRegister (regCon, x"24",  3, rv.rstSt);      
       axiSlaveRegister (regCon, x"28",  0, rv.asicDataReq);
+      axiSlaveRegister (regCon, x"2C",  0, rv.sampleCntOffset);
 
       for i in 0 to STREAMS_PER_ASIC_G-1 loop
         axiSlaveRegisterR(regCon, X"80"+toSlv((i*4), 8), 0, decDataInt(i));
@@ -576,7 +582,7 @@ begin
 
            
         when WAIT_SAMPLE_ZERO =>
-           if (s.sampleCounter = 0) and (dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) then
+           if (s.sampleCounter = s.sampleCntOffset) then -- and (dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) then
              sv.state := HDR_S;
            else
              --keeps flushing data until all SOF show up
@@ -726,7 +732,14 @@ begin
                    sv.frmCnt := s.frmCnt + 1;
                  end if;
                  sv.axisMaster.tLast := '1';
-                 sv.state := IDLE_S;
+                 --change of state is required if running in frame mode
+                 if s.streamDataMode = '0' then
+                   sv.state := IDLE_S;
+                 else
+                   if s.stCnt = s.asicDataReq then
+                     sv.state := IDLE_S;
+                   end if;
+                 end if;
                end if;               
              end if;
            end if;
