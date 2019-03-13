@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-03-02
+-- Last update: 2019-03-13
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -194,6 +194,8 @@ package AppPkg is
       requestStartupCal    : sl;
       startupAck           : sl;
       startupFail          : sl;
+      SR0Delay             : slv(7 downto 0);
+      SR0Period            : slv(7 downto 0);
       epixhrDbgSel1        : slv(4 downto 0);
       epixhrDbgSel2        : slv(4 downto 0);
    end record;
@@ -207,6 +209,8 @@ package AppPkg is
       requestStartupCal    => '1',
       startupAck           => '0',
       startupFail          => '0',
+      SR0Delay             => (others => '0'),
+      SR0Period            => (others => '0'),
       epixhrDbgSel1        => "01101",
       epixhrDbgSel2        => "01101"
    );

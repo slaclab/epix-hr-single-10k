@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-03-07
+-- Last update: 2019-03-13
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -218,6 +218,8 @@ architecture mapping of Application is
    signal iAsicEnB             : sl;
    signal iAsicVid             : sl;
    signal iAsicSR0             : sl;
+   signal iAsicSR0Raw          : sl;
+   signal iAsicSR0RefClk       : sl;
    signal iAsic01DM1           : sl;
    signal iAsic01DM2           : sl;
    signal iAsicPPbe            : sl;
@@ -442,7 +444,7 @@ begin
       iAsicSync         when boardConfig.epixhrDbgSel1 = "00001" else
       monitoringSig(0)  when boardConfig.epixhrDbgSel1 = "00010" else
       iAsicAcq          when boardConfig.epixhrDbgSel1 = "00011" else
-      --iAsicTpulse       when boardConfig.epixhrDbgSel1 = "00100" else
+      iAsicSR0RefClk    when boardConfig.epixhrDbgSel1 = "00100" else
       iAsicSR0          when boardConfig.epixhrDbgSel1 = "00101" else
       iSaciClk          when boardConfig.epixhrDbgSel1 = "00110" else
       iSaciCmd          when boardConfig.epixhrDbgSel1 = "00111" else
@@ -465,7 +467,7 @@ begin
       iAsicSync         when boardConfig.epixhrDbgSel2 = "00001" else
       monitoringSig(1)  when boardConfig.epixhrDbgSel2 = "00010" else
       iAsicAcq          when boardConfig.epixhrDbgSel2 = "00011" else
-      --iAsicTpulse       when boardConfig.epixhrDbgSel2 = "00100" else
+      iAsicSR0RefClk    when boardConfig.epixhrDbgSel2 = "00100" else
       iAsicSR0          when boardConfig.epixhrDbgSel2 = "00101" else
       iSaciClk          when boardConfig.epixhrDbgSel2 = "00110" else
       iSaciCmd          when boardConfig.epixhrDbgSel2 = "00111" else
@@ -663,52 +665,6 @@ begin
       axilWriteMaster => mAxiWriteMasters(PLL2REGS_AXI_INDEX_C),
       axilWriteSlave  => mAxiWriteSlaves(PLL2REGS_AXI_INDEX_C)
       );
-
---   AdcClk_I_Ibufds : IBUFDS
---      generic map (
---        DQS_BIAS => "FALSE"  -- (FALSE, TRUE)
---      )
---      port map (
---         I  => adcSerial.dClkP,
---         IB => adcSerial.dClkN,
---         O  => adcBitClkIoIn);
---
---   U_bitClkBufG : BUFG
---     port map (
---       O => adcBitClkIo,
---       I => tmpAdcClk);
---     
---   -- Regional clock
---   U_AdcBitClkR : BUFGCE_DIV
---      generic map (
---        BUFGCE_DIVIDE => 7,     -- 1-8
---        -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
---        IS_CE_INVERTED => '0',  -- Optional inversion for CE
---        IS_CLR_INVERTED => '0', -- Optional inversion for CLR
---        IS_I_INVERTED => '0'    -- Optional inversion for I
---        )
---      port map (
---         I   => adcBitClkIo,
---         O   => adcBitClkR,
---         CE  => '1',
---         CLR => '0');
---
---   -- Regional clock
---   U_AdcBitClkRD4 : BUFGCE_DIV
---      generic map (
---        BUFGCE_DIVIDE => 4,     -- 1-8
---        -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
---        IS_CE_INVERTED => '0',  -- Optional inversion for CE
---        IS_CLR_INVERTED => '0', -- Optional inversion for CLR
---        IS_I_INVERTED => '0'    -- Optional inversion for I
---        )
---      port map (
---         I   => adcBitClkIo,
---         O   => adcBitClkRD4,
---         CE  => '1',
---         CLR => '0');
-
-  
    
    ---------------------------------------------
    -- AXI Lite Async - cross clock domain     --
@@ -794,12 +750,29 @@ begin
       asicPpmat      => iAsicPpmat,
       asicTpulse     => open,
       asicStart      => open,
-      asicSR0        => iAsicSR0,
+      asicSR0        => iAsicSR0Raw,
       asicGlblRst    => iAsicGrst,
       asicSync       => iAsicSync,
       asicAcq        => iAsicAcq,
       asicVid        => open,
       errInhibit     => errInhibit
+   );
+
+  U_SR0Synch : entity work.SR0Synchronizer
+    generic map (
+      TPD_G => TPD_G
+      ) 
+    port map( 
+      -- Master system clock
+      sysClk       => bitClk,
+      sysClkRst    => bitRst,
+      -- DAC Data
+      delay        => boardConfig.SR0Delay,
+      period       => boardConfig.SR0Period,
+      SR0          => iAsicSR0Raw,
+      -- DAC Control Signals
+      refClk       => iAsicSR0RefClk,
+      SR0Out       => iAsicSR0
    );
 
    ---------------------
