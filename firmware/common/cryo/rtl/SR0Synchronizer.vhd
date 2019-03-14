@@ -94,7 +94,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (s, SR0Sync, delay, period) is
+   comb : process (s, SR0Sync, delay, period, sysClkRst) is
       variable v           : AsicAcqType;
       
    begin
