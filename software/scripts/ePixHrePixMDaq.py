@@ -17,34 +17,47 @@
 # copied, modified, propagated, or distributed except according to the terms 
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
+import rogue.hardware.pgp
+import pyrogue.utilities.prbs
+import pyrogue.utilities.fileio
 
+import pyrogue as pr
+import pyrogue.interfaces.simulation
+import pyrogue.gui
+import surf
 import threading
 import signal
 import atexit
 import yaml
 import time
-import sys
 import argparse
+import sys
+#import testBridge
+import ePixViewer as vi
+import ePixFpga as fpga
 
-import PyQt4.QtGui
-import PyQt4.QtCore
-import pyrogue.utilities.prbs
-import pyrogue.utilities.fileio
-import pyrogue.gui
-import rogue.hardware.pgp
-#import rogue.hardware.data
-import rogue.hardware.axi
+#import pyrogue.utilities.prbs
+#import pyrogue.utilities.fileio
 
 import surf
 import surf.axi
 import surf.protocols.ssi
-
-import ePixViewer as vi
-import ePixFpga as fpga
 from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3 import *
+
+try:
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore    import *
+    from PyQt5.QtGui     import *
+except ImportError:
+    import PyQt4.QtCore    
+    import PyQt4.QtGui     
+
 
 # Set the argument parser
 parser = argparse.ArgumentParser()
+
+# Convert str to bool
+argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
 
 # Add arguments
 parser.add_argument(
