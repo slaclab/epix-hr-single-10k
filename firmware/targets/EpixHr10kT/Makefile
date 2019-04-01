@@ -8,7 +8,7 @@ export PRJ_VERSION = 0x00000001
 export COMM_TYPE = pgp3
 
 # COMMON_NAME is defined by application
-export COMMON_NAME = cryo
+export COMMON_NAME = ePixHr10kT
 
 # Define the Microblaze source path
 export SDK_SRC_PATH = $(PROJ_DIR)/../../common/$(COMMON_NAME)/src

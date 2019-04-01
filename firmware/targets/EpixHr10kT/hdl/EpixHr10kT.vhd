@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- File       : CryoAsicPgp3.vhd
+-- File       : EpixHr10kT.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-01-17
+-- Last update: 2019-03-28
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ use work.EpixHrCorePkg.all;
 use work.AppPkg.all;
 use work.SsiCmdMasterPkg.all;
 
-entity CryoAsicPgp3 is
+entity EpixHr10kT is
    generic (
       TPD_G        : time := 1 ns;
       BUILD_INFO_G : BuildInfoType);
@@ -146,9 +146,9 @@ entity CryoAsicPgp3 is
       -- SYSMON Ports
       vPIn          : in    sl;
       vNIn          : in    sl);
-end CryoAsicPgp3;
+end EpixHr10kT;
 
-architecture top_level of CryoAsicPgp3 is
+architecture top_level of EpixHr10kT is
 
    -- System Clock and Reset
    signal sysClk          : sl;
