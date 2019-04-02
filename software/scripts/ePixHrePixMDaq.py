@@ -241,7 +241,7 @@ appTop = PyQt4.QtGui.QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='ePixHrePixM')
 ePixHrePixMAsicBoard = Board(guiTop, cmd, dataWriter, srp)
 if ( args.type == 'dataFile' or args.type == 'SIM' ):
-    ePixHrePixMAsicBoard.start(pollEn=False, pyroGroup=None)
+    ePixHrePixMAsicBoard.start(pollEn=False,timeout=5.0 ,pyroGroup=None)
 else:
     ePixHrePixMAsicBoard.start(pollEn=True, pyroGroup=None)
 guiTop.addTree(ePixHrePixMAsicBoard)

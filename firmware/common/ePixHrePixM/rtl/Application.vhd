@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-11-14
+-- Last update: 2019-04-02
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -660,6 +660,7 @@ begin
 
    U_RdPwrUpRst : entity work.PwrUpRst
    generic map (
+      SIM_SPEEDUP_G  => SIMULATION_G,
       DURATION_G => 20000000
    )
    port map (
@@ -687,7 +688,7 @@ begin
       TPD_G            => 1 ns,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
       COMMON_CLK_G     => false,
-      NUM_ADDR_BITS_G  => 31,
+      NUM_ADDR_BITS_G  => 32,
       PIPE_STAGES_G    => 0)
    port map(
       -- Slave Port
@@ -1070,10 +1071,10 @@ begin
       externalTrigger   => acqStart,
       axilClk           => appClk,
       axilRst           => appRst,
-      sAxilWriteMaster  => mAxiWriteMasters,
-      sAxilWriteSlave   => mAxiWriteSlaves,
-      sAxilReadMaster   => mAxiReadMasters,
-      sAxilReadSlave    => mAxiReadSlaves);
+      sAxilWriteMaster  => mAxiWriteMasters(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilReadMaster   => mAxiReadMasters(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilReadSlave    => mAxiReadSlaves(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C));
 
   --------------------------------------------
   -- ePix HR analog board SPI DACs          --
@@ -1179,6 +1180,7 @@ begin
       generic map (
         TPD_G           => TPD_G,
         NUM_CHANNELS_G  => STREAMS_PER_ASIC_C,
+        SIMULATION_G    => SIMULATION_G,
         DATA_TYPE_G     => "16b20b",
         IODELAY_GROUP_G => "DEFAULT_GROUP",
         XIL_DEVICE_G    => "ULTRASCALE",
@@ -1262,8 +1264,8 @@ begin
       -- AXIS Stream Interface
       axisClk         => sysClk,
       axisRst         => sysRst,
-      axisMaster      => imAxisMasters,
-      axisSlave       => mAxisSlaves,
+      axisMasters     => imAxisMasters,
+      axisSlaves      => mAxisSlaves,
       -- AXI lite slave port for register access
       axilClk         => appClk,  
       axilRst         => appRst,   

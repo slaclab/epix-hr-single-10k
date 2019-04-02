@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-10-08
+-- Last update: 2019-04-02
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -258,7 +258,8 @@ begin  --
   U_App : entity work.Application
       generic map (
          TPD_G => TPD_G,
-         BUILD_INFO_G => BUILD_INFO_G)
+         BUILD_INFO_G => BUILD_INFO_G,
+         SIMULATION_G => true)
       port map (
          ----------------------
          -- Top Level Interface
