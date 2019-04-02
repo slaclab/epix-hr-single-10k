@@ -258,6 +258,7 @@ begin  --
   U_App : entity work.Application
       generic map (
          TPD_G => TPD_G,
+         SIMULATION_G => True,
          BUILD_INFO_G => BUILD_INFO_G)
       port map (
          ----------------------

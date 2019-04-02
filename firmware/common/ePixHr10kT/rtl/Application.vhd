@@ -660,7 +660,8 @@ begin
 
    U_RdPwrUpRst : entity work.PwrUpRst
    generic map (
-      DURATION_G => 20000000
+     SIM_SPEEDUP_G  => SIMULATION_G,
+     DURATION_G => 20000000
    )
    port map (
       clk      => byteClk,
@@ -687,7 +688,7 @@ begin
       TPD_G            => 1 ns,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
       COMMON_CLK_G     => false,
-      NUM_ADDR_BITS_G  => 31,
+      NUM_ADDR_BITS_G  => 32,
       PIPE_STAGES_G    => 0)
    port map(
       -- Slave Port
@@ -1179,6 +1180,7 @@ begin
       generic map (
         TPD_G           => TPD_G,
         NUM_CHANNELS_G  => STREAMS_PER_ASIC_C,
+        SIMULATION_G    => SIMULATION_G,
         DATA_TYPE_G     => "16b20b",
         IODELAY_GROUP_G => "DEFAULT_GROUP",
         XIL_DEVICE_G    => "ULTRASCALE",
