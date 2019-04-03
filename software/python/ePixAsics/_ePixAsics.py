@@ -774,8 +774,9 @@ class EpixHr10kTAsic(pr.Device):
         # CMD = 1, Addr = 1 
         # TODO: fix CompEn so it is one uint register
         self.add((
-            pr.RemoteVariable(name='shvc_DAC',     description='Config1',  offset=0x00001001*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode='RW'),
-            pr.RemoteVariable(name='PulserSync',   description='Config1',  offset=0x00001001*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='RW')))
+            pr.RemoteVariable(name='shvc_DAC',      description='Config1',  offset=0x00001001*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode='RW'),
+            pr.RemoteVariable(name='fastPP_enable', description='Config1',  offset=0x00001001*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode='RW'),
+            pr.RemoteVariable(name='PulserSync',    description='Config1',  offset=0x00001001*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='RW')))
         # CMD = 1, Addr = 2  : Pixel dummy, write data
         self.add((
             pr.RemoteVariable(name='Pll_RO_Reset',    description='Config2',  offset=0x00001002*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
@@ -823,6 +824,7 @@ class EpixHr10kTAsic(pr.Device):
         #                    : Bit  4:1 = TPS_MUX[3:0]
         #                    : Bit  7:5 = RO_Monost[2:0]
         self.add((
+            pr.RemoteVariable(name='trbit',     description='Config8', offset=0x00001008*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
             pr.RemoteVariable(name='TpsMux',    description='Config8', offset=0x00001008*addrSize, bitSize=4, bitOffset=1, base=pr.UInt,  mode='RW'),
             pr.RemoteVariable(name='RoMonost',  description='Config8', offset=0x00001008*addrSize, bitSize=3, bitOffset=5, base=pr.UInt,  mode='RW')))     
 
@@ -852,10 +854,12 @@ class EpixHr10kTAsic(pr.Device):
         # CMD = 1, Addr = 12 : Bit  0   = S2D_tcomp
         #                    : Bit  6:1 = Filter_Dac[5:0]
         self.add((
-            pr.RemoteVariable(name='TS_mux',        description='Config12', offset=0x0000100C*addrSize, bitSize=2, bitOffset=0, base=pr.UInt,  mode='RW'),
-            pr.RemoteVariable(name='TS_clk_sel',    description='Config12', offset=0x0000100C*addrSize, bitSize=1, bitOffset=2, base=pr.Bool, mode='RW'),
-            pr.RemoteVariable(name='CompTH2_DAC',   description='Config12', offset=0x0000100C*addrSize, bitSize=3, bitOffset=3, base=pr.UInt,  mode='RW'),
-            pr.RemoteVariable(name='Vtrim_b',       description='Config12', offset=0x0000100C*addrSize, bitSize=2, bitOffset=6, base=pr.UInt,  mode='RW')))
+            pr.RemoteVariable(name='CompTH_DAC',    description='Config12', offset=0x0000100C*addrSize, bitSize=6, bitOffset=0, base=pr.UInt,  mode='RW')))
+#        self.add((
+#            pr.RemoteVariable(name='TS_mux',        description='Config12', offset=0x0000100C*addrSize, bitSize=2, bitOffset=0, base=pr.UInt,  mode='RW'),
+#            pr.RemoteVariable(name='TS_clk_sel',    description='Config12', offset=0x0000100C*addrSize, bitSize=1, bitOffset=2, base=pr.Bool, mode='RW'),
+#            pr.RemoteVariable(name='CompTH2_DAC',   description='Config12', offset=0x0000100C*addrSize, bitSize=3, bitOffset=3, base=pr.UInt,  mode='RW'),
+#            pr.RemoteVariable(name='Vtrim_b',       description='Config12', offset=0x0000100C*addrSize, bitSize=2, bitOffset=6, base=pr.UInt,  mode='RW')))
 
         # CMD = 1, Addr = 13 : Bit  1:0 = tc[1:0]
         #                    : Bit  4:2 = S2D[2:0]
@@ -889,8 +893,8 @@ class EpixHr10kTAsic(pr.Device):
             pr.RemoteVariable(name='DelCCKReg',      description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=3, base=pr.Bool, mode='RW'),
             pr.RemoteVariable(name='RO_rst_en',      description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=4, base=pr.Bool, mode='RW'),
             pr.RemoteVariable(name='SlvdsBit',       description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=5, base=pr.Bool, mode='RW'),
-            pr.RemoteVariable(name='Pix_Count_T',    description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode='RW'),
-            pr.RemoteVariable(name='Pix_Count_Sel',  description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='RW')))
+            pr.RemoteVariable(name='FELmode',        description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode='RW'),
+            pr.RemoteVariable(name='CompEnOn',       description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='RW')))
 
         # CMD = 1, Addr = 17 : Row start  address[8:0]
         # CMD = 1, Addr = 18 : Row stop  address[8:0]
@@ -918,14 +922,27 @@ class EpixHr10kTAsic(pr.Device):
             pr.RemoteVariable(name='OSRsel',       description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=2, base=pr.Bool, mode='RW'),
             pr.RemoteVariable(name='SecondOrder',  description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=3, base=pr.Bool, mode='RW'),
             pr.RemoteVariable(name='DHg',          description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=4, base=pr.Bool, mode='RW'),
-            pr.RemoteVariable(name='RefGenC',      description='', offset=0x00001017*addrSize, bitSize=2, bitOffset=5, base=pr.UInt, mode='RW')))
+            pr.RemoteVariable(name='RefGenC',      description='', offset=0x00001017*addrSize, bitSize=2, bitOffset=5, base=pr.UInt, mode='RW'),
+            pr.RemoteVariable(name='dbus_del_sel', description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='RW')))
         
         # CMD = 1, Addr = 24
         self.add((
             pr.RemoteVariable(name='SDclk_b',      description='', offset=0x00001018*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode='RW'),
             pr.RemoteVariable(name='SDrst_b',      description='', offset=0x00001018*addrSize, bitSize=4, bitOffset=4, base=pr.UInt, mode='RW')))
+
+        # CMD = 1, Addr = 25
+        self.add((
+            pr.RemoteVariable(name='Filter_DAC',   description='', offset=0x00001019*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode='RW')))
+
+        # CMD = 1, Addr = 26
+        self.add((
+            pr.RemoteVariable(name='CompEn',      description='', offset=0x0000101a*addrSize, bitSize=3, bitOffset=0, base=pr.UInt, mode='RW'),
+            pr.RemoteVariable(name='Pixel_CB',    description='', offset=0x0000101a*addrSize, bitSize=3, bitOffset=3, base=pr.UInt, mode='RW')))
         
-        
+        # CMD = 1, Addr = 27
+        self.add((
+            pr.RemoteVariable(name='rowCK2matrix_delay',   description='', offset=0x0000101b*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode='RW')))
+
         # CMD = 6, Addr = 17 : Row counter[8:0]
         self.add((
             pr.RemoteCommand(name='RowCounter', description='', offset=0x00006011*addrSize, bitSize=9, bitOffset=0, function=pr.Command.touch, hidden=False)))
