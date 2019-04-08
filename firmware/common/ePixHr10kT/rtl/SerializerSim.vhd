@@ -49,8 +49,11 @@ architecture rtl of serializerSim is
 begin
     -- when clk is high output data_h, otherwise output data_l
     -- first conversion contains junk
-    s_data_o_h <= s_data(to_integer(s_cnt_h));
-    s_data_o_l <= s_data(to_integer(s_cnt_l));
+--    s_data_o_h <= s_data(to_integer(s_cnt_h));
+--    s_data_o_l <= s_data(to_integer(s_cnt_l));
+   
+    s_data_o_h <= s_data(to_integer(g_dwidth - 1 - s_cnt_h));
+    s_data_o_l <= s_data(to_integer(g_dwidth - 1 - s_cnt_l));
 
     data_o <= s_data_o_h when clk_i = '1' else s_data_o_l;
 
