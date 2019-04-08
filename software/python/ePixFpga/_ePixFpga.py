@@ -29,6 +29,7 @@ import surf.devices.analog_devices as analog_devices
 import surf.misc
 import surf
 import numpy as np
+import time
 
 try:
     from PyQt5.QtWidgets import *
@@ -163,20 +164,16 @@ class EpixHRGen1ePixM(pr.Device):
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
 
 
-
-
-
-
 #######################################################
 #
-# cryo Tx target
+# ePixHrePixM Tx target
 #
 #######################################################
 
-class EpixHRGen1Cryo(pr.Device):
+class EpixHR10kT(pr.Device):
     def __init__(self, **kwargs):
         if 'description' not in kwargs:
-            kwargs['description'] = "HR Gen1 FPGA"
+            kwargs['description'] = "HR Gen1 FPGA attached to ePixHr and ePix M test board"
       
         trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
         inChaEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
@@ -192,29 +189,31 @@ class EpixHRGen1Cryo(pr.Device):
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
             # app registers
-            MMCM7Registers(                  name='MMCM7Registers',                    offset=0x80000000, expand=False, enabled=False),
-            MMCM7Registers(                  name='MMCMSerdesRegisters',               offset=0x97000000, expand=False, enabled=False),
-            TriggerRegisters(                name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(              name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(              name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(              name='ssiPrbs2PktRegisters',              offset=0x84000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(              name='ssiPrbs3PktRegisters',              offset=0x85000000, expand=False, enabled=False),
-            axi.AxiStreamMonitoring(         name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
-            axi.AxiMemTester(                name='AxiMemTester',                      offset=0x87000000, expand=False, enabled=False),
-            epix.CryoAsic(                   name='CryoAsic0',                         offset=0x88000000, expand=False, enabled=False),
-            CryoAppCoreFpgaRegisters(        name="AppFpgaRegisters",                  offset=0x96000000, expand=False, enabled=False),
-            powerSupplyRegisters(            name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
-            HighSpeedDacRegisters(           name='HSDac',                             offset=0x8A000000, expand=False, enabled=False, HsDacEnum=HsDacEnum),
-            #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
-            sDacRegisters(                   name='SlowDacs'    ,                      offset=0x8C000000, expand=False, enabled=False),
-            OscilloscopeRegisters(           name='Oscilloscope',                      offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
-            MonAdcRegisters(                 name='FastADCsDebug',                     offset=0x8E000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',                offset=0x8F000000, expand=False, enabled=False),
-            SlowAdcRegisters(                name="SlowAdcRegisters",                  offset=0x90000000, expand=False, enabled=False),
-            ProgrammablePowerSupplyCryo(     name="ProgPowerSupply",                   offset=0x92000000, expand=False, enabled=False),
-            ClockJitterCleanerRegisters(     name="Clock Jitter Cleaner",              offset=0x93000000, expand=False, enabled=False),
-            AsicDeserHr12bRegisters(         name="DeserRegisters",                    offset=0x94000000, expand=False, enabled=False), 
-            DigitalPktRegisters(             name="PacketRegisters",                   offset=0x95000000, expand=False, enabled=False)
+            MMCM7Registers(          name='MMCM7Registers',                    offset=0x80000000, expand=False, enabled=False),
+            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, expand=False, enabled=False),
+            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
+            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False, enabled=False),
+            epix.EpixHr10kTAsic(     name='Hr10kTAsic0',                       offset=0x88000000, expand=False, enabled=False),
+            epix.EpixHr10kTAsic(     name='Hr10kTAsic1',                       offset=0x88100000, expand=False, enabled=False),
+            epix.EpixHr10kTAsic(     name='Hr10kTAsic2',                       offset=0x88200000, expand=False, enabled=False),
+            epix.EpixHr10kTAsic(     name='Hr10kTAsic3',                       offset=0x88300000, expand=False, enabled=False),
+            EPixHrePixMAppCoreFpgaRegisters(name="RegisterControl",            offset=0x96000000, expand=False, enabled=False),
+            powerSupplyRegisters(    name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
+            HighSpeedDacRegisters(   name='HSDac',                             offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
+            pr.MemoryDevice(         name='waveformMem',                       offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
+            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8C000000, expand=False, enabled=False),
+            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
+            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8E000000, expand=False, enabled=False),
+            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',        offset=0x8F000000, expand=False, enabled=False),
+            SlowAdcRegisters(            name="SlowAdcRegisters",              offset=0x90000000, expand=False, enabled=False),
+            ProgrammablePowerSupply(     name="ProgPowerSupply",               offset=0x92000000, expand=False, enabled=False),
+            ClockJitterCleanerRegisters( name="Clock Jitter Cleaner",          offset=0x93000000, expand=False, enabled=False),
+            AsicDeserHr16bRegisters(     name="DeserRegisters",                offset=0x94000000, expand=False, enabled=False), 
+            DigitalPktRegisters(         name="PacketRegisters",               offset=0x95000000, expand=False, enabled=False)
             ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -228,7 +227,7 @@ class EpixHRGen1Cryo(pr.Device):
             waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
             if waveform.shape == (1024,):
                 for x in range (0, 1024):
-                    self._rawWrite(offset = (0x86100000 + x * 4),data =  int(waveform[x]))
+                    self.waveformMem._rawWrite(offset = (x * 4),data =  int(waveform[x]))
             else:
                 print('wrong csv file format')
 
@@ -238,8 +237,11 @@ class EpixHRGen1Cryo(pr.Device):
         if os.path.splitext(self.filename)[1] == '.csv':
             readBack = np.zeros((1024),dtype='uint16')
             for x in range (0, 1024):
-                readBack[x] = self._rawRead(offset = (0x86100000 + x * 4))
+                readBack[x] = self.waveformMem._rawRead(offset = (x * 4))
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
+
+
+
 
 
 
@@ -614,8 +616,10 @@ class CryoAppCoreFpgaRegisters(pr.Device):
       self.add(pr.RemoteVariable(name='SaciSyncDelay',   description='SaciSyncDelay',     offset=0x0000016C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='SaciSyncWidth',   description='SaciSyncWidth',     offset=0x00000170, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='SR0Polarity',     description='SR0Polarity',       offset=0x00000174, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-      self.add(pr.RemoteVariable(name='SR0Delay1',       description='SR0Delay1',         offset=0x00000178, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.RemoteVariable(name='SR0Width1',       description='SR0Width1',         offset=0x0000017C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      #self.add(pr.RemoteVariable(name='SR0Delay1',       description='SR0Delay1',         offset=0x00000178, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      #self.add(pr.RemoteVariable(name='SR0Width1',       description='SR0Width1',         offset=0x0000017C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.RemoteVariable(name='SR0Period',       description='',                  offset=0x00000230, bitSize=7, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.RemoteVariable(name='SR0Delay',        description='',                  offset=0x00000234, bitSize=7, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='Vid',             description='Vid',               offset=0x00000180, bitSize=1,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))    
       self.add(pr.RemoteVariable(name='AcqCnt',          description='AcqCnt',            offset=0x00000200, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='SaciPrepRdoutCnt',description='SaciPrepRdoutCnt',  offset=0x00000204, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
@@ -908,15 +912,22 @@ class HighSpeedDacRegisters(pr.Device):
       #Setup registers & variables
       
       self.add((
-         pr.RemoteVariable(name='WFEnabled',       description='Enable waveform generation',                  offset=0x00000000, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='run',             description='Generates waveform when true',                offset=0x00000000, bitSize=1,   bitOffset=1,   base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='externalUpdateEn',description='Updates value on AcqStart',                   offset=0x00000000, bitSize=1,   bitOffset=2,   base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='samplingCounter', description='Sampling period (>269, times 1/clock ref. 156MHz)', offset=0x00000004, bitSize=12,   bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',               offset=0x00000008, bitSize=16,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
-         pr.RemoteVariable(name='DacChannel',      description='Select the DAC channel to use',               offset=0x00000008, bitSize=2,   bitOffset=16,  mode='RW', enum=HsDacEnum)))
+         pr.RemoteVariable(name='WFEnabled',       description='Enable waveform generation',                        offset=0x00000000, bitSize=1,   bitOffset=0,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='run',             description='Generates waveform when true',                      offset=0x00000000, bitSize=1,   bitOffset=1,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='externalUpdateEn',description='Updates value on AcqStart',                         offset=0x00000000, bitSize=1,   bitOffset=2,   base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='waveformSource',  description='Selects between custom wf or internal ramp',        offset=0x00000000, bitSize=2,   bitOffset=3,   base=pr.UInt, mode='RW'),
+         pr.RemoteVariable(name='samplingCounter', description='Sampling period (>269, times 1/clock ref. 156MHz)', offset=0x00000004, bitSize=12,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW'),
+         pr.RemoteVariable(name='DacValue',        description='Set a fixed value for the DAC',                     offset=0x00000008, bitSize=16,  bitOffset=0,   base=pr.UInt, disp = '{:#x}', mode='RW')
+         ))
       
       self.add((pr.LinkVariable  (name='DacValueV' ,      linkedGet=self.convtFloat,        dependencies=[self.DacValue])));
       
+      self.add((
+         pr.RemoteVariable(name='DacChannel',      description='Select the DAC channel to use',                     offset=0x00000008, bitSize=2,   bitOffset=16,  mode='RW', enum=HsDacEnum),
+         pr.RemoteVariable(name='rCStartValue',    description='Internal ramp generator start value',               offset=0x00000010, bitSize=16,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW'),
+         pr.RemoteVariable(name='rCStopValue',     description='Internal ramp generator stop value',                offset=0x00000014, bitSize=16,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW'),
+         pr.RemoteVariable(name='rCStep',          description='Internal ramp generator step value',                offset=0x00000018, bitSize=16,  bitOffset=0,   base=pr.UInt, disp = '{}', mode='RW')
+         ))
       #####################################
       # Create commands
       #####################################
@@ -1472,19 +1483,25 @@ class DigitalPktRegisters(pr.Device):
       
       #Setup registers & variables
       
-      self.add(pr.RemoteVariable(name='FrameCount',      description='FrameCount',     offset=0x00000000, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='FrameSize',       description='FrameSize',      offset=0x00000004, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='FrameMaxSize',    description='FrameMaxSize',   offset=0x00000008, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='FrameMinSize',    description='FrameMinSize',   offset=0x0000000C, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='SofErrors',       description='SofErrors',      offset=0x00000010, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='EofErrors',       description='EofErrors',      offset=0x00000014, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='OverflowErrors',  description='OverflowErrors', offset=0x00000018, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='TestMode',        description='TestMode',       offset=0x0000001C, bitSize=1,   bitOffset=0, base=pr.Bool, mode='RW'))
-      self.add(pr.RemoteVariable(name='StreamDataMode',  description='Streams data cont.',  offset=0x00000020, bitSize=1,   bitOffset=0, base=pr.Bool, mode='RW'))
-      self.add(pr.RemoteVariable(name='StopDataTx',      description='Interrupt data stream',  offset=0x00000020, bitSize=1,   bitOffset=1, base=pr.Bool, mode='RW'))
-      self.add(pr.RemoteVariable(name='ResetCounters',   description='ResetCounters',  offset=0x00000024, bitSize=1,   bitOffset=0, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='FrameCount',      description='FrameCount',                                  offset=0x00000000, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameSize',       description='FrameSize',                                   offset=0x00000004, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameMaxSize',    description='FrameMaxSize',                                offset=0x00000008, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameMinSize',    description='FrameMinSize',                                offset=0x0000000C, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='SofErrors',       description='SofErrors',                                   offset=0x00000010, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='EofErrors',       description='EofErrors',                                   offset=0x00000014, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='OverflowErrors',  description='OverflowErrors',                              offset=0x00000018, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='TestModeCh0',     description='TestMode',                                    offset=0x0000001C, bitSize=1,   bitOffset=0, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='TestModeCh1',     description='TestMode',                                    offset=0x0000001C, bitSize=1,   bitOffset=1, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='forceAdcData',    description='TestMode',                                    offset=0x0000001C, bitSize=1,   bitOffset=2, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='decDataBitOrder', description='when enabled reverse bit order',              offset=0x0000001C, bitSize=1,   bitOffset=3, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='decBypass',       description='bypass decoder to display 14 bit data.',      offset=0x0000001C, bitSize=1,   bitOffset=4, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='StreamDataMode',  description='Streams data cont.',                          offset=0x00000020, bitSize=1,   bitOffset=0, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='StopDataTx',      description='Interrupt data stream',                       offset=0x00000020, bitSize=1,   bitOffset=1, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='ResetCounters',   description='ResetCounters',                               offset=0x00000024, bitSize=1,   bitOffset=0, base=pr.Bool, mode='WO'))
       self.add(pr.RemoteVariable(name='asicDataReq',     description='Number of samples requested per ADC stream.', offset=0x00000028, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      
+      #self.add(pr.RemoteVariable(name='adcIndexOffset',  description='Changes the sequence where adc are readout',  offset=0x0000002C, bitSize=5,   bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      #self.add(pr.RemoteVariable(name='DecData0',        description='Decoded data',                                offset=0x00000080, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      #self.add(pr.RemoteVariable(name='DecData1',        description='Decoded data',                                offset=0x00000084, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))      
 
 
 
@@ -1695,7 +1712,7 @@ class AsicDeserHr16bRegisters(pr.Device):
 ############################################################################
 class AsicDeserHr12bRegisters(pr.Device):
    def __init__(self, **kwargs):
-      super().__init__(description='7 Series 20 bit Deserializer Registers', **kwargs)
+      super().__init__(description='Ultrascale Series 14 bit Deserializer Registers', **kwargs)
       
       # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
       # contains this object. In most cases the parent and memBase are the same but they can be 
@@ -1711,23 +1728,35 @@ class AsicDeserHr12bRegisters(pr.Device):
       #Setup registers & variables
       self.add(pr.RemoteVariable(name='StreamsEn_n',  description='Enable/Disable', offset=0x00000000, bitSize=2,  bitOffset=0,  base=pr.UInt, mode='RW'))    
       self.add(pr.RemoteVariable(name='Resync',       description='Resync',         offset=0x00000004, bitSize=1,  bitOffset=0,  base=pr.Bool, verify = False, mode='RW'))
-      self.add(pr.RemoteVariable(name='Delay0',       description='Delay',          offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='Delay1',       description='Delay',          offset=0x00000014, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+
+
+      self.add(pr.RemoteVariable(name='Delay0_', description='Data ADC Idelay3 value', offset=0x00000010, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='Delay0',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay0_]))
+      #self.add(pr.RemoteVariable(name='Delay0',       description='Delay',          offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      #self.add(pr.RemoteVariable(name='SerDesDelay0', description='DelayValue',     offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW', verify = False))
+      #self.add(pr.RemoteVariable(name='DelayEn0',     description='EnValueUpdate',  offset=0x00000010, bitSize=1,  bitOffset=9,  base=pr.Bool, verify = False, mode='RW'))
+
       self.add(pr.RemoteVariable(name='LockErrors0',  description='LockErrors',     offset=0x00000030, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='Locked0',      description='Locked',         offset=0x00000030, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
-##      self.add(pr.RemoteVariable(name='LockErrors1',  description='LockErrors',     offset=0x00000034, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
-##      self.add(pr.RemoteVariable(name='Locked1',      description='Locked',         offset=0x00000034, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
-      self.add(pr.RemoteVariable(name='SerDesDelay0', description='DelayValue',     offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.RemoteVariable(name='DelayEn0',     description='EnValueUpdate',  offset=0x00000010, bitSize=1,  bitOffset=9,  base=pr.Bool, verify = False, mode='RW'))
-      self.add(pr.RemoteVariable(name='SerDesDelay1', description='DelayValue',     offset=0x00000014, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.RemoteVariable(name='DelayEn1',     description='EnValueUpdate',  offset=0x00000014, bitSize=1,  bitOffset=9,  base=pr.Bool, verify = False, mode='RW'))
+      self.add(pr.RemoteVariable(name='Locked0',      description='Locked',         offset=0x00000030, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))      
       
+      self.add(pr.RemoteVariable(name='Delay1_', description='Data ADC Idelay3 value', offset=0x00000014, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='Delay1',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay1_]))
+      #self.add(pr.RemoteVariable(name='Delay1',       description='Delay',          offset=0x00000014, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      #self.add(pr.RemoteVariable(name='SerDesDelay1', description='DelayValue',     offset=0x00000014, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW', verify = False))
+      #self.add(pr.RemoteVariable(name='DelayEn1',     description='EnValueUpdate',  offset=0x00000014, bitSize=1,  bitOffset=9,  base=pr.Bool, verify = False, mode='RW'))
+
+      self.add(pr.RemoteVariable(name='LockErrors1',  description='LockErrors',     offset=0x00000034, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='Locked1',      description='Locked',         offset=0x00000034, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))      
       for i in range(0, 2):
          self.add(pr.RemoteVariable(name='IserdeseOutA'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
          self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=16, base=pr.UInt, disp = '{:#x}', mode='RO'))
 
-      self.add(AsicDeser14bDataRegisters(name='tenbData_ser0',      offset=0x00000100, expand=False))
-      self.add(AsicDeser14bDataRegisters(name='tenbData_ser1',      offset=0x00000200, expand=False))
+      self.add(pr.RemoteVariable(name='BERTRst',      description='Restart BERT',         offset=0x000000A0, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))      
+      for i in range(0, 2):
+         self.add(pr.RemoteVariable(name='BERTCounter'+str(i),   description='Counter value.'+str(i),  offset=0x000000A4+i*8, bitSize=44, bitOffset=0, base=pr.UInt,  disp = '{}', mode='RO'))
+
+      self.add(AsicDeser14bDataRegisters(name='14bData_ser0',      offset=0x00000100, expand=False))
+      self.add(AsicDeser14bDataRegisters(name='14bData_ser1',      offset=0x00000200, expand=False))
       #####################################
       # Create commands
       #####################################
@@ -1737,57 +1766,78 @@ class AsicDeserHr12bRegisters(pr.Device):
       # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
       # A command can also be a call to a local function with local scope.
       # The command object and the arg are passed
+      self.add(pr.LocalCommand(name='InitAdcDelay',description='Find and set best delay for the adc channels', function=self.fnSetFindAndSetDelays))
+      
 
-      self.add(
-            pr.LocalCommand(name='TuneSerialDelay',description='Tune serial data delay', function=self.fnEvaluateSerDelay))
+   def fnSetFindAndSetDelays(self,dev,cmd,arg):
+       """Find and set Monitoring ADC delays"""
+       parent = self.parent
+       numDelayTaps = 512
 
-   def fnEvaluateSerDelay(self, dev,cmd,arg):
-        """SetPixelBitmap command function"""
-        addrSize = 4
-        #set r0mode in order to have saci cmd to work properly on legacy firmware
-        self.root.ePix100aFPGA.EpixFpgaRegisters.AsicR0Mode.set(True)
+       print("Executing delay test for cryo")
 
-        if (self.enable.get()):
-            self.reportCmd(dev,cmd,arg)
-            if len(arg) > 0:
-                self.filename = arg
-            else:
-                self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-            if os.path.splitext(self.filename)[1] == '.csv':
-                matrixCfg = np.genfromtxt(self.filename, delimiter=',')
-                if matrixCfg.shape == (354, 384):
-                    self._rawWrite(0x00000000*addrSize,0)
-                    self._rawWrite(0x00008000*addrSize,0)
-                    for x in range (0, 354):
-                        for y in range (0, 384):
-                            bankToWrite = int(y/96);
-                            if (bankToWrite == 0):
-                               colToWrite = 0x700 + y%96;
-                            elif (bankToWrite == 1):
-                               colToWrite = 0x680 + y%96;
-                            elif (bankToWrite == 2):
-                               colToWrite = 0x580 + y%96;
-                            elif (bankToWrite == 3):
-                               colToWrite = 0x380 + y%96;
-                            else:
-                               print('unexpected bank number')
-                            self._rawWrite(0x00006011*addrSize, x)
-                            self._rawWrite(0x00006013*addrSize, colToWrite) 
-                            self._rawWrite(0x00005000*addrSize, (int(matrixCfg[x][y])))
-                    self._rawWrite(0x00000000*addrSize,0)
-                else:
-                    print('csv file must be 384x354 pixels')
-            else:
-                print("Not csv file : ", self.filename)
-        else:
-            print("Warning: ASIC enable is set to False!")   
+       self.testResult0 = np.zeros(numDelayTaps)
+       self.testDelay0  = np.zeros(numDelayTaps)
+       #check adc 0
+       for delay in range (0, numDelayTaps):
+           self.Delay0.set(delay)
+           self.testDelay0[delay] = self.Delay0.get()
+           self.Resync.set(True)
+           self.Resync.set(False)
+           time.sleep(1.0 / float(100))
+           self.testResult0[delay] = ((self.IserdeseOutA0.get()==0x3407)or(self.IserdeseOutA0.get()==0xBF8)) 
+       print("Test result adc 0:")
+       print(self.testResult0*self.testDelay0)
 
-   
+       #check adc 1   
+       self.testResult1 = np.zeros(numDelayTaps)
+       self.testDelay1  = np.zeros(numDelayTaps)
+       for delay in range (0, numDelayTaps):
+           self.Delay1.set(delay)
+           self.testDelay1[delay] = self.Delay1.get()
+           self.Resync.set(True)
+           self.Resync.set(False)
+           time.sleep(1.0 / float(100))
+           self.testResult1[delay] = ((self.IserdeseOutA1.get()==0x3407)or(self.IserdeseOutA1.get()==0xBF8)) 
+       print("Test result adc 1:")     
+       print(self.testResult1*self.testDelay1)
+       
+       self.resultArray0 =  np.zeros(numDelayTaps)
+       self.resultArray1 =  np.zeros(numDelayTaps)
+       for i in range(1, numDelayTaps):
+           if (self.testResult0[i] != 0):
+               self.resultArray0[i] = self.resultArray0[i-1] + self.testResult0[i]
+           if (self.testResult1[i] != 0):
+               self.resultArray1[i] = self.resultArray1[i-1] + self.testResult1[i]
+       self.longestDelay0 = np.where(self.resultArray0==np.max(self.resultArray0))
+       if len(self.longestDelay0[0])==1:
+           self.sugDelay0 = int(self.longestDelay0[0]) - int(self.resultArray0[self.longestDelay0]/2)
+       else:
+           self.sugDelay0 = int(self.longestDelay0[0][0]) - int(self.resultArray0[self.longestDelay0[0][0]]/2)
+       self.longestDelay1 = np.where(self.resultArray1==np.max(self.resultArray1))
+       if len(self.longestDelay1[0])==1:
+           self.sugDelay1 = int(self.longestDelay1[0]) - int(self.resultArray1[self.longestDelay1]/2)
+       else:
+           self.sugDelay1 = int(self.longestDelay1[0][0]) - int(self.resultArray1[self.longestDelay1[0][0]]/2)
+       print("Suggested delay_0: " + str(self.sugDelay0))     
+       print("Suggested delay_1: " + str(self.sugDelay1))     
+
+
    @staticmethod   
    def frequencyConverter(self):
       def func(dev, var):         
          return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
       return func
+
+   @staticmethod   
+   def setDelay(var, value, write):
+      iValue = value + 512
+      var.dependencies[0].set(iValue, write)
+      var.dependencies[0].set(value, write)
+
+   @staticmethod   
+   def getDelay(var, read):
+      return var.dependencies[0].get(read)
 
 
 class AsicDeser10bDataRegisters(pr.Device):
@@ -1814,6 +1864,6 @@ class AsicDeser14bDataRegisters(pr.Device):
       
       #Setup registers & variables  
       for i in range(0, 8):
-         self.add(pr.RemoteVariable(name='rawData_'+str(i),   description='Sample N_'+str(i),  offset=0x00000000+i*4, bitSize=14, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
+         self.add(pr.RemoteVariable(name='14bData_'+str(i),   description='Sample N_'+str(i),  offset=0x00000000+i*4, bitSize=14, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
 
       
