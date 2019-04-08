@@ -49,15 +49,12 @@ try:
     from PyQt5.QtCore    import *
     from PyQt5.QtGui     import *
 except ImportError:
-    import PyQt4.QtCore    
-    import PyQt4.QtGui     
+    from PyQt4.QtCore    import *
+    from PyQt4.QtGui     import *
 
 
 # Set the argument parser
 parser = argparse.ArgumentParser()
-
-# Convert str to bool
-argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
 
 # Add arguments
 parser.add_argument(
@@ -237,11 +234,11 @@ if (args.verbose): dbgData.setDebug(60, "DATA Verbose 3[{}]".format(0))
 if (args.verbose): pyrogue.streamTap(pgpL3Vc0, dbgData)
 
 # Create GUI
-appTop = PyQt4.QtGui.QApplication(sys.argv)
+appTop = QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='ePixHrePixM')
 ePixHrePixMAsicBoard = Board(guiTop, cmd, dataWriter, srp)
 if ( args.type == 'dataFile' or args.type == 'SIM' ):
-    ePixHrePixMAsicBoard.start(pollEn=False,timeout=5.0 ,pyroGroup=None)
+    ePixHrePixMAsicBoard.start(pollEn=False, pyroGroup=None)
 else:
     ePixHrePixMAsicBoard.start(pollEn=True, pyroGroup=None)
 guiTop.addTree(ePixHrePixMAsicBoard)
