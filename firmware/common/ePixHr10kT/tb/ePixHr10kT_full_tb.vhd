@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2019-04-05
+-- Last update: 2019-04-08
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -263,6 +263,10 @@ architecture arch of ePixHr10kT_full_tb is
   signal dClkN : sl := '0';
   signal fClkP : sl := '0'; -- Frame clock
   signal fClkN : sl := '1';
+  signal serData1_20b : slv(19 downto 0);
+  signal serData1_10b : slv( 9 downto 0);
+  signal serData2_20b : slv(19 downto 0);
+  signal serData2_10b : slv( 9 downto 0);
   signal serialDataOut1 : sl;
   signal serialDataOut2 : sl;
   signal chId           : slv(15 downto 0);
@@ -392,7 +396,7 @@ begin  --
     else
       EncDataIn <= IDLE_PATTERN_C;
     end if;
-    EncDataOut_d(0) <= EncDataOutRev;
+    EncDataOut_d(0) <= EncDataOut;
     for i in 1 to 7 loop
       EncDataOut_d(i) <= EncDataOut_d(i-1);
     end loop;
@@ -417,26 +421,31 @@ begin  --
       readyOut => EncReadyOut,
       dataOut  => EncDataOut);
 
+  serData1_20b <= EncDataOut_d(0);
+  serData1_10b <= serData1_20b(19 downto 10) when fClkP = '1' else serData1_20b(9 downto 0);
+  serData2_20b <= EncDataOut_d(7);
+  serData2_10b <= serData2_20b(19 downto 10) when fClkP = '1' else serData2_20b(9 downto 0);
+  
   U_serializer :  entity work.serializerSim 
     generic map(
-        g_dwidth => 20 
+        g_dwidth => 10 
     )
     port map(
         clk_i     => dClkP,
         reset_n_i => sysRst_n,
-        data_i    => EncDataOut_d(0),        -- "00"&EncDataIn, --
+        data_i    => serData1_10b,        -- "00"&EncDataIn, --
         data_o    => serialDataOut1
     );
 
 
   U_serializer2 :  entity work.serializerSim 
     generic map(
-        g_dwidth => 20 
+        g_dwidth => 10 
     )
     port map(
         clk_i     => dClkP,
         reset_n_i => sysRst_n,
-        data_i    => EncDataOut_d(7),        -- "00"&EncDataIn, --
+        data_i    => serData2_10b,        -- "00"&EncDataIn, --
         data_o    => serialDataOut2
     );
 
