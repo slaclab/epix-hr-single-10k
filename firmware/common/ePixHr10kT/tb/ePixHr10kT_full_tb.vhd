@@ -396,7 +396,7 @@ begin  --
     else
       EncDataIn <= IDLE_PATTERN_C;
     end if;
-    EncDataOut_d(0) <= EncDataOut;
+    EncDataOut_d(0) <= EncDataOutRev;
     for i in 1 to 7 loop
       EncDataOut_d(i) <= EncDataOut_d(i-1);
     end loop;
