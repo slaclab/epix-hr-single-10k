@@ -247,9 +247,6 @@ begin
     WAVEFORM_MEM_0: entity work.AxiDualPortRam 
         generic map(
             TPD_G            => 1 ns,
-            BRAM_EN_G        => true,
-            REG_EN_G         => true,
-            MODE_G           => "read-first",
             AXI_WR_EN_G      => true,
             SYS_WR_EN_G      => false,
             SYS_BYTE_WR_EN_G => false,

@@ -1266,8 +1266,8 @@ begin
       -- AXIS Stream Interface
       axisClk         => sysClk,
       axisRst         => sysRst,
-      axisMasters      => imAxisMasters,
-      axisSlaves       => mAxisSlaves,
+      axisMasters     => imAxisMasters,
+      axisSlaves      => mAxisSlaves,
       -- AXI lite slave port for register access
       axilClk         => appClk,  
       axilRst         => appRst,   

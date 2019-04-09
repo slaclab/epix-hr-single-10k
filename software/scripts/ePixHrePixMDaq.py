@@ -17,14 +17,19 @@
 # copied, modified, propagated, or distributed except according to the terms 
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
-import rogue.hardware.pgp
+import setupLibPaths
+import pyrogue as pr
 import pyrogue.utilities.prbs
 import pyrogue.utilities.fileio
-
-import pyrogue as pr
 import pyrogue.interfaces.simulation
 import pyrogue.gui
+import rogue.hardware.pgp
+import rogue.protocols
 import surf
+import surf.axi
+import surf.protocols.ssi
+from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3 import *
+
 import threading
 import signal
 import atexit
@@ -35,14 +40,6 @@ import sys
 #import testBridge
 import ePixViewer as vi
 import ePixFpga as fpga
-
-#import pyrogue.utilities.prbs
-#import pyrogue.utilities.fileio
-
-import surf
-import surf.axi
-import surf.protocols.ssi
-from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3 import *
 
 try:
     from PyQt5.QtWidgets import *
@@ -79,7 +76,8 @@ parser.add_argument(
     required = False,
     default  = 'True',
     help     = "true to show gui",
-)  
+)
+ 
 
 parser.add_argument(
     "--verbose", 
@@ -88,6 +86,14 @@ parser.add_argument(
     default  = False,
     help     = "true for verbose printout",
 )  
+
+parser.add_argument(
+    "--tcpPort", 
+    type     = int,
+    required = False,
+    default  = 13000,
+    help     = "same port defined in the vhdl testbench",
+)
 
 # Get the arguments
 args = parser.parse_args()
@@ -120,12 +126,12 @@ elif ( args.type == 'kcu1500' ):
 elif ( args.type == 'SIM' ):          
     print('Sim mode')
     rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
-    pgpL0Vc0 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=1, ssi=True)
-    pgpL0Vc1 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=1, ssi=True)
-    pgpL0Vc2 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=2, uid=1, ssi=True)
-    pgpL0Vc3 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=3, uid=1, ssi=True)
-    pgpL2Vc0 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=2, ssi=True)
-    pgpL3Vc0 = pyrogue.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=3, ssi=True)
+    pgpL0Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*0) # VC0
+    pgpL0Vc1  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*1) # VC1
+    pgpL0Vc2  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*2) # VC2
+    pgpL0Vc3  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*3) # VC3    
+    pgpL2Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*2)+2*0) # L2VC0    
+    pgpL3Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*3)+2*0) # L3VC0
     
 elif ( args.type == 'dataFile' ):
     print("Bypassing hardware.")
@@ -260,11 +266,7 @@ if (args.start_gui=='True'):
     appTop.exec_()
 
 # Close window and stop polling
-def stop():
-    mNode.stop()
-    ePixHrePixMAsicBoard.stop()
-    exit()
+ePixHrePixMAsicBoard.stop()
+exit()
 
-# Start with: ipython -i scripts/epix10kaDAQ.py for interactive approach
-print("Started rogue mesh and epics V3 server. To exit type stop()")
 

@@ -88,6 +88,14 @@ parser.add_argument(
     required = False,
     default  = False,
     help     = "true for verbose printout",
+)
+
+parser.add_argument(
+    "--tcpPort", 
+    type     = int,
+    required = False,
+    default  = 13000,
+    help     = "same port defined in the vhdl testbench",
 )  
 
 # Get the arguments
@@ -122,12 +130,12 @@ elif ( args.type == 'SIM' ):
     print('Sim mode')
     simPort = 11000
     rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
-    pgpL0Vc0  = rogue.interfaces.stream.TcpClient('localhost',simPort+(34*0)+2*0) # VC0
-    pgpL0Vc1  = rogue.interfaces.stream.TcpClient('localhost',simPort+(34*0)+2*1) # VC1
-    pgpL0Vc2  = rogue.interfaces.stream.TcpClient('localhost',simPort+(34*0)+2*2) # VC2
-    pgpL0Vc3  = rogue.interfaces.stream.TcpClient('localhost',simPort+(34*0)+2*3) # VC3    
-    pgpL2Vc0  = rogue.interfaces.stream.TcpClient('localhost',simPort+(34*2)+2*0) # L2VC0    
-    pgpL3Vc0  = rogue.interfaces.stream.TcpClient('localhost',simPort+(34*3)+2*0) # L3VC0
+    pgpL0Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*0) # VC0
+    pgpL0Vc1  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*1) # VC1
+    pgpL0Vc2  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*2) # VC2
+    pgpL0Vc3  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*3) # VC3    
+    pgpL2Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*2)+2*0) # L2VC0    
+    pgpL3Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*3)+2*0) # L3VC0
     
 elif ( args.type == 'dataFile' ):
     print("Bypassing hardware.")
@@ -262,7 +270,6 @@ if (args.start_gui=='True'):
     appTop.exec_()
 
 # Close window and stop polling
-mNode.stop()
 ePixHrePixMAsicBoard.stop()
 exit()
 

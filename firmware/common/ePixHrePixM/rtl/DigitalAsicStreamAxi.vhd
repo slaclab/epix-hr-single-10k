@@ -423,7 +423,7 @@ begin
       axiSlaveDefault(regCon, rv.sAxilWriteSlave, rv.sAxilReadSlave, AXIL_ERR_RESP_G);
       
       -- axi stream logic
-      
+
       -- sync acquisition number
       sv.acqNo(0) := acqNoSync;
       

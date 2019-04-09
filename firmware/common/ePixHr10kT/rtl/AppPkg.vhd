@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-04-01
+-- Last update: 2019-04-09
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -55,7 +55,6 @@ package AppPkg is
    constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 21;
    --constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 2x;
    constant APP_REG_AXI_INDEX_C            : natural := 22;
-   
    
    constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"80000000";--0
    constant TRIG_REG_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"81000000";--1

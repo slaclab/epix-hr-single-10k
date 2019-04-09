@@ -660,8 +660,8 @@ begin
 
    U_RdPwrUpRst : entity work.PwrUpRst
    generic map (
-      SIM_SPEEDUP_G  => SIMULATION_G,
-      DURATION_G => 20000000
+     SIM_SPEEDUP_G  => SIMULATION_G,
+     DURATION_G => 20000000
    )
    port map (
       clk      => byteClk,
