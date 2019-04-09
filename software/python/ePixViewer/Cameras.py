@@ -39,7 +39,7 @@ except ImportError:
     from PyQt4.QtCore    import *
     from PyQt4.QtGui     import *
 
-PRINT_VERBOSE = 0
+PRINT_VERBOSE = 1
 
 # define global constants
 NOCAMERA   = 0
@@ -777,7 +777,7 @@ class Camera():
         #return parameters
         return [frameComplete, readyForDisplay, returnedRawData]
 
-    EPIXHR10kT
+
     def _buildFrameEpix10kTImage(self, currentRawData, newRawData):
         """ Performs the epixM32 frame building.
             For this sensor the image takes two frames
@@ -1093,11 +1093,7 @@ class Camera():
         # returns final image
         return np.transpose(imgDesc)
 
-    # helper functions
-    def _calcImgWidth(self):
-        return self._NumAsicsPerSide * self._NumAdcChPerAsic * self._NumColPerAdcCh
-
-    def _descrambleEpix10kTImage(self, rawData):
+    def _descrambleEpixHR10kTImage(self, rawData):
         """performs the Epix10kT image descrambling """
         if (len(rawData)==2):
             #if (PRINT_VERBOSE): print('raw data 0:', rawData[0,0:10])
@@ -1116,3 +1112,7 @@ class Camera():
             imgDesc = np.zeros((64,64), dtype='uint16')
         # returns final image
         return imgDesc
+
+    # helper functions
+    def _calcImgWidth(self):
+        return self._NumAsicsPerSide * self._NumAdcChPerAsic * self._NumColPerAdcCh

@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-04-01
+-- Last update: 2019-04-09
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -1140,6 +1140,8 @@ begin
           TPD_G                => TPD_G,
           NUM_SLAVES_G         => 2,
           PIPE_STAGES_G        => 0,
+          MODE_G               =>"ROUTED",
+          TDEST_ROUTES_G       => (0=>x"01", 1=>x"00"),
           TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
           ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
           ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
