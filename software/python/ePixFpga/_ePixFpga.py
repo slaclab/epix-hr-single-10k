@@ -1664,7 +1664,7 @@ class AsicDeserHr16bRegisters(pr.Device):
        numDelayTaps = 512
        self.IDLE_PATTERN1 = 0xAAA83
        self.IDLE_PATTERN2 = 0xAA97C
-       print("Executing delay test for cryo")
+       print("Executing delay test for ePixHr")
 
        self.testResult0 = np.zeros(numDelayTaps)
        self.testDelay0  = np.zeros(numDelayTaps)
