@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-11-15
+-- Last update: 2019-04-10
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -202,7 +202,7 @@ begin
       IDATAIN => sData_i,         -- 1-bit input: Data input from the IOBUF
       INC => '0',                 -- 1-bit input: Increment / Decrement tap delay input
       LOAD => loadDelay,               -- 1-bit input: Load DELAY_VALUE input
-      RST => adcClkRst                  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+      RST => '0'                  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       );    
    
   ----------------------------------------------------------------------------

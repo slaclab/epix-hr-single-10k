@@ -2,7 +2,7 @@
 -- File       : Hr12bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-03-02
+-- Last update: 2019-04-10
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -75,8 +75,6 @@ architecture rtl of Hr12bAdcDeserializerUSVsA is
   -------------------------------------------------------------------------------------------------
   -- ADC Readout Clocked Registers
   -------------------------------------------------------------------------------------------------
-
-  type StateType is (IDLE_S, WAIT_IDELAY_CTRL_RDY_S, LOAD_VALUE_S, WAIT_LOAD_S, LOAD_PULSE_S ,WAIT_READ_S, READ_VALUE_S);
 
   type AdcClkDiv4RegType is record
     masterData         : slv(7 downto 0);
