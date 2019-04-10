@@ -1640,8 +1640,9 @@ class AsicDeserHr16bRegisters(pr.Device):
 
       for i in range(0, 2):
          self.add(pr.RemoteVariable(name='IserdeseOutA'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=20, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
-         self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000088+i*4, bitSize=20, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
 
+      for i in range(0, 2):
+         self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000088+i*4, bitSize=20, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
       self.add(AsicDeser10bDataRegisters(name='tenbData_ser0',      offset=0x00000100, expand=False))
       self.add(AsicDeser10bDataRegisters(name='tenbData_ser1',      offset=0x00000200, expand=False))
       #####################################
@@ -1661,7 +1662,8 @@ class AsicDeserHr16bRegisters(pr.Device):
        """Find and set Monitoring ADC delays"""
        parent = self.parent
        numDelayTaps = 512
-
+       self.IDLE_PATTERN1 = 0xAAA83
+       self.IDLE_PATTERN2 = 0xAA97C
        print("Executing delay test for cryo")
 
        self.testResult0 = np.zeros(numDelayTaps)
@@ -1673,7 +1675,7 @@ class AsicDeserHr16bRegisters(pr.Device):
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
-           self.testResult0[delay] = ((self.IserdeseOutA0.get()==0x3407)or(self.IserdeseOutA0.get()==0xBF8)) 
+           self.testResult0[delay] = ((self.IserdeseOutA0.get()==self.IDLE_PATTERN1)or(self.IserdeseOutA0.get()==self.IDLE_PATTERN2)) 
        print("Test result adc 0:")
        print(self.testResult0*self.testDelay0)
 
@@ -1686,7 +1688,7 @@ class AsicDeserHr16bRegisters(pr.Device):
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
-           self.testResult1[delay] = ((self.IserdeseOutA1.get()==0x3407)or(self.IserdeseOutA1.get()==0xBF8)) 
+           self.testResult1[delay] = ((self.IserdeseOutA1.get()==self.IDLE_PATTERN1)or(self.IserdeseOutA1.get()==self.IDLE_PATTERN2)) 
        print("Test result adc 1:")     
        print(self.testResult1*self.testDelay1)
        
