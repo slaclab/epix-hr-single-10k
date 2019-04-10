@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-11-16
+-- Last update: 2019-04-10
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -261,8 +261,10 @@ begin
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
-         v.readoutDebug0 := debugDataTmp;
-         v.readoutDebug1 := axilR.readoutDebug0;
+         v.readoutDebug0(0) := debugDataTmp(0);
+         v.readoutDebug0(1) := axilR.readoutDebug0(0);
+         v.readoutDebug1(0) := debugDataTmp(1);
+         v.readoutDebug1(1) := axilR.readoutDebug1(0);
       end if;
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -292,10 +294,11 @@ begin
       axiSlaveRegister(axilEp, X"50", 0, v.lockedCountRst);
 
       -- Debug registers. Output the last 2 words received
-      for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 0, axilR.readoutDebug0(i));
-         axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 16, axilR.readoutDebug1(i));
-      end loop;
+      axiSlaveRegisterR(axilEp, X"80"+toSlv((0*4), 8), 0, axilR.readoutDebug0(0));
+      axiSlaveRegisterR(axilEp, X"80"+toSlv((1*4), 8), 0, axilR.readoutDebug0(1));
+      axiSlaveRegisterR(axilEp, X"80"+toSlv((2*4), 8), 0, axilR.readoutDebug1(0));
+      axiSlaveRegisterR(axilEp, X"80"+toSlv((3*4), 8), 0, axilR.readoutDebug1(1));
+      
 
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
 
@@ -331,14 +334,15 @@ begin
    -- Data Input, 8 channels
    --------------------------------
    GenData : for i in NUM_CHANNELS_G-1 downto 0 generate
-     
-
+      signal dataDelaySet : slv(NUM_CHANNELS_G-1 downto 0);
+      signal dataDelay    : slv9Array(NUM_CHANNELS_G-1 downto 0);     
+   begin
       U_DATA_DESERIALIZER : entity work.Hr16bAdcDeserializer
       generic map (
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => NUM_CHANNELS_G,
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
-        IDELAYCTRL_FREQ_G => 300.0,
+        IDELAYCTRL_FREQ_G => 200.0,
         DEFAULT_DELAY_G   => (others => '0'),
         FRAME_PATTERN_G   => "00000000001111111111",
         ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
@@ -351,8 +355,8 @@ begin
         dClkDiv5      => byteClk,
         sDataP        => adcSerial.chP(i),                       
         sDataN        => adcSerial.chN(i),
-        loadDelay     => axilR.dataDelaySet(i),
-        delay         => axilR.delay(i),
+        loadDelay     => dataDelaySet(i),
+        delay         => dataDelay(i),
         delayValueOut => curDelayData(i),
         bitSlip       => adcR.slip(i),
         gearboxOffset => adcR.gearboxOffset(i),
@@ -360,6 +364,24 @@ begin
         tenbData      => tenbData(i),
         pixData       => adcData(i)
         );
+
+      U_DataDlyFifo : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            BRAM_EN_G    => false,
+            DATA_WIDTH_G => 9,
+            ADDR_WIDTH_G => 4,
+            INIT_G       => "0")
+         port map (
+            rst    => axilRst,
+            wr_clk => axilClk,
+            wr_en  => axilR.dataDelaySet(i),
+            din    => axilR.delay(i),
+            rd_clk => deserClk,
+            rd_en  => '1',
+            valid  => dataDelaySet(i),
+            dout   => dataDelay(i)
+         );         
    end generate;
 
    -------------------------------------------------------------------------------------------------

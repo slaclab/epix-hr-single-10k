@@ -1629,20 +1629,18 @@ class AsicDeserHr16bRegisters(pr.Device):
       #Setup registers & variables
       self.add(pr.RemoteVariable(name='StreamsEn_n',  description='Enable/Disable', offset=0x00000000, bitSize=2,  bitOffset=0,  base=pr.UInt, mode='RW'))    
       self.add(pr.RemoteVariable(name='Resync',       description='Resync',         offset=0x00000004, bitSize=1,  bitOffset=0,  base=pr.Bool, verify = False, mode='RW'))
-      self.add(pr.RemoteVariable(name='Delay0',       description='Delay',          offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
-      self.add(pr.RemoteVariable(name='Delay1',       description='Delay',          offset=0x00000014, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='Delay0_', description='Data ADC Idelay3 value', offset=0x00000010, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='Delay0',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay0_]))
+      self.add(pr.RemoteVariable(name='Delay1_', description='Data ADC Idelay3 value', offset=0x00000014, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='Delay1',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay1_]))
       self.add(pr.RemoteVariable(name='LockErrors0',  description='LockErrors',     offset=0x00000030, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='Locked0',      description='Locked',         offset=0x00000030, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
       self.add(pr.RemoteVariable(name='LockErrors1',  description='LockErrors',     offset=0x00000034, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='Locked1',      description='Locked',         offset=0x00000034, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
-      self.add(pr.RemoteVariable(name='SerDesDelay0', description='DelayValue',     offset=0x00000010, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.RemoteVariable(name='DelayEn0',     description='EnValueUpdate',  offset=0x00000010, bitSize=1,  bitOffset=9,  base=pr.Bool, verify = False, mode='RW'))
-      self.add(pr.RemoteVariable(name='SerDesDelay1', description='DelayValue',     offset=0x00000014, bitSize=9,  bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.RemoteVariable(name='DelayEn1',     description='EnValueUpdate',  offset=0x00000014, bitSize=1,  bitOffset=9,  base=pr.Bool, verify = False, mode='RW'))
-      
+
       for i in range(0, 2):
-         self.add(pr.RemoteVariable(name='IserdeseOutA'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
-         self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=16, bitOffset=16, base=pr.UInt, disp = '{:#x}', mode='RO'))
+         self.add(pr.RemoteVariable(name='IserdeseOutA'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=20, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
+         self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000088+i*4, bitSize=20, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
 
       self.add(AsicDeser10bDataRegisters(name='tenbData_ser0',      offset=0x00000100, expand=False))
       self.add(AsicDeser10bDataRegisters(name='tenbData_ser1',      offset=0x00000200, expand=False))
@@ -1656,56 +1654,74 @@ class AsicDeserHr16bRegisters(pr.Device):
       # A command can also be a call to a local function with local scope.
       # The command object and the arg are passed
 
-      self.add(
-            pr.LocalCommand(name='TuneSerialDelay',description='Tune serial data delay', function=self.fnEvaluateSerDelay))
+      self.add(pr.LocalCommand(name='InitAdcDelay',description='Find and set best delay for the adc channels', function=self.fnSetFindAndSetDelays))
+      
 
-   def fnEvaluateSerDelay(self, dev,cmd,arg):
-        """SetPixelBitmap command function"""
-        addrSize = 4
-        #set r0mode in order to have saci cmd to work properly on legacy firmware
-        self.root.ePix100aFPGA.EpixFpgaRegisters.AsicR0Mode.set(True)
+   def fnSetFindAndSetDelays(self,dev,cmd,arg):
+       """Find and set Monitoring ADC delays"""
+       parent = self.parent
+       numDelayTaps = 512
 
-        if (self.enable.get()):
-            self.reportCmd(dev,cmd,arg)
-            if len(arg) > 0:
-                self.filename = arg
-            else:
-                self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-            if os.path.splitext(self.filename)[1] == '.csv':
-                matrixCfg = np.genfromtxt(self.filename, delimiter=',')
-                if matrixCfg.shape == (354, 384):
-                    self._rawWrite(0x00000000*addrSize,0)
-                    self._rawWrite(0x00008000*addrSize,0)
-                    for x in range (0, 354):
-                        for y in range (0, 384):
-                            bankToWrite = int(y/96);
-                            if (bankToWrite == 0):
-                               colToWrite = 0x700 + y%96;
-                            elif (bankToWrite == 1):
-                               colToWrite = 0x680 + y%96;
-                            elif (bankToWrite == 2):
-                               colToWrite = 0x580 + y%96;
-                            elif (bankToWrite == 3):
-                               colToWrite = 0x380 + y%96;
-                            else:
-                               print('unexpected bank number')
-                            self._rawWrite(0x00006011*addrSize, x)
-                            self._rawWrite(0x00006013*addrSize, colToWrite) 
-                            self._rawWrite(0x00005000*addrSize, (int(matrixCfg[x][y])))
-                    self._rawWrite(0x00000000*addrSize,0)
-                else:
-                    print('csv file must be 384x354 pixels')
-            else:
-                print("Not csv file : ", self.filename)
-        else:
-            print("Warning: ASIC enable is set to False!")   
+       print("Executing delay test for cryo")
+
+       self.testResult0 = np.zeros(numDelayTaps)
+       self.testDelay0  = np.zeros(numDelayTaps)
+       #check adc 0
+       for delay in range (0, numDelayTaps):
+           self.Delay0.set(delay)
+           self.testDelay0[delay] = self.Delay0.get()
+           self.Resync.set(True)
+           self.Resync.set(False)
+           time.sleep(1.0 / float(100))
+           self.testResult0[delay] = ((self.IserdeseOutA0.get()==0x3407)or(self.IserdeseOutA0.get()==0xBF8)) 
+       print("Test result adc 0:")
+       print(self.testResult0*self.testDelay0)
+
+       #check adc 1   
+       self.testResult1 = np.zeros(numDelayTaps)
+       self.testDelay1  = np.zeros(numDelayTaps)
+       for delay in range (0, numDelayTaps):
+           self.Delay1.set(delay)
+           self.testDelay1[delay] = self.Delay1.get()
+           self.Resync.set(True)
+           self.Resync.set(False)
+           time.sleep(1.0 / float(100))
+           self.testResult1[delay] = ((self.IserdeseOutA1.get()==0x3407)or(self.IserdeseOutA1.get()==0xBF8)) 
+       print("Test result adc 1:")     
+       print(self.testResult1*self.testDelay1)
+       
+       self.resultArray0 =  np.zeros(numDelayTaps)
+       self.resultArray1 =  np.zeros(numDelayTaps)
+       for i in range(1, numDelayTaps):
+           if (self.testResult0[i] != 0):
+               self.resultArray0[i] = self.resultArray0[i-1] + self.testResult0[i]
+           if (self.testResult1[i] != 0):
+               self.resultArray1[i] = self.resultArray1[i-1] + self.testResult1[i]
+       self.longestDelay0 = np.where(self.resultArray0==np.max(self.resultArray0))
+       if len(self.longestDelay0[0])==1:
+           self.sugDelay0 = int(self.longestDelay0[0]) - int(self.resultArray0[self.longestDelay0]/2)
+       else:
+           self.sugDelay0 = int(self.longestDelay0[0][0]) - int(self.resultArray0[self.longestDelay0[0][0]]/2)
+       self.longestDelay1 = np.where(self.resultArray1==np.max(self.resultArray1))
+       if len(self.longestDelay1[0])==1:
+           self.sugDelay1 = int(self.longestDelay1[0]) - int(self.resultArray1[self.longestDelay1]/2)
+       else:
+           self.sugDelay1 = int(self.longestDelay1[0][0]) - int(self.resultArray1[self.longestDelay1[0][0]]/2)
+       print("Suggested delay_0: " + str(self.sugDelay0))     
+       print("Suggested delay_1: " + str(self.sugDelay1))     
 
    
    @staticmethod   
-   def frequencyConverter(self):
-      def func(dev, var):         
-         return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
-      return func
+   def setDelay(var, value, write):
+      iValue = value + 512
+      var.dependencies[0].set(iValue, write)
+      var.dependencies[0].set(value, write)
+
+   @staticmethod   
+   def getDelay(var, read):
+      return var.dependencies[0].get(read)
+
+   
 
 ############################################################################
 ## Deserializers HR 12bit
