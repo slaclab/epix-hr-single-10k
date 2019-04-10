@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2019-04-09
+-- Last update: 2019-04-10
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -271,6 +271,9 @@ architecture arch of HrPlusM_full_tb is
   signal serialDataOut2 : sl;
   signal chId           : slv(15 downto 0);
 
+  signal rowSelectInt : slv(39 downto 0);
+  signal rowSelect    : slv(39 downto 0);
+
 signal dummy : slv(1 downto 0);
 
 begin  --
@@ -346,8 +349,29 @@ begin  --
     wait;
   end process WaveGen_Proc;
 
-
-
+-------------------------------------------------------------------------------
+-- simulation process for row select
+-------------------------------------------------------------------------------
+  --asicDataP(14) = SRCLK
+  --asicDataM(14) = SRCLRb
+  --asicDataP(15) = RCLK
+  --asicDataM(15) = RCLRb
+  --asicDataP(16) = SERILADATA
+  SSR_Proc: process (asicDataP) 
+  begin
+    if asicDataN(15) = '0' then
+      rowSelect <= (others => '0');
+    elsif (rising_edge(asicDataP(15))) then
+      rowSelect <= rowSelectInt;
+    end if ;
+    
+    if asicDataN(14) = '0' then
+      rowSelectInt <= (others => '0');
+    elsif (rising_edge(asicDataP(14))) then
+      rowSelectInt(0) <= asicDataP(16);
+      rowSelectInt(39 downto 1) <= rowSelectInt(38 downto 0);
+    end if;
+  end process;  
 
 -------------------------------------------------------------------------------
 --  simulation process for channel ID. Counter from 0 to 31
