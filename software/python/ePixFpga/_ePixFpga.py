@@ -145,18 +145,18 @@ class EpixHRGen1ePixM(pr.Device):
 
     def fnSetWaveform(self, dev,cmd,arg):
         """SetTestBitmap command function"""
-        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename)[1] == '.csv':
-            waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
+        self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+        if os.path.splitext(self.filename[0])[1] == '.csv':
+            waveform = np.genfromtxt(self.filename[0], delimiter=',', dtype='uint16')
             if waveform.shape == (1024,):
                 for x in range (0, 1024):
                     self.waveformMem._rawWrite(offset = (x * 4),data =  int(waveform[x]))
             else:
-                print('wrong csv file format')
+                print('wrong csv file format, shape: ', waveform.shape)
 
-    def fnGetWaveform(self, dev,cmd,arg):
+    def fnGetWaveform(self, dev,cmd,arg): 
         """GetTestBitmap command function"""
-        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+        self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
         if os.path.splitext(self.filename)[1] == '.csv':
             readBack = np.zeros((1024),dtype='uint16')
             for x in range (0, 1024):
