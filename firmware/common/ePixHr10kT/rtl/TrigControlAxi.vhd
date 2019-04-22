@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : TrigControlAxi.vhd
--- Author     : Maciej Kwiatkowski, mkwiatko@slac.stanford.edu
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/07/2017
--- Last update: 04/07/2017
+-- Last update: 2019-04-22
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -33,8 +32,8 @@ entity TrigControlAxi is
    );
    port (
       -- Trigger outputs
-      sysClk        : in  sl;
-      sysRst        : in  sl;
+      appClk        : in  sl;
+      appRst        : in  sl;
       acqStart      : out sl;
       dataSend      : out sl;
       
@@ -43,8 +42,8 @@ entity TrigControlAxi is
       daqTrigger    : in  sl;
       
       -- PGP clocks and reset
-      pgpClk        : in  sl;
-      pgpClkRst     : in  sl;
+      sysClk        : in  sl;
+      sysRst     : in  sl;
       -- Software trigger
       ssiCmd        : in  SsiCmdMasterType;
       -- Fiber optic trigger
@@ -120,6 +119,7 @@ architecture rtl of TrigControlAxi is
    signal acqCount        : std_logic_vector(31 downto 0);
    signal acqCountSync    : std_logic_vector(31 downto 0);
    signal swRun           : std_logic;
+   signal swRunSync       : std_logic;
    signal swRead          : std_logic;
    signal iRunTrigOut     : std_logic;
    signal iDaqTrigOut     : std_logic;
@@ -156,12 +156,29 @@ begin
       locClk      => sysClk,
       locRst      => sysRst              
    );
-   process(sysClk) begin
-      if rising_edge(sysClk) then
-         if sysRst = '1' then
+
+   U_TrigPulserSync : entity work.Synchronizer
+   generic map(
+      TPD_G          => TPD_G,
+      RST_POLARITY_G => '1',
+      OUT_POLARITY_G => '1',
+      RST_ASYNC_G    => false,
+      STAGES_G       => 2,
+      BYPASS_SYNC_G  => false,
+      INIT_G         => "0")
+   port map(
+      clk     => appClk,
+      rst     => appRst,
+      dataIn  => swRun,
+      dataOut => swRunSync
+      );               
+   
+   process(appClk) begin
+      if rising_edge(appClk) then
+         if appRst = '1' then
             swRead <= '0' after TPD_G;
          else
-            swRead <= swRun after TPD_G;
+            swRead <= swRunSync after TPD_G;
          end if;
       end if;
    end process;
@@ -177,20 +194,20 @@ begin
       DATA_WIDTH_G => 8
    )
    port map (
-      rst    => pgpClkRst,
-      wr_clk => pgpClk,
+      rst    => sysRst,
+      wr_clk => sysClk,
       wr_en  => pgpRxOut.opCodeEn,
       din    => pgpRxOut.opCode,
-      rd_clk => sysClk,
+      rd_clk => appClk,
       rd_en  => '1',
       valid  => coreSidebandRun,
       dout   => syncOpCode
    );
    -- Map op code to output port
    -- Have sideband DAQ lag 1 cycle behind sideband run
-   process(sysClk) begin
-      if rising_edge(sysClk) then
-         if sysRst = '1' then
+   process(appClk) begin
+      if rising_edge(appClk) then
+         if appRst = '1' then
             opCodeOut <= (others => '0') after TPD_G;
          elsif coreSidebandRun = '1' then
             opCodeOut <= syncOpCode after TPD_G;
@@ -211,18 +228,18 @@ begin
    -- Edge Detect
    U_RunEdge : entity work.SynchronizerEdge 
       port map (
-         clk        => sysClk,
-         rst        => sysRst,
+         clk        => appClk,
+         rst        => appRst,
          dataIn     => combinedRunTrig,
          risingEdge => runTriggerEdge
       );
   
    -- Delay
-   process ( sysClk, sysRst ) begin
-      if ( sysRst = '1' ) then
+   process ( appClk, appRst ) begin
+      if ( appRst = '1' ) then
          runTriggerCnt  <= (others=>'0') after TPD_G;
          runTriggerOut  <= '0'           after TPD_G;
-      elsif rising_edge(sysClk) then
+      elsif rising_edge(appClk) then
 
          -- Run trigger is disabled
          if trigSync.runTriggerEnable = '0' then
@@ -264,18 +281,18 @@ begin
    -- Edge Detect
    U_AcqEdge : entity work.SynchronizerEdge 
       port map (
-         clk        => sysClk,
-         rst        => sysRst,
+         clk        => appClk,
+         rst        => appRst,
          dataIn     => combinedDaqTrig,
          risingEdge => daqTriggerEdge
       );
    
    -- Delay
-   process ( sysClk, sysRst ) begin
-      if ( sysRst = '1' ) then
+   process ( appClk, appRst ) begin
+      if ( appRst = '1' ) then
          daqTriggerCnt  <= (others=>'0') after TPD_G;
          daqTriggerOut  <= '0'           after TPD_G;
-      elsif rising_edge(sysClk) then
+      elsif rising_edge(appClk) then
 
          -- DAQ trigger is disabled
          if trigSync.daqTriggerEnable = '0' then
@@ -322,8 +339,8 @@ begin
    U_AutoTrig : entity work.AutoTrigger
    port map (
       -- Sync clock and reset
-      sysClk        => sysClk,
-      sysClkRst     => sysRst,
+      sysClk        => appClk,
+      sysClkRst     => appRst,
       -- Inputs 
       runTrigIn     => hwRunTrig,
       daqTrigIn     => hwDaqTrig,
@@ -343,15 +360,15 @@ begin
    --------------------------------
    -- Acquisition Counter And Outputs
    --------------------------------
-   acqStart   <= iRunTrigOut or swRun;
+   acqStart   <= iRunTrigOut or swRunSync;
    dataSend   <= iDaqTrigOut or swRead;
 
-   process ( sysClk, sysRst ) begin
-      if ( sysRst = '1' ) then
+   process ( appClk, appRst ) begin
+      if ( appRst = '1' ) then
          acqCount    <= (others=>'0') after TPD_G;
          countEnable <= '0'           after TPD_G;
-      elsif rising_edge(sysClk) then
-         countEnable <= iRunTrigOut or swRun after TPD_G;
+      elsif rising_edge(appClk) then
+         countEnable <= iRunTrigOut or swRunSync after TPD_G;
 
          if trigSync.acqCountReset = '1' then
             acqCount <= (others=>'0') after TPD_G;
@@ -408,10 +425,10 @@ begin
       end if;
    end process seq;
    
-   --sync registers to sysClk clock
-   process(sysClk) begin
-      if rising_edge(sysClk) then
-         if sysRst = '1' then
+   --sync registers to appClk clock
+   process(appClk) begin
+      if rising_edge(appClk) then
+         if appRst = '1' then
             trigSync <= TRIGGER_INIT_C after TPD_G;
          else
             trigSync <= r.trig after TPD_G;
