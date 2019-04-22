@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2019-04-09
+-- Last update: 2019-04-22
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -454,15 +454,53 @@ begin  --
     
   asicDataP(0) <=     serialDataOut1;
   asicDataN(0) <= not serialDataOut1;
---  asicDataP(0) <= fClkP;
---  asicDataN(0) <= fClkN;  
+  asicDataP(1) <=     serialDataOut1;
+  asicDataN(1) <= not serialDataOut1;
   asicDataP(2) <=     serialDataOut2;
   asicDataN(2) <= not serialDataOut2;
-
---  asicDataP(2) <= fClkP;
---  asicDataN(2) <= fClkN;
---  asicDataP(5) <= dClkP;
---  asicDataN(5) <= dClkN;
+  asicDataP(3) <=     serialDataOut1;
+  asicDataN(3) <= not serialDataOut1;
+  asicDataP(4) <=     serialDataOut1;
+  asicDataN(4) <= not serialDataOut1;
+  asicDataP(5) <=     serialDataOut2;
+  asicDataN(5) <= not serialDataOut2;
+  asicDataP(6) <=     serialDataOut1;
+  asicDataN(6) <= not serialDataOut1;
+  asicDataP(7) <=     serialDataOut1;
+  asicDataN(7) <= not serialDataOut1;
+  asicDataP(8) <=     serialDataOut2;
+  asicDataN(8) <= not serialDataOut2;
+  asicDataP(9) <=     serialDataOut1;
+  asicDataN(9) <= not serialDataOut1;
+  asicDataP(10) <=     serialDataOut1;
+  asicDataN(10) <= not serialDataOut1;
+  asicDataP(11) <=     serialDataOut2;
+  asicDataN(11) <= not serialDataOut2;
+  asicDataP(12) <=     serialDataOut1;
+  asicDataN(12) <= not serialDataOut1;
+  asicDataP(13) <=     serialDataOut1;
+  asicDataN(13) <= not serialDataOut1;
+  asicDataP(14) <=     serialDataOut2;
+  asicDataN(14) <= not serialDataOut2;
+  asicDataP(15) <=     serialDataOut1;
+  asicDataN(15) <= not serialDataOut1;
+  asicDataP(16) <=     serialDataOut1;
+  asicDataN(16) <= not serialDataOut1;
+  asicDataP(17) <=     serialDataOut2;
+  asicDataN(17) <= not serialDataOut2;
+  asicDataP(18) <=     serialDataOut1;
+  asicDataN(18) <= not serialDataOut1;
+  asicDataP(19) <=     serialDataOut1;
+  asicDataN(19) <= not serialDataOut1;
+  asicDataP(20) <=     serialDataOut2;
+  asicDataN(20) <= not serialDataOut2;
+  asicDataP(21) <=     serialDataOut1;
+  asicDataN(21) <= not serialDataOut1;
+  asicDataP(22) <=     serialDataOut1;
+  asicDataN(22) <= not serialDataOut1;
+  asicDataP(23) <=     serialDataOut2;
+  asicDataN(23) <= not serialDataOut2;
+  
  
   U_App : entity work.Application
       generic map (

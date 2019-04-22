@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-04-09
+-- Last update: 2019-04-22
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -225,12 +225,6 @@ architecture mapping of Application is
    signal iAsicSync            : sl;
    signal iAsicAcq             : sl;
    signal iAsicGrst            : sl;
-   signal iAsicSsrRst          : sl;
-   signal iAsicSsrRstMAc       : sl;
-   signal iAsicSsrSerClrb      : sl;
-   signal iAsicSsrStoClrb      : sl;
-   signal iAsicSsrData         : sl;
-   signal iAsicSsrClk          : sl;
    signal iSaciSelL            : slv(3 downto 0);
    signal iSaciClk             : sl;
    signal iSaciCmd             : sl;
@@ -296,23 +290,7 @@ architecture mapping of Application is
    constant START_ADDR_C : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '0');
    constant STOP_ADDR_C  : slv(DDR_AXI_CONFIG_C.ADDR_WIDTH_C-1 downto 0) := (others => '1');
 
-   -- Programmable power supply signals
-   signal enableLDOOut        : slv(1 downto 0);
-   signal dacSclkProgSupplyOut: sl;
-   signal dacDinProgSupplyOut : sl;
-   signal dacCsbProgSupplyOut : slv(4 downto 0);
-   signal dacClrbProgSupplyOut: sl;
-   -- CJC
-   signal cjcRst            : slv(1 downto 0);
-   signal cjcDec            : slv(1 downto 0);
-   signal cjcInc            : slv(1 downto 0);
-   signal cjcFrqtbl         : slv(1 downto 0);
-   signal cjcRate           : slv(3 downto 0);
-   signal cjcBwSel          : slv(3 downto 0);
-   signal cjcFrqSel         : slv(7 downto 0);
-   signal cjcSfout          : slv(3 downto 0);
-   signal cjcLos            : sl;
-   signal cjcLol            : sl;
+
 
    -- ASIC signals
    constant STREAMS_PER_ASIC_C : natural := 2;
@@ -343,53 +321,6 @@ begin
   -- remaps data lines into adapter board control/status lines
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
-  -- Programmable power supply IOBUF & MAPPING
-  -----------------------------------------------------------------------------
-  --
-  IOBUF_SPARE_HPP_0 : IOBUF port map (O => open, I => dacDinProgSupplyOut,    IO => spareHpP(0), T => '0');
-  IOBUF_SPARE_HPP_1 : IOBUF port map (O => open, I => dacSclkProgSupplyOut,   IO => spareHpP(1), T => '0');
-  IOBUF_SPARE_HPP_2 : IOBUF port map (O => open, I => dacClrbProgSupplyOut,   IO => spareHpP(2), T => '0');
-  --
-  IOBUF_SPARE_HPN_0 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(0), IO => spareHpN(0), T => '0');
-  IOBUF_SPARE_HPN_1 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(1), IO => spareHpN(1), T => '0');
-  IOBUF_SPARE_HPN_2 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(2), IO => spareHpN(2), T => '0');
-  IOBUF_SPARE_HPN_3 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(3), IO => spareHpN(3), T => '0');
-  IOBUF_SPARE_HPP_3 : IOBUF port map (O => open, I => dacCsbProgSupplyOut(4), IO => spareHpP(3), T => '0');
-  --
-  -----------------------------------------------------------------------------
-  -- Clock Jitter Cleaner IOBUF & MAPPING
-  -----------------------------------------------------------------------------
-  IOBUF_DATAP_5 : IOBUF port map (O => open,   I => cjcFrqtbl(0), IO => asicDataP(5),  T => cjcFrqtbl(1));
-  IOBUF_DATAP_6 : IOBUF port map (O => open,   I => cjcDec(0),    IO => asicDataP(6),  T => cjcDec(1));
-  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcInc(0),    IO => asicDataP(7),  T => cjcInc(1));
-  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(8),  T => cjcFrqSel(4));
-  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(9),  T => cjcFrqSel(5));
-  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(10), T => cjcFrqSel(6));
-  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(11), T => cjcFrqSel(7));
-  IOBUF_DATAP_12: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(12), T => '1');
-  --
-  IOBUF_DATAN_5 : IOBUF port map (O => open,   I => cjcRst(0),    IO => asicDataN(5),  T => cjcRst(1));
-  IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(6),  T => cjcRate(2));
-  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(7),  T => cjcRate(3));
-  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(8),  T => cjcBwSel(2));
-  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(9),  T => cjcBwSel(3));
-  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(10), T => cjcSfout(2));
-  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(11), T => cjcSfout(3));
-  IOBUF_DATAN_12: IOBUF port map (O => cjcLol, I => '0',          IO => asicDataN(12), T => '1');
-  --
-  -----------------------------------------------------------------------------
-  -- Serial Shift Register IOBUF & MAPPING
-  -----------------------------------------------------------------------------
-  IOBUF_DATAP_14 : IOBUF port map (O => open,   I => iAsicSsrClk,     IO => asicDataP(14),  T => '0');
-  IOBUF_DATAP_15 : IOBUF port map (O => open,   I => iAsicSsrClk,     IO => asicDataP(15),  T => '0');
-  IOBUF_DATAP_16 : IOBUF port map (O => open,   I => iAsicSsrData,    IO => asicDataP(16),  T => '0');
-  --
-  IOBUF_DATAN_13 : IOBUF port map (O => open,   I => iAsicSsrRstMAc,  IO => asicDataN(13), T => '0');
-  IOBUF_DATAN_14 : IOBUF port map (O => open,   I => iAsicSsrSerClrb, IO => asicDataN(14), T => '0');
-  IOBUF_DATAN_15 : IOBUF port map (O => open,   I => iAsicSsrStoClrb, IO => asicDataN(15), T => '0');
-  IOBUF_DATAN_16 : IOBUF port map (O => open,   I => iAsicSsrRst,     IO => asicDataN(16), T => '0');
-  --
-  -----------------------------------------------------------------------------
   -- Differential asic signals IOBUF & MAPPING
   -----------------------------------------------------------------------------
   IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDataP(1), T => '1');
@@ -411,12 +342,7 @@ begin
    
    ----------------------------------------------------------------------------
    -- Signal routing
-   ----------------------------------------------------------------------------
-   led(0)          <= clkLocked;
-   led(1)          <= prbsBusy(0) or prbsBusy(1) or prbsBusy(2) or prbsBusy(3);
-   led(2)          <= '0';
-   led(3)          <= not heartBeat;
-   
+   ----------------------------------------------------------------------------  
 
    ----------------------------------------------------------------------------
    -- axi stream routing
@@ -493,10 +419,7 @@ begin
       WFdacCsL_i        when boardConfig.epixhrDbgSel1 = "01101" else
       WFdacLdacL_i      when boardConfig.epixhrDbgSel1 = "01110" else
       WFdacClrL_i       when boardConfig.epixhrDbgSel1 = "01111" else
-      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10000" else
-      iAsicSsrData      when boardConfig.epixhrDbgSel1 = "10001" else
-      iAsicSsrClk       when boardConfig.epixhrDbgSel1 = "10010" else
-      iAsicSsrRst       when boardConfig.epixhrDbgSel1 = "10011" else     
+      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10000" else   
       slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
@@ -523,9 +446,6 @@ begin
       WFdacLdacL_i      when boardConfig.epixhrDbgSel2 = "01110" else
       WFdacClrL_i       when boardConfig.epixhrDbgSel2 = "01111" else
       iAsicGrst         when boardConfig.epixhrDbgSel2 = "10000" else
-      iAsicSsrData      when boardConfig.epixhrDbgSel2 = "10001" else
-      iAsicSsrClk       when boardConfig.epixhrDbgSel2 = "10010" else
-      iAsicSsrRst       when boardConfig.epixhrDbgSel2 = "10011" else
       slowAdcDin_i      when boardConfig.epixhrDbgSel2 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel2 = "10110" else
@@ -540,7 +460,6 @@ begin
    asicSync        <= iAsicSync;
    asicAcq         <= iAsicAcq;
    asicR0          <= iAsicSR0;
-   iAsicSsrRstMAc  <= not iAsicSsrRst;
 
    -------------------------------------------------------------------------------
    -- unasigned signals
@@ -768,13 +687,12 @@ begin
       asicGlblRst    => iAsicGrst,
       asicSync       => iAsicSync,
       asicAcq        => iAsicAcq,
-      asicSsrRst     => iAsicSsrRst,
-      asicSsrSerClrb => iAsicSsrSerClrb,
-      asicSsrStoClrb => iAsicSsrStoClrb,
-      asicSsrData    => iAsicSsrData,
-      asicSsrClk     => iAsicSsrClk,
-      asicVid        => open,
-      
+      asicSsrRst     => open,
+      asicSsrSerClrb => open,
+      asicSsrStoClrb => open,
+      asicSsrData    => open,
+      asicSsrClk     => open,
+      asicVid        => open,     
       errInhibit     => errInhibit
    );
 
@@ -784,8 +702,8 @@ begin
    U_TrigControl : entity work.TrigControlAxi
    port map (
       -- Trigger outputs
-      sysClk         => appClk,
-      sysRst         => appRst,
+      appClk         => appClk,
+      appRst         => appRst,
       acqStart       => acqStart,
       dataSend       => dataSend,
       
@@ -794,8 +712,8 @@ begin
       daqTrigger     => iDaqTrigger,
       
       -- PGP clocks and reset
-      pgpClk         => sysClk,
-      pgpClkRst      => sysRst,
+      sysClk         => sysClk,
+      sysRst         => sysRst,
       -- SW trigger in (from VC)
       ssiCmd         => ssiCmd_i,
       -- PGP RxOutType (to trigger from sideband)
@@ -827,7 +745,7 @@ begin
       -- SACI interface
       saciClk           => iSaciClk,
       saciCmd           => iSaciCmd,
-      saciSelL          => iSaciSelL(0 downto 0),
+      saciSelL          => iSaciSelL,
       saciRsp(0)        => asicSaciRsp,
       -- AXI-Lite Register Interface
       axilClk           => appClk,
@@ -1160,21 +1078,30 @@ begin
           mAxisSlave   => mAxisSlaves(i));
    end generate;
 
-
-   adcSerial(0).fClkP  <= byteClk;
-   adcSerial(0).fClkN  <= not byteClk;
-   adcSerial(0).dClkP  <= asicClk;
-   adcSerial(0).dClkN  <= not asicClk;
-   adcSerial(0).chP(0) <= asicDataP(0);
-   adcSerial(0).chN(0) <= asicDataN(0);
-   adcSerial(0).chP(1) <= asicDataP(2);
-   adcSerial(0).chN(1) <= asicDataN(2);
    --
   
    --------------------------------------------
    --     ASICS LOOP                         --
    --------------------------------------------   
-   G_ASICS : for i in 0 to NUMBER_OF_ASICS_C-1 generate 
+   G_ASICS : for i in 0 to NUMBER_OF_ASICS_C-1 generate
+
+     adcSerial(i).fClkP  <= byteClk;
+     adcSerial(i).fClkN  <= not byteClk;
+     adcSerial(i).dClkP  <= asicClk;
+     adcSerial(i).dClkN  <= not asicClk;
+     adcSerial(i).chP(0) <= asicDataP(0+i*6);
+     adcSerial(i).chN(0) <= asicDataN(0+i*6);
+     adcSerial(i).chP(1) <= asicDataP(1+i*6);
+     adcSerial(i).chN(1) <= asicDataN(1+i*6);
+     adcSerial(i).chP(2) <= asicDataP(2+i*6);
+     adcSerial(i).chN(2) <= asicDataN(2+i*6);
+     adcSerial(i).chP(3) <= asicDataP(3+i*6);
+     adcSerial(i).chN(3) <= asicDataN(3+i*6);
+     adcSerial(i).chP(4) <= asicDataP(4+i*6);
+     adcSerial(i).chN(4) <= asicDataN(4+i*6);
+     adcSerial(i).chP(5) <= asicDataP(5+i*6);
+     adcSerial(i).chN(5) <= asicDataN(5+i*6);
+     
      -------------------------------------------------------
      -- ASIC AXI stream framers
      -------------------------------------------------------
@@ -1321,57 +1248,5 @@ begin
    );
   startDdrTest <= not startDdrTest_n;
 
-   --------------------------------------------
-   -- Programmable power supply              --
-   --------------------------------------------
-   U_ProgPowerSup : entity work.ProgrammablePowerSupply 
-     generic map(
-       TPD_G         => TPD_G
-       )
-   port map(
-      axiClk         => appClk,
-      axiRst         => appRst,
-      -- AXI-Lite Register Interface (axiClk domain)    
-      axiReadMaster  => mAxiReadMasters(PROG_SUPPLY_REG_AXI_INDEX_C),
-      axiReadSlave   => mAxiReadSlaves(PROG_SUPPLY_REG_AXI_INDEX_C),
-      axiWriteMaster => mAxiWriteMasters(PROG_SUPPLY_REG_AXI_INDEX_C),
-      axiWriteSlave  => mAxiWriteSlaves(PROG_SUPPLY_REG_AXI_INDEX_C),
-      -- Static control IO interface
-      -- DAC interfaces
-      dacSclk        => dacSclkProgSupplyOut,
-      dacDin         => dacDinProgSupplyOut,
-      dacCsb         => dacCsbProgSupplyOut,
-      dacClrb        => dacClrbProgSupplyOut
-   );
-   --------------------------------------------
-   -- Clock Jitter Cleaner                   --
-   --------------------------------------------
-  U_CJC : entity work.ClockJitterCleaner
-   generic map (
-      TPD_G              => TPD_G
-   )
-   port map(
-      sysClk            => appClk,
-      sysRst            => appRst,
-      -- CJC control
-      cjcRst            => cjcRst,
-      cjcDec            => cjcDec,
-      cjcInc            => cjcInc,
-      cjcFrqtbl         => cjcFrqtbl,
-      cjcRate           => cjcRate,
-      cjcBwSel          => cjcBwSel,
-      cjcFrqSel         => cjcFrqSel,
-      cjcSfout          => cjcSfout,
-      -- CJC Status
-      cjcLos            => cjcLos,
-      cjcLol            => cjcLol,
-      -- AXI lite slave port for register access
-      axilClk           => appClk,
-      axilRst           => appRst,
-      sAxilWriteMaster  => mAxiWriteMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
-      sAxilWriteSlave   => mAxiWriteSlaves(CLK_JIT_CLR_REG_AXI_INDEX_C),
-      sAxilReadMaster   => mAxiReadMasters(CLK_JIT_CLR_REG_AXI_INDEX_C),
-      sAxilReadSlave    => mAxiReadSlaves(CLK_JIT_CLR_REG_AXI_INDEX_C)
-   );
   
 end mapping;
