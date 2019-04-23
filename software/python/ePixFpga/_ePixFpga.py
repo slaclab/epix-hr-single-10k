@@ -336,8 +336,14 @@ class EpixHR10kT(pr.Device):
             SlowAdcRegisters(            name="SlowAdcRegisters",              offset=0x90000000, expand=False, enabled=False),
             ProgrammablePowerSupply(     name="ProgPowerSupply",               offset=0x92000000, expand=False, enabled=False),
             ClockJitterCleanerRegisters( name="Clock Jitter Cleaner",          offset=0x93000000, expand=False, enabled=False),
-            AsicDeserHr16bRegisters(     name="DeserRegisters",                offset=0x94000000, expand=False, enabled=False), 
-            DigitalPktRegisters(         name="PacketRegisters",               offset=0x95000000, expand=False, enabled=False)
+            AsicDeserHr16bRegisters(     name="DeserRegisters0",               offset=0x94000000, expand=False, enabled=False),
+            AsicDeserHr16bRegisters(     name="DeserRegisters1",               offset=0x94100000, expand=False, enabled=False),
+            AsicDeserHr16bRegisters(     name="DeserRegisters2",               offset=0x94200000, expand=False, enabled=False),
+            AsicDeserHr16bRegisters(     name="DeserRegisters3",               offset=0x94300000, expand=False, enabled=False), 
+            DigitalPktRegisters(         name="PacketRegisters0",              offset=0x95000000, expand=False, enabled=False), 
+            DigitalPktRegisters(         name="PacketRegisters1",              offset=0x95100000, expand=False, enabled=False), 
+            DigitalPktRegisters(         name="PacketRegisters2",              offset=0x95200000, expand=False, enabled=False), 
+            DigitalPktRegisters(         name="PacketRegisters3",              offset=0x95300000, expand=False, enabled=False)
             ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
