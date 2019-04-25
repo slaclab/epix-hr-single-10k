@@ -82,7 +82,7 @@ architecture RTL of DigitalAsicStreamAxi is
 
    -- makes the fifo input with 2B per stream
    constant AXI_STREAM_CONFIG_I_C : AxiStreamConfigType   := ssiAxiStreamConfig(2*STREAMS_PER_ASIC_G, TKEEP_COMP_C);
-   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(16, TKEEP_COMP_C);--
+   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(24, TKEEP_COMP_C);--
    constant VECTOR_OF_ONES_C  : slv(15 downto 0) := (others => '1');
    constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
    -- PGP3 protocol is using 128bit (check for global constant for this configuration)
@@ -246,7 +246,7 @@ begin
    -- synchronizers
    Sync1_U : entity work.SynchronizerVector
      generic map (
-       WIDTH_G => 2)
+       WIDTH_G => STREAMS_PER_ASIC_G)
    port map (
       clk     => rxClk,
       rst     => rxRst,

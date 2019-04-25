@@ -293,11 +293,11 @@ architecture mapping of Application is
 
 
    -- ASIC signals
-   constant STREAMS_PER_ASIC_C : natural := 2;
+   constant STREAMS_PER_ASIC_C : natural := 6;
    --
    signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
-   signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
-   signal adcStreamsEn_n    : slv(STREAMS_PER_ASIC_C-1 downto 0);
+   signal asicStreams       : AxiStreamMasterArray(NUMBER_OF_ASICS_C*STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+   signal adcStreamsEn_n    : slv(NUMBER_OF_ASICS_C*STREAMS_PER_ASIC_C-1 downto 0);
 
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
@@ -383,7 +383,6 @@ begin
    asicSaciCmd     <= iSaciCmd;
    asicSaciClk     <= iSaciClk;
    asicSaciSel     <= iSaciSelL;
-   iSaciSelL(3 downto 1) <=  (others => '1');
 
   ----------------------------------------------------------------------------
    -- Trigger signals
@@ -1129,8 +1128,8 @@ begin
         idelayCtrlRdy   => idelayRdy,
         adcSerial       => adcSerial(i),
         adcStreamClk    => byteClk,
-        adcStreams      => asicStreams,
-        adcStreamsEn_n  => adcStreamsEn_n
+        adcStreams      => asicStreams(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+        adcStreamsEn_n  => adcStreamsEn_n(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C)
         );
 
      -------------------------------------------------------------------------------
@@ -1152,8 +1151,8 @@ begin
          -- Deserialized data port
          rxClk             => byteClk, --fClkP,    --use frame clock
          rxRst             => byteClkRst,
-         adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
-         adcStreamsEn_n    => adcStreamsEn_n,
+         adcStreams        => asicStreams(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+         adcStreamsEn_n    => adcStreamsEn_n(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
       
          -- AXI lite slave port for register access
          axilClk           => appClk,

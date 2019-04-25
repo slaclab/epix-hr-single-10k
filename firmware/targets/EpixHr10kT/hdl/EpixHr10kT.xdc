@@ -25,26 +25,28 @@
 ## Misc. Configurations ##
 ##########################
 create_generated_clock -name appClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
-create_generated_clock -name bitClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT0]
-create_generated_clock -name deserClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT1]
-create_generated_clock -name byteClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT2]
-create_generated_clock -name asicRdClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT3]
+create_generated_clock -name asicClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]
+create_generated_clock -name asicRdClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]
+create_generated_clock -name idelayCtrlClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT3]
+create_generated_clock -name adcClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT4]
 
 set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks appClk]
-set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks bitClk]
+set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks asicClk]
 set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks byteClk]
 set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks asicRdClk]
+set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks adcClk]
+set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks deserClk]
 set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks adcBitClkR]
 set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks byteClk]
 set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks deserClk]
+set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks adcMonDoClkP]
+set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks asicClk]
 set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks adcBitClkR]
 set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks adcBitClkRD4]
-set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks adcMonDoClkP]
-set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks bitClk]
 set_clock_groups -asynchronous -group [get_clocks dnaClk] -group [get_clocks byteClk]
 set_clock_groups -asynchronous -group [get_clocks byteClk] -group [get_clocks deserClk]
-set_clock_groups -asynchronous -group [get_clocks byteClk] -group [get_clocks adcBitClkR]
-set_clock_groups -asynchronous -group [get_clocks byteClk] -group [get_clocks adcBitClkRD4]
+set_clock_groups -asynchronous -group [get_clocks byteClk] -group [get_clocks adcClk]
+
 
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_Core/U_Mmcm/PllGen.U_Pll/CLKOUT0]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]]
 
