@@ -2,7 +2,7 @@
 -- File       : TrigControlAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/07/2017
--- Last update: 2019-04-22
+-- Last update: 2019-04-23
 -------------------------------------------------------------------------------
 -- Description: 
 -------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ begin
    U_TrigPulser : entity work.SsiCmdMasterPulser
    generic map (
       OUT_POLARITY_G => '1',
-      PULSE_WIDTH_G  => 1
+      PULSE_WIDTH_G  => 2
    )
    port map (
        -- Local command signal
