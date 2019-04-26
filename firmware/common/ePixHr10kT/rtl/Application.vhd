@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-04-22
+-- Last update: 2019-04-25
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -129,6 +129,7 @@ entity Application is
       asicAcq          : out   sl;
       asicRoClkP       : out   slv(3 downto 0);
       asicRoClkN       : out   slv(3 downto 0);
+      asicDMSN         : in    sl;
       -- SACI Ports
       asicSaciCmd      : out   sl;
       asicSaciClk      : out   sl;
@@ -323,8 +324,8 @@ begin
   -----------------------------------------------------------------------------
   -- Differential asic signals IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDataP(1), T => '1');
-  IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => asicDataN(1), T => '1');
+  IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN, T => '1');
+  IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => spareHrN(0), T => '1');
   OBUFDS_CLK     : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(0),OB => asicRoClkN(0));
 
     
@@ -458,8 +459,8 @@ begin
    asicGlblRst     <= iAsicGrst;
    asicSync        <= iAsicSync;
    asicAcq         <= iAsicAcq;
-   asicR0          <= iAsicSR0;
-
+   asicR0          <= iAsicR0;
+   spareHrP(0)     <= iAsicSR0;
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
@@ -681,7 +682,7 @@ begin
       asicPPbe       => iAsicPpbe,
       asicPpmat      => iAsicPpmat,
       asicTpulse     => open,
-      asicStart      => open,
+      asicStart      => iAsicR0,
       asicSR0        => iAsicSR0,
       asicGlblRst    => iAsicGrst,
       asicSync       => iAsicSync,
