@@ -308,8 +308,8 @@ class Camera():
         #self._NumAdcChPerAsic = 4
         #self._NumColPerAdcCh = 96
         #self._superRowSizeInBytes = self._superRowSize * 4
-        self.sensorWidth  = 64 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
-        self.sensorHeight = 32 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
+        self.sensorWidth  = 192 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
+        self.sensorHeight = 146 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
         self.pixelDepth = 16
         self.bitMask = np.uint16(0xFFFF)
 
@@ -812,18 +812,18 @@ class Camera():
         if (len(currentRawData) == 0):
             frameComplete = 0
             readyForDisplay = 0
-            z = np.zeros((1028,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
+            z = np.zeros((28036,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
             returnedRawData = np.array([z,z])
             #makes the current raw data info the same as new so the logic later on this function will add the new data to the memory
             acqNum_currentRawData  = acqNum_newRawData
             asicNum_currentRawData = asicNum_newRawData
         #case where the currentRawData is a byte array
-        elif(len(currentRawData) == 4108):
+        elif(len(currentRawData) == 56112):
             #for i in range(3, 10):
             #    print('Curr %x %x' %(currentRawData[i]&0xFFFF, currentRawData[i]>>16))
             frameComplete = 0
             readyForDisplay = 0
-            z = np.zeros((1028,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
+            z = np.zeros((28036,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
             returnedRawData = np.array([z,z])
             
             #makes the current raw data info the same as new so the logic later on this function will add the new data to the memory
@@ -1100,9 +1100,9 @@ class Camera():
             #if (PRINT_VERBOSE): print('raw data 1:', rawData[1,0:10])
             
             quadrant0 = np.frombuffer(rawData[0,4:],dtype='uint16')
-            quadrant0sq = quadrant0.reshape(64,32)
+            quadrant0sq = quadrant0.reshape(192,292)
             quadrant1 = np.frombuffer(rawData[1,4:],dtype='uint16')
-            quadrant1sq = quadrant1.reshape(64,32)
+            quadrant1sq = quadrant1.reshape(192,292)
         
             imgTop = quadrant0sq
             imgBot = quadrant1sq
