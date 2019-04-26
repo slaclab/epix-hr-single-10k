@@ -1878,18 +1878,35 @@ class AsicDeserHr16bRegisters6St(pr.Device):
       self.add(pr.LinkVariable(  name='Delay0',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay0_]))
       self.add(pr.RemoteVariable(name='Delay1_', description='Data ADC Idelay3 value', offset=0x00000014, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
       self.add(pr.LinkVariable(  name='Delay1',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay1_]))
+      self.add(pr.RemoteVariable(name='Delay2_', description='Data ADC Idelay3 value', offset=0x00000018, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='Delay2',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay2_]))
+      self.add(pr.RemoteVariable(name='Delay3_', description='Data ADC Idelay3 value', offset=0x0000001C, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='Delay3',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay3_]))
+      self.add(pr.RemoteVariable(name='Delay4_', description='Data ADC Idelay3 value', offset=0x00000020, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='Delay4',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay4_]))
+      self.add(pr.RemoteVariable(name='Delay5_', description='Data ADC Idelay3 value', offset=0x00000024, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
+      self.add(pr.LinkVariable(  name='Delay5',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay5_]))
       self.add(pr.RemoteVariable(name='LockErrors0',  description='LockErrors',     offset=0x00000030, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='Locked0',      description='Locked',         offset=0x00000030, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
       self.add(pr.RemoteVariable(name='LockErrors1',  description='LockErrors',     offset=0x00000034, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='Locked1',      description='Locked',         offset=0x00000034, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
+      self.add(pr.RemoteVariable(name='LockErrors2',  description='LockErrors',     offset=0x00000038, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='Locked2',      description='Locked',         offset=0x00000038, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
+      self.add(pr.RemoteVariable(name='LockErrors3',  description='LockErrors',     offset=0x0000003C, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='Locked3',      description='Locked',         offset=0x0000003C, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
+      self.add(pr.RemoteVariable(name='LockErrors4',  description='LockErrors',     offset=0x00000040, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='Locked4',      description='Locked',         offset=0x00000040, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
+      self.add(pr.RemoteVariable(name='LockErrors5',  description='LockErrors',     offset=0x00000044, bitSize=16, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='Locked5',      description='Locked',         offset=0x00000044, bitSize=1,  bitOffset=16, base=pr.Bool, mode='RO'))
 
       for i in range(0, 2):
          self.add(pr.RemoteVariable(name='IserdeseOutA'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4, bitSize=20, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
 
       for i in range(0, 2):
          self.add(pr.RemoteVariable(name='IserdeseOutB'+str(i),   description='IserdeseOut'+str(i),  offset=0x00000088+i*4, bitSize=20, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
-      self.add(AsicDeser10bDataRegisters(name='tenbData_ser0',      offset=0x00000100, expand=False))
-      self.add(AsicDeser10bDataRegisters(name='tenbData_ser1',      offset=0x00000200, expand=False))
+
+      for i in range(0,6):
+          self.add(AsicDeser10bDataRegisters(name='tenbData_ser%d'%i,      offset=(0x00000100+(i*0x00000100)), expand=False))
       #####################################
       # Create commands
       #####################################
