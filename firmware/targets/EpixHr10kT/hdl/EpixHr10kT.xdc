@@ -142,12 +142,12 @@ set_property -dict {PACKAGE_PIN AF13 IOSTANDARD LVCMOS25} [get_ports asicDMSN]
 
 set_property -dict {PACKAGE_PIN AE11 IOSTANDARD LVDS_25}  [get_ports {asicRoClkP[0]}]
 set_property -dict {PACKAGE_PIN AE10 IOSTANDARD LVDS_25}  [get_ports {asicRoClkN[0]}]
-set_property -dict {PACKAGE_PIN AF10 IOSTANDARD LVCMOS25} [get_ports {asicRoClkP[1]}]
-set_property -dict {PACKAGE_PIN AF9  IOSTANDARD LVCMOS25} [get_ports {asicRoClkN[1]}]
-set_property -dict {PACKAGE_PIN AC13 IOSTANDARD LVCMOS25} [get_ports {asicRoClkP[2]}]
-set_property -dict {PACKAGE_PIN AC12 IOSTANDARD LVCMOS25} [get_ports {asicRoClkN[2]}]
-set_property -dict {PACKAGE_PIN AD14 IOSTANDARD LVCMOS25} [get_ports {asicRoClkP[3]}]
-set_property -dict {PACKAGE_PIN AD13 IOSTANDARD LVCMOS25} [get_ports {asicRoClkN[3]}]
+set_property -dict {PACKAGE_PIN AF10 IOSTANDARD LVDS_25}  [get_ports {asicRoClkP[1]}]
+set_property -dict {PACKAGE_PIN AF9  IOSTANDARD LVDS_25}  [get_ports {asicRoClkN[1]}]
+set_property -dict {PACKAGE_PIN AC13 IOSTANDARD LVDS_25}  [get_ports {asicRoClkP[2]}]
+set_property -dict {PACKAGE_PIN AC12 IOSTANDARD LVDS_25}  [get_ports {asicRoClkN[2]}]
+set_property -dict {PACKAGE_PIN AD14 IOSTANDARD LVDS_25}  [get_ports {asicRoClkP[3]}]
+set_property -dict {PACKAGE_PIN AD13 IOSTANDARD LVDS_25}  [get_ports {asicRoClkN[3]}]
 
 # SACI Ports
 
