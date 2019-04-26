@@ -129,7 +129,7 @@ entity Application is
       asicAcq          : out   sl;
       asicRoClkP       : out   slv(3 downto 0);
       asicRoClkN       : out   slv(3 downto 0);
-      asicDMSN         : in    sl;
+      asicDMSN         : inout sl;
       -- SACI Ports
       asicSaciCmd      : out   sl;
       asicSaciClk      : out   sl;
@@ -324,7 +324,7 @@ begin
   -----------------------------------------------------------------------------
   -- Differential asic signals IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN, T => '1');
+ -- IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN, T => '1');
   IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => spareHrN(0), T => '1');
   OBUFDS_CLK     : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(0),OB => asicRoClkN(0));
 

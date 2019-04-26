@@ -83,7 +83,6 @@ entity EpixHr10kT is
       asicAcq       : out   sl;
       asicRoClkP    : out   slv(3 downto 0);
       asicRoClkN    : out   slv(3 downto 0);
-      asicDMSN      : in    sl;
       -- SACI Ports
       asicSaciCmd   : out   sl;
       asicSaciClk   : out   sl;
@@ -174,7 +173,7 @@ architecture top_level of EpixHr10kT is
    signal axiWriteSlave   : AxiWriteSlaveType;
    -- Microblaze's Interrupt bus (sysClk domain)
    signal mbIrq           : slv(7 downto 0);
-
+   signal asicDMSN        : sl;
 
 begin
 
