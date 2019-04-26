@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-04-25
+-- Last update: 2019-04-26
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -326,7 +326,10 @@ begin
   -----------------------------------------------------------------------------
  -- IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN, T => '1');
   IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => spareHrN(0), T => '1');
-  OBUFDS_CLK     : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(0),OB => asicRoClkN(0));
+  OBUFDS_CLK0    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(0),OB => asicRoClkN(0));
+  OBUFDS_CLK1    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(1),OB => asicRoClkN(1));
+  OBUFDS_CLK2    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(2),OB => asicRoClkN(2));
+  OBUFDS_CLK3    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(3),OB => asicRoClkN(3));
 
     
    ---------------------
@@ -464,9 +467,6 @@ begin
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
-   asicRoClkN(3 downto 1) <= (others => '0');
-   asicRoClkP(3 downto 1) <= (others => '0');  
-     
    mbIrq           <= (others => '0');  
    gtTxP           <= '0';
    gtTxN           <= '1';
