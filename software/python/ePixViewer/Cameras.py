@@ -200,7 +200,9 @@ class Camera():
             readyForDisplay = 1
             return [frameComplete, readyForDisplay, newRawData]
         if (camID == EPIXHR10kT):
-            [frameComplete, readyForDisplay, newRawData]  = self._buildFrameEpix10kTImage(currentRawData, newRawData)
+            frameComplete = 1
+            readyForDisplay = 1
+            #[frameComplete, readyForDisplay, newRawData]  = self._buildFrameEpix10kTImage(currentRawData, newRawData)
             return [frameComplete, readyForDisplay, newRawData]
         if (camID == NOCAMERA):
             return Null
@@ -801,7 +803,7 @@ class Camera():
                                                                   # header dword 0 (VC info)
         acqNum_newRawData  =  newRawData_DW[1]                    # header dword 1
         asicNum_newRawData =  newRawData_DW[2] & 0xF              # header dword 2
-        #if (PRINT_VERBOSE): print('\nacqNum_newRawData: ', acqNum_newRawData, '\nasicNum_newRawData:', asicNum_newRawData)
+        if (PRINT_VERBOSE): print('\nacqNum_newRawData: ', acqNum_newRawData, '\nasicNum_newRawData:', asicNum_newRawData)
         
         #for i in range(3, 10):
         #    print('New %x %x' %(newRawData_DW[i]&0xFFFF, newRawData_DW[i]>>16))
@@ -812,18 +814,18 @@ class Camera():
         if (len(currentRawData) == 0):
             frameComplete = 0
             readyForDisplay = 0
-            z = np.zeros((28036,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
+            z = np.zeros((14029,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
             returnedRawData = np.array([z,z])
             #makes the current raw data info the same as new so the logic later on this function will add the new data to the memory
             acqNum_currentRawData  = acqNum_newRawData
             asicNum_currentRawData = asicNum_newRawData
         #case where the currentRawData is a byte array
         elif(len(currentRawData) == 56112):
-            #for i in range(3, 10):
-            #    print('Curr %x %x' %(currentRawData[i]&0xFFFF, currentRawData[i]>>16))
+            for i in range(3, 10):
+                print('Curr %x %x' %(currentRawData[i]&0xFFFF, currentRawData[i]>>16))
             frameComplete = 0
             readyForDisplay = 0
-            z = np.zeros((28036,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
+            z = np.zeros((14029,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
             returnedRawData = np.array([z,z])
             
             #makes the current raw data info the same as new so the logic later on this function will add the new data to the memory
@@ -1095,21 +1097,27 @@ class Camera():
 
     def _descrambleEpixHR10kTImage(self, rawData):
         """performs the Epix10kT image descrambling """
-        if (len(rawData)==2):
+        print("Length raw data: %d" % (len(rawData)))
+        if (len(rawData)==56112):
             #if (PRINT_VERBOSE): print('raw data 0:', rawData[0,0:10])
             #if (PRINT_VERBOSE): print('raw data 1:', rawData[1,0:10])
-            
-            quadrant0 = np.frombuffer(rawData[0,4:],dtype='uint16')
-            quadrant0sq = quadrant0.reshape(192,292)
-            quadrant1 = np.frombuffer(rawData[1,4:],dtype='uint16')
-            quadrant1sq = quadrant1.reshape(192,292)
+             if (type(rawData != 'numpy.ndarray')):
+                img = np.frombuffer(rawData,dtype='uint16')
+             print("shape", img.shape)
+             quadrant0 = np.frombuffer(img[24:],dtype='uint16')
+             quadrant0sq = quadrant0.reshape(-1,192)
+        #    quadrant1 = np.frombuffer(rawData[1,24:],dtype='uint16')
+        #    quadrant1sq = quadrant1.reshape(-1,192)
         
-            imgTop = quadrant0sq
-            imgBot = quadrant1sq
+        #    imgTop = quadrant0sq
+        #    imgBot = quadrant1sq
 
-            imgDesc = np.concatenate((imgTop, imgBot),1)
+        #    imgDesc = np.concatenate((imgTop, imgBot),1)
+             imgDesc = quadrant0sq
         else:
-            imgDesc = np.zeros((64,64), dtype='uint16')
+            print("descramble error")
+            imgDesc = np.zeros((144,384), dtype='uint16')
+            
         # returns final image
         return imgDesc
 

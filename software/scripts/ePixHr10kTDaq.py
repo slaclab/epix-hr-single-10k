@@ -246,12 +246,12 @@ if (args.verbose): pyrogue.streamTap(pgpL3Vc0, dbgData)
 # Create GUI
 appTop = QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='ePixHr10kT')
-ePixHrePixMAsicBoard = Board(guiTop, cmd, dataWriter, srp)
+ePixHrBoard = Board(guiTop, cmd, dataWriter, srp)
 if ( args.type == 'dataFile' or args.type == 'SIM' ):
-    ePixHrePixMAsicBoard.start(pollEn=False,timeout=5.0 ,pyroGroup=None)
+    ePixHrBoard.start(pollEn=False,timeout=5.0 ,pyroGroup=None)
 else:
-    ePixHrePixMAsicBoard.start(pollEn=True, pyroGroup=None)
-guiTop.addTree(ePixHrePixMAsicBoard)
+    ePixHrBoard.start(pollEn=True, pyroGroup=None)
+guiTop.addTree(ePixHrBoard)
 guiTop.resize(800,800)
 
 # Viewer gui
@@ -265,11 +265,33 @@ if (args.start_viewer == 'True'):
         pyrogue.streamTap(pgpL0Vc2, onlineViewer.eventReaderScope)# PseudoScope
         pyrogue.streamTap(pgpL0Vc3, onlineViewer.eventReaderMonitoring) # Slow Monitoring
 
+if ( args.type == 'dataFile' or args.type == 'SIM'):
+    print("Simulation mode does not initialize monitoring ADC")
+else:
+    #configure internal ADC
+    ePixHrBoard.EpixHR.FastADCsDebug.enable.set(True)   
+    ePixHrBoard.EpixHR.FastADCsDebug.DelayAdc0.set(15)
+    ePixHrBoard.EpixHR.FastADCsDebug.enable.set(False)
+
+    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(True)
+    ePixHrBoard.readBlocks()
+    ePixHrBoard.EpixHR.FastADCsDebug.DelayAdc0.set(15)
+    ePixHrBoard.EpixHR.FastADCsDebug.enable.set(False)
+
+    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(True)
+    ePixHrBoard.readBlocks()
+    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(3)
+    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(0)
+    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.OutputFormat.set(0)
+    ePixHrBoard.readBlocks()
+    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(False)
+    ePixHrBoard.readBlocks()
+
 # Create GUI
 if (args.start_gui=='True'):
     appTop.exec_()
 
 # Close window and stop polling
-ePixHrePixMAsicBoard.stop()
+ePixHrBoard.stop()
 exit()
 
