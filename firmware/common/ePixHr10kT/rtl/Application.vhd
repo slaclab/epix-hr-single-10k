@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-04-26
+-- Last update: 2019-04-29
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -426,7 +426,8 @@ begin
       slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
-      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else   
+      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else
+      iAsicR0           when boardConfig.epixhrDbgSel1 = "11000" else   
       '0';   
 
    connMps    <= not connMpsMux;        -- required because the board has a
@@ -452,7 +453,8 @@ begin
       slowAdcDin_i      when boardConfig.epixhrDbgSel2 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel2 = "10110" else
-      slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10111" else   
+      slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10111" else
+      iAsicR0           when boardConfig.epixhrDbgSel1 = "11000" else   
       '0';
 
    -----------------------------------------------------------------------------
