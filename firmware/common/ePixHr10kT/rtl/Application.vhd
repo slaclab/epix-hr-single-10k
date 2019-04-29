@@ -324,7 +324,7 @@ begin
   -----------------------------------------------------------------------------
   -- Differential asic signals IOBUF & MAPPING
   -----------------------------------------------------------------------------
- -- IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN, T => '1');
+  IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN,    T => '1');
   IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => spareHrN(0), T => '1');
   OBUFDS_CLK0    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(0),OB => asicRoClkN(0));
   OBUFDS_CLK1    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(1),OB => asicRoClkN(1));

@@ -2,7 +2,7 @@
 -- File       : EpixHr10kT.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-04-25
+-- Last update: 2019-04-26
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ begin
          asicAcq          => asicAcq,
          asicRoClkP       => asicRoClkP,
          asicRoClkN       => asicRoClkN,
-         asicDMSN         => asicDMSN,
+         asicDMSN         => snIoCarrier,
          -- SACI Ports
          asicSaciCmd      => asicSaciCmd,
          asicSaciClk      => asicSaciClk,
@@ -324,7 +324,7 @@ begin
          ----------------   
          -- Board IDs Ports
          snIoAdcCard      => snIoAdcCard,
-         snIoCarrier      => snIoCarrier,
+         snIoCarrier      => asicDMSN,
          -- QSFP Ports
          qsfpRxP          => qsfpRxP,
          qsfpRxN          => qsfpRxN,
