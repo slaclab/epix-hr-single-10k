@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-04-10
+-- Last update: 2019-04-29
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -260,12 +260,12 @@ begin
       v.idelayCtrlRdy := idelayCtrlRdy;
 
       -- Store last two samples read from ADC
-      if (debugDataValid = '1' and axilR.freezeDebug = '0') then
-         v.readoutDebug0(0) := debugDataTmp(0);
-         v.readoutDebug0(1) := axilR.readoutDebug0(0);
-         v.readoutDebug1(0) := debugDataTmp(1);
-         v.readoutDebug1(1) := axilR.readoutDebug1(0);
-      end if;
+      for i in 0 to NUM_CHANNELS_G-1 loop
+        if (debugDataValid = '1' and axilR.freezeDebug = '0') then
+          v.readoutDebug0(i) := debugDataTmp(i);
+        end if;
+      end loop;
+      v.readoutDebug1 := axilR.readoutDebug0;
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -294,10 +294,10 @@ begin
       axiSlaveRegister(axilEp, X"50", 0, v.lockedCountRst);
 
       -- Debug registers. Output the last 2 words received
-      axiSlaveRegisterR(axilEp, X"80"+toSlv((0*4), 8), 0, axilR.readoutDebug0(0));
-      axiSlaveRegisterR(axilEp, X"80"+toSlv((1*4), 8), 0, axilR.readoutDebug0(1));
-      axiSlaveRegisterR(axilEp, X"80"+toSlv((2*4), 8), 0, axilR.readoutDebug1(0));
-      axiSlaveRegisterR(axilEp, X"80"+toSlv((3*4), 8), 0, axilR.readoutDebug1(1));
+      for i in 0 to NUM_CHANNELS_G-1 loop
+        axiSlaveRegisterR(axilEp, X"80"+toSlv((2*i*4), 8),   0, axilR.readoutDebug0(i));
+        axiSlaveRegisterR(axilEp, X"80"+toSlv((2*i*4)+4, 8), 0, axilR.readoutDebug1(i));
+      end loop;
       
 
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
