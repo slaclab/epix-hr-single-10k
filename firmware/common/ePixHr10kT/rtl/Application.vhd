@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-04-29
+-- Last update: 2019-04-30
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -422,12 +422,13 @@ begin
       WFdacCsL_i        when boardConfig.epixhrDbgSel1 = "01101" else
       WFdacLdacL_i      when boardConfig.epixhrDbgSel1 = "01110" else
       WFdacClrL_i       when boardConfig.epixhrDbgSel1 = "01111" else
-      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10000" else   
+      iAsicGrst         when boardConfig.epixhrDbgSel1 = "10000" else
+      iAsicR0           when boardConfig.epixhrDbgSel1 = "10001" else   
       slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else
-      iAsicR0           when boardConfig.epixhrDbgSel1 = "11000" else   
+      
       '0';   
 
    connMps    <= not connMpsMux;        -- required because the board has a
@@ -450,11 +451,12 @@ begin
       WFdacLdacL_i      when boardConfig.epixhrDbgSel2 = "01110" else
       WFdacClrL_i       when boardConfig.epixhrDbgSel2 = "01111" else
       iAsicGrst         when boardConfig.epixhrDbgSel2 = "10000" else
+      iAsicR0           when boardConfig.epixhrDbgSel1 = "10001" else   
       slowAdcDin_i      when boardConfig.epixhrDbgSel2 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel2 = "10110" else
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10111" else
-      iAsicR0           when boardConfig.epixhrDbgSel1 = "11000" else   
+
       '0';
 
    -----------------------------------------------------------------------------
