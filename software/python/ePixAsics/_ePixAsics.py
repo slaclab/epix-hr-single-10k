@@ -1026,19 +1026,15 @@ class EpixHr10kTAsic(pr.Device):
                     self._rawWrite(0x00008000*addrSize,0)
                     for x in range (0, 145):
                         for y in range (0, 192):
-                            bankToWrite = int(y/32);
+                            bankToWrite = int(y/48);
                             if (bankToWrite == 0):
-                               colToWrite = 0x700 + y%32;
+                               colToWrite = 0x700 + y%48;
                             elif (bankToWrite == 1):
-                               colToWrite = 0x680 + y%32;
+                               colToWrite = 0x680 + y%48;
                             elif (bankToWrite == 2):
-                               colToWrite = 0x580 + y%32;
+                               colToWrite = 0x580 + y%48;
                             elif (bankToWrite == 3):
-                               colToWrite = 0x380 + y%32;
-                            elif (bankToWrite == 4):
-                               colToWrite = 0x380 + y%32;
-                            elif (bankToWrite == 5):
-                               colToWrite = 0x380 + y%32;
+                               colToWrite = 0x380 + y%48;
                             else:
                                print('unexpected bank number')
                             self._rawWrite(0x00006011*addrSize, x)
@@ -1074,19 +1070,15 @@ class EpixHr10kTAsic(pr.Device):
                 self._rawWrite(0x00008000*addrSize,0)
                 for x in range (0, 145):
                    for y in range (0, 192):
-                      bankToWrite = int(y/32);
+                      bankToWrite = int(y/48);
                       if (bankToWrite == 0):
-                         colToWrite = 0x700 + y%32;
+                         colToWrite = 0x700 + y%48;
                       elif (bankToWrite == 1):
-                         colToWrite = 0x680 + y%32;
+                         colToWrite = 0x680 + y%48;
                       elif (bankToWrite == 2):
-                         colToWrite = 0x580 + y%32;
+                         colToWrite = 0x580 + y%48;
                       elif (bankToWrite == 3):
-                         colToWrite = 0x380 + y%32;
-                      elif (bankToWrite == 4):
-                         colToWrite = 0x380 + y%32;
-                      elif (bankToWrite == 5):
-                         colToWrite = 0x380 + y%32;
+                         colToWrite = 0x380 + y%48;
                       else:
                          print('unexpected bank number')
                       self._rawWrite(0x00006011*addrSize, x)

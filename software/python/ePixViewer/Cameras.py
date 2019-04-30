@@ -1104,8 +1104,15 @@ class Camera():
              if (type(rawData != 'numpy.ndarray')):
                 img = np.frombuffer(rawData,dtype='uint16')
              print("shape", img.shape)
-             quadrant0 = np.frombuffer(img[24:],dtype='uint16')
-             quadrant0sq = quadrant0.reshape(-1,192)
+             quadrant0 = np.frombuffer(img[12:28044],dtype='uint16')
+             adcImg = quadrant0.reshape(-1,32)
+             for i in range(0,32):
+                 adcImg2 = adcImg[:,i].reshape(-1,6)
+                 if i == 0:
+                     quadrant0sq = adcImg2
+                 else:
+                     quadrant0sq = np.concatenate((quadrant0sq,adcImg2),1)
+             #quadrant0sq = quadrant0.reshape(-1,192)
         #    quadrant1 = np.frombuffer(rawData[1,24:],dtype='uint16')
         #    quadrant1sq = quadrant1.reshape(-1,192)
         
