@@ -1927,51 +1927,96 @@ class AsicDeserHr16bRegisters6St(pr.Device):
        self.IDLE_PATTERN2 = 0xAA97C
        print("Executing delay test for ePixHr")
 
-       self.testResult0 = np.zeros(numDelayTaps)
-       self.testDelay0  = np.zeros(numDelayTaps)
-       #check adc 0
+       #check adcs
+       self.testResult = np.zeros((6,numDelayTaps))
+       self.testDelay  = np.zeros((6,numDelayTaps))
        for delay in range (0, numDelayTaps):
            self.Delay0.set(delay)
-           self.testDelay0[delay] = self.Delay0.get()
-           self.Resync.set(True)
-           self.Resync.set(False)
-           time.sleep(1.0 / float(100))
-           self.testResult0[delay] = ((self.IserdeseOutA0.get()==self.IDLE_PATTERN1)or(self.IserdeseOutA0.get()==self.IDLE_PATTERN2)) 
-       print("Test result adc 0:")
-       print(self.testResult0*self.testDelay0)
-
-       #check adc 1   
-       self.testResult1 = np.zeros(numDelayTaps)
-       self.testDelay1  = np.zeros(numDelayTaps)
-       for delay in range (0, numDelayTaps):
            self.Delay1.set(delay)
-           self.testDelay1[delay] = self.Delay1.get()
+           self.Delay2.set(delay)
+           self.Delay3.set(delay)
+           self.Delay4.set(delay)
+           self.Delay5.set(delay)
+           self.testDelay[0,delay] = self.Delay0.get()
+           self.testDelay[1,delay] = self.Delay1.get()
+           self.testDelay[2,delay] = self.Delay2.get()
+           self.testDelay[3,delay] = self.Delay3.get()
+           self.testDelay[4,delay] = self.Delay4.get()
+           self.testDelay[5,delay] = self.Delay5.get()
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
-           self.testResult1[delay] = ((self.IserdeseOutA1.get()==self.IDLE_PATTERN1)or(self.IserdeseOutA1.get()==self.IDLE_PATTERN2)) 
+           self.testResult[0,delay] = ((self.IserdeseOut0_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut0_0.get()==self.IDLE_PATTERN2))
+           self.testResult[1,delay] = ((self.IserdeseOut1_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut1_0.get()==self.IDLE_PATTERN2)) 
+           self.testResult[2,delay] = ((self.IserdeseOut2_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut2_0.get()==self.IDLE_PATTERN2)) 
+           self.testResult[3,delay] = ((self.IserdeseOut3_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut3_0.get()==self.IDLE_PATTERN2)) 
+           self.testResult[4,delay] = ((self.IserdeseOut4_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut4_0.get()==self.IDLE_PATTERN2)) 
+           self.testResult[5,delay] = ((self.IserdeseOut5_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut5_0.get()==self.IDLE_PATTERN2)) 
+       print("Test result adc 0:")     
+       print(self.testResult[0,:]*self.testDelay)
        print("Test result adc 1:")     
-       print(self.testResult1*self.testDelay1)
+       print(self.testResult[1,:]*self.testDelay)
+       print("Test result adc 2:")     
+       print(self.testResult[2,:]*self.testDelay)
+       print("Test result adc 3:")     
+       print(self.testResult[3,:]*self.testDelay)
+       print("Test result adc 4:")     
+       print(self.testResult[4,:]*self.testDelay)
+       print("Test result adc 5:")     
+       print(self.testResult[5,:]*self.testDelay)
        
-       self.resultArray0 =  np.zeros(numDelayTaps)
-       self.resultArray1 =  np.zeros(numDelayTaps)
-       for i in range(1, numDelayTaps):
-           if (self.testResult0[i] != 0):
-               self.resultArray0[i] = self.resultArray0[i-1] + self.testResult0[i]
-           if (self.testResult1[i] != 0):
-               self.resultArray1[i] = self.resultArray1[i-1] + self.testResult1[i]
-       self.longestDelay0 = np.where(self.resultArray0==np.max(self.resultArray0))
+       self.resultArray =  np.zeros((6,numDelayTaps))
+       for j in range(0, 6):
+           for i in range(1, numDelayTaps):
+               if (self.testResult[j,i] != 0):
+                   self.resultArray[j,i] = self.resultArray[j,i-1] + self.testResult[j,i]
+
+       self.longestDelay0 = np.where(self.resultArray[0]==np.max(self.resultArray[0]))
        if len(self.longestDelay0[0])==1:
-           self.sugDelay0 = int(self.longestDelay0[0]) - int(self.resultArray0[self.longestDelay0]/2)
+           self.sugDelay0 = int(self.longestDelay0[0]) - int(self.resultArray[0][self.longestDelay0]/2)
        else:
-           self.sugDelay0 = int(self.longestDelay0[0][0]) - int(self.resultArray0[self.longestDelay0[0][0]]/2)
-       self.longestDelay1 = np.where(self.resultArray1==np.max(self.resultArray1))
+           self.sugDelay0 = int(self.longestDelay0[0][0]) - int(self.resultArray[0][self.longestDelay0[0][0]]/2)
+
+       self.longestDelay1 = np.where(self.resultArray[1]==np.max(self.resultArray[1]))
        if len(self.longestDelay1[0])==1:
-           self.sugDelay1 = int(self.longestDelay1[0]) - int(self.resultArray1[self.longestDelay1]/2)
+           self.sugDelay1 = int(self.longestDelay1[0]) - int(self.resultArray[1][self.longestDelay1]/2)
        else:
-           self.sugDelay1 = int(self.longestDelay1[0][0]) - int(self.resultArray1[self.longestDelay1[0][0]]/2)
+           self.sugDelay1 = int(self.longestDelay1[0][0]) - int(self.resultArray[1][self.longestDelay1[0][0]]/2)
+
+       self.longestDelay2 = np.where(self.resultArray[2]==np.max(self.resultArray[2]))
+       if len(self.longestDelay2[0])==1:
+           self.sugDelay2 = int(self.longestDelay2[0]) - int(self.resultArray[2][self.longestDelay2]/2)
+       else:
+           self.sugDelay2 = int(self.longestDelay2[0][0]) - int(self.resultArray[2][self.longestDelay2[0][0]]/2)
+
+       self.longestDelay3 = np.where(self.resultArray[3]==np.max(self.resultArray[3]))
+       if len(self.longestDelay3[0])==1:
+           self.sugDelay3 = int(self.longestDelay3[0]) - int(self.resultArray[3][self.longestDelay3]/2)
+       else:
+           self.sugDelay3 = int(self.longestDelay3[0][0]) - int(self.resultArray[3][self.longestDelay3[0][0]]/2)
+
+       self.longestDelay4 = np.where(self.resultArray[4]==np.max(self.resultArray[4]))
+       if len(self.longestDelay4[0])==1:
+           self.sugDelay4 = int(self.longestDelay4[0]) - int(self.resultArray[4][self.longestDelay4]/2)
+       else:
+           self.sugDelay4 = int(self.longestDelay4[0][0]) - int(self.resultArray[4][self.longestDelay4[0][0]]/2)
+
+       self.longestDelay5 = np.where(self.resultArray[5]==np.max(self.resultArray[5]))
+       if len(self.longestDelay5[0])==1:
+           self.sugDelay5 = int(self.longestDelay5[0]) - int(self.resultArray[5][self.longestDelay5]/2)
+       else:
+           self.sugDelay5 = int(self.longestDelay5[0][0]) - int(self.resultArray[5][self.longestDelay5[0][0]]/2)
+       #self.longestDelay1 = np.where(self.resultArray1==np.max(self.resultArray1))
+       #if len(self.longestDelay1[0])==1:
+       #    self.sugDelay1 = int(self.longestDelay1[0]) - int(self.resultArray1[self.longestDelay1]/2)
+       #else:
+       #    self.sugDelay1 = int(self.longestDelay1[0][0]) - int(self.resultArray1[self.longestDelay1[0][0]]/2)
        print("Suggested delay_0: " + str(self.sugDelay0))     
-       print("Suggested delay_1: " + str(self.sugDelay1))     
+       print("Suggested delay_1: " + str(self.sugDelay1))
+       print("Suggested delay_2: " + str(self.sugDelay2))     
+       print("Suggested delay_3: " + str(self.sugDelay3))     
+       print("Suggested delay_4: " + str(self.sugDelay4))     
+       print("Suggested delay_5: " + str(self.sugDelay5))     
 
    
    @staticmethod   

@@ -1006,7 +1006,9 @@ class EpixHr10kTAsic(pr.Device):
         """SetPixelBitmap command function"""
         addrSize = 4
         #set r0mode in order to have saci cmd to work properly on legacy firmware
-        self.root.Epix10ka.EpixFpgaRegisters.AsicR0Mode.set(True)
+        #self.root.Epix10ka.EpixFpgaRegisters.AsicR0Mode.set(True)
+        if self._size == 0:
+            self._size = 0xfffff
 
         if (self.enable.get()):
             self.reportCmd(dev,cmd,arg)
@@ -1019,20 +1021,24 @@ class EpixHr10kTAsic(pr.Device):
                self.filename = self.filename[0]
             if os.path.splitext(self.filename)[1] == '.csv':
                 matrixCfg = np.genfromtxt(self.filename, delimiter=',')
-                if matrixCfg.shape == (178, 192):
+                if matrixCfg.shape == (146, 192):
                     self._rawWrite(0x00000000*addrSize,0)
                     self._rawWrite(0x00008000*addrSize,0)
-                    for x in range (0, 177):
+                    for x in range (0, 145):
                         for y in range (0, 192):
-                            bankToWrite = int(y/48);
+                            bankToWrite = int(y/32);
                             if (bankToWrite == 0):
-                               colToWrite = 0x700 + y%48;
+                               colToWrite = 0x700 + y%32;
                             elif (bankToWrite == 1):
-                               colToWrite = 0x680 + y%48;
+                               colToWrite = 0x680 + y%32;
                             elif (bankToWrite == 2):
-                               colToWrite = 0x580 + y%48;
+                               colToWrite = 0x580 + y%32;
                             elif (bankToWrite == 3):
-                               colToWrite = 0x380 + y%48;
+                               colToWrite = 0x380 + y%32;
+                            elif (bankToWrite == 4):
+                               colToWrite = 0x380 + y%32;
+                            elif (bankToWrite == 5):
+                               colToWrite = 0x380 + y%32;
                             else:
                                print('unexpected bank number')
                             self._rawWrite(0x00006011*addrSize, x)
@@ -1040,7 +1046,7 @@ class EpixHr10kTAsic(pr.Device):
                             self._rawWrite(0x00005000*addrSize, (int(matrixCfg[x][y])))
                     self._rawWrite(0x00000000*addrSize,0)
                 else:
-                    print('csv file must be 192x178 pixels')
+                    print('csv file must be 192x146 pixels', matrixCfg.shape)
             else:
                 print("Not csv file : ", self.filename)
         else:
@@ -1049,30 +1055,38 @@ class EpixHr10kTAsic(pr.Device):
     def fnGetPixelBitmap(self, dev,cmd,arg):
         """GetPixelBitmap command function"""
         addrSize = 4
+        if self._size == 0:
+            self._size = 0xfffff
         #set r0mode in order to have saci cmd to work properly on legacy firmware
-        self.root.Epix10ka.EpixFpgaRegisters.AsicR0Mode.set(True)
+        #self.root.Epix10ka.EpixFpgaRegisters.AsicR0Mode.set(True)
 
         if (self.enable.get()):
             self.reportCmd(dev,cmd,arg)
             if len(arg) > 0:
                self.filename = arg
             else:
-               self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+               self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+            if usingPyQt5:
+               self.filename = self.filename[0]
             if os.path.splitext(self.filename)[1] == '.csv':
-                readBack = np.zeros((178, 192),dtype='uint16')
+                readBack = np.zeros((146, 192),dtype='uint16')
                 self._rawWrite(0x00000000*addrSize,0)
                 self._rawWrite(0x00008000*addrSize,0)
-                for x in range (0, 177):
+                for x in range (0, 145):
                    for y in range (0, 192):
-                      bankToWrite = int(y/48);
+                      bankToWrite = int(y/32);
                       if (bankToWrite == 0):
-                         colToWrite = 0x700 + y%48;
+                         colToWrite = 0x700 + y%32;
                       elif (bankToWrite == 1):
-                         colToWrite = 0x680 + y%48;
+                         colToWrite = 0x680 + y%32;
                       elif (bankToWrite == 2):
-                         colToWrite = 0x580 + y%48;
+                         colToWrite = 0x580 + y%32;
                       elif (bankToWrite == 3):
-                         colToWrite = 0x380 + y%48;
+                         colToWrite = 0x380 + y%32;
+                      elif (bankToWrite == 4):
+                         colToWrite = 0x380 + y%32;
+                      elif (bankToWrite == 5):
+                         colToWrite = 0x380 + y%32;
                       else:
                          print('unexpected bank number')
                       self._rawWrite(0x00006011*addrSize, x)
