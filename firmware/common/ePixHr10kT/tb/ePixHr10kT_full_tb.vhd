@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2019-04-22
+-- Last update: 2019-05-06
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -146,6 +146,7 @@ architecture arch of ePixHr10kT_full_tb is
       signal asicDataN     : slv(23 downto 0);
       -- ASIC Control Ports
       signal asicR0        : sl;
+      signal asicSR0       : sl;
       signal asicPpmat     : sl;
       signal asicGlblRst   : sl;
       signal asicSync      : sl;
@@ -275,6 +276,8 @@ signal dummy : slv(1 downto 0);
 
 begin  --
 
+  asicSR0 <= spareHrP(0);
+
   EncDataOutRev <= bitReverse(EncDataOut);
   
   -- clock generation
@@ -355,7 +358,7 @@ begin  --
   EncValid_Proc: process  
   begin
     wait until fClkP = '1';
-    EncValidIn <= asicR0;
+    EncValidIn <= asicSR0;
   end process;  
   
 -------------------------------------------------------------------------------
@@ -365,7 +368,7 @@ begin  --
     variable chIdCounter : integer := 0;
   begin
     wait until fClkP = '1';
-    if asicR0 = '1' then
+    if asicSR0 = '1' then
       chIdCounter := ChIdCounter + 1;
       if chIdCounter = 32 then
         chIdCounter := 0;
@@ -383,7 +386,7 @@ begin  --
     variable dataIndex : integer := 0;
   begin
     wait until fClkP = '1';
-    if asicR0 = '1' then
+    if asicSR0 = '1' then
       if DATA_TYPE_C = CH_ID then
         EncDataIn <= chId;
       else
@@ -649,7 +652,6 @@ begin  --
          ----------------   
          -- Board IDs Ports
          snIoAdcCard      => snIoAdcCard,
-         snIoCarrier      => snIoCarrier,
          -- QSFP Ports
          qsfpRxP          => qsfpRxP,
          qsfpRxN          => qsfpRxN,

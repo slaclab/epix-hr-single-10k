@@ -82,7 +82,7 @@ architecture RTL of DigitalAsicStreamAxi is
 
    -- makes the fifo input with 2B per stream
    constant AXI_STREAM_CONFIG_I_C : AxiStreamConfigType   := ssiAxiStreamConfig(2*STREAMS_PER_ASIC_G, TKEEP_COMP_C);
-   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(24, TKEEP_COMP_C);--
+   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(12, TKEEP_COMP_C);--
    constant VECTOR_OF_ONES_C  : slv(15 downto 0) := (others => '1');
    constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
    -- PGP3 protocol is using 128bit (check for global constant for this configuration)
@@ -560,6 +560,7 @@ begin
            ------------------------------------------------------------------
            if STREAMS_PER_ASIC_G = 6 then        
              sv.axisMaster.tValid := '1';
+             sv.axisMaster.tKeep := x"0000000000000fff";
              sv.state := DATA_S;
              sv.axisMaster.tData(31 downto  0) := x"0000" & x"00" & LANE_NO_G & VC_NO_G;
              sv.axisMaster.tData(63 downto 32) := s.acqNo(1)(31 downto 0);
@@ -584,6 +585,7 @@ begin
                end if;
                
                sv.axisMaster.tValid := '1';
+               sv.axisMaster.tKeep := x"0000000000000fff";
                -- test or real data readout
                if s.testMode(0) = '0' then
                  sv.axisMaster.tData(16*STREAMS_PER_ASIC_G-1 downto 0) := dFifoExtData;

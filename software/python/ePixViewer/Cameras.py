@@ -1098,13 +1098,13 @@ class Camera():
     def _descrambleEpixHR10kTImage(self, rawData):
         """performs the Epix10kT image descrambling """
         print("Length raw data: %d" % (len(rawData)))
-        if (len(rawData)==56112):
+        if (len(rawData)==56088):
             #if (PRINT_VERBOSE): print('raw data 0:', rawData[0,0:10])
             #if (PRINT_VERBOSE): print('raw data 1:', rawData[1,0:10])
              if (type(rawData != 'numpy.ndarray')):
                 img = np.frombuffer(rawData,dtype='uint16')
              print("shape", img.shape)
-             quadrant0 = np.frombuffer(img[12:28044],dtype='uint16')
+             quadrant0 = np.frombuffer(img[6:28038],dtype='uint16')
              adcImg = quadrant0.reshape(-1,32)
              for i in range(0,32):
                  adcImg2 = adcImg[:,i].reshape(-1,6)
