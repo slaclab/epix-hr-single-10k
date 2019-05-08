@@ -82,7 +82,8 @@ architecture RTL of DigitalAsicStreamAxi is
 
    -- makes the fifo input with 2B per stream
    constant AXI_STREAM_CONFIG_I_C : AxiStreamConfigType   := ssiAxiStreamConfig(2*STREAMS_PER_ASIC_G, TKEEP_COMP_C);
-   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(48, TKEEP_COMP_C);--
+   constant AXI_STREAM_CONFIG_W_C : AxiStreamConfigType   := ssiAxiStreamConfig(48, TKEEP_COMP_C);
+   constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(16, TKEEP_COMP_C);--
    constant VECTOR_OF_ONES_C  : slv(15 downto 0) := (others => '1');
    constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
    -- PGP3 protocol is using 128bit (check for global constant for this configuration)
@@ -200,10 +201,14 @@ architecture RTL of DigitalAsicStreamAxi is
    signal dFifoOut      : slv16Array(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoExtData  : slv(16*STREAMS_PER_ASIC_G-1 downto 0) := (others => '0');
    
-   signal sAxisMaster  : AxiStreamMasterType;
-   signal sAxisSlave   : AxiStreamSlaveType;
-   signal imAxisMaster : AxiStreamMasterType;
-   signal imAxisSlave  : AxiStreamSlaveType;
+   signal sAxisMaster      : AxiStreamMasterType;
+   signal sAxisSlave       : AxiStreamSlaveType;
+   signal sAxisMasterWide  : AxiStreamMasterType;
+   signal sAxisSlaveWide   : AxiStreamSlaveType;
+   signal sAxisMasterInt   : AxiStreamMasterType;
+   signal sAxisSlaveInt    : AxiStreamSlaveType;
+   signal imAxisMaster     : AxiStreamMasterType;
+   signal imAxisSlave      : AxiStreamSlaveType;
    
    signal testModeSync  : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal iRxValid      : slv(STREAMS_PER_ASIC_G-1 downto 0);
@@ -345,19 +350,71 @@ begin
    ----------------------------------------------------------------------------
    -- must be able to store whole frame if AXIS is muxed
    ----------------------------------------------------------------------------
+   AxisResize12to48_U: entity work.AxiStreamResize
+   generic map(
+
+      -- General Configurations
+      TPD_G      => TPD_G,
+      READY_EN_G => true,
+
+      -- AXI Stream Port Configurations
+      SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_I_C,
+      MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_W_C
+      )
+   port map(
+
+      -- Clock and reset
+      axisClk     => axisClk,
+      axisRst     => axisRst,
+
+      -- Slave Port
+      sAxisMaster => sAxisMaster,
+      sAxisSlave  => sAxisSlave,
+
+      -- Master Port
+      mAxisMaster => sAxisMasterWide,
+      mAxisSlave  => sAxisSlaveWide
+      );
+
+   AxisResize48to16_U: entity work.AxiStreamResize
+     generic map(
+
+      -- General Configurations
+      TPD_G      => TPD_G,
+      READY_EN_G => true,
+
+      -- AXI Stream Port Configurations
+      SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_W_C,
+      MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_O_C
+      )
+   port map(
+
+      -- Clock and reset
+      axisClk     => axisClk,
+      axisRst     => axisRst,
+
+      -- Slave Port
+      sAxisMaster => sAxisMasterWide,
+      sAxisSlave  => sAxisSlaveWide,
+
+      -- Master Port
+      mAxisMaster => sAxisMasterInt,
+      mAxisSlave  => sAxisSlaveInt
+      );
+   
    AxisFifo_U: entity work.AxiStreamFifo
    generic map(
       GEN_SYNC_FIFO_G      => false,
-      FIFO_ADDR_WIDTH_G    => 13,
+      FIFO_ADDR_WIDTH_G    => 8,
       XIL_DEVICE_G         => "ULTRASCALE",
-      SLAVE_AXI_CONFIG_G   => AXI_STREAM_CONFIG_I_C,
+      SLAVE_AXI_CONFIG_G   => AXI_STREAM_CONFIG_O_C,
       MASTER_AXI_CONFIG_G  => AXI_STREAM_CONFIG_O_C
    )
    port map(
       sAxisClk    => axisClk,
       sAxisRst    => axisRst,
-      sAxisMaster => sAxisMaster,
-      sAxisSlave  => sAxisSlave,
+      sAxisMaster => sAxisMasterInt,
+      sAxisSlave  => sAxisSlaveInt,
       mAxisClk    => axisClk,
       mAxisRst    => axisRst,
       mAxisMaster => imAxisMaster,

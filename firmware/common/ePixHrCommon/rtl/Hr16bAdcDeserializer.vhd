@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-04-10
+-- Last update: 2019-05-08
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -49,7 +49,9 @@ entity Hr16bAdcDeserializer is
                                                       );
    port (
       -- Reset for adc deserializer
-      adcClkRst : in sl;
+      adcClkRst : in sl;                -- global reset
+      idelayRst : in sl;                -- register based reset  
+      iserdesRst: in sl;                -- register based reset 
       -- Serial Data from ADC
       dClk     : in sl;                       -- Data clock
       dClkDiv4 : in sl;
@@ -202,7 +204,7 @@ begin
       IDATAIN => sData_i,         -- 1-bit input: Data input from the IOBUF
       INC => '0',                 -- 1-bit input: Increment / Decrement tap delay input
       LOAD => loadDelay,               -- 1-bit input: Load DELAY_VALUE input
-      RST => '0'                  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+      RST => idelayRst            -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       );    
    
   ----------------------------------------------------------------------------
@@ -231,7 +233,7 @@ begin
       D => sData_d,               -- 1-bit input: Serial Data Input
       FIFO_RD_CLK => '1',         -- 1-bit input: FIFO read clock
       FIFO_RD_EN => '1',          -- 1-bit input: Enables reading the FIFO when asserted
-      RST => adcClkRst              -- 1-bit input: Asynchronous Reset
+      RST => iserdesRst           -- 1-bit input: Asynchronous Reset
       );
 
   -----------------------------------------------------------------------------

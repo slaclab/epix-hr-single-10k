@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-04-29
+-- Last update: 2019-05-08
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -99,6 +99,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       readoutDebug1  : slv20Array(NUM_CHANNELS_G-1 downto 0);
       adcStreamsEn_n : slv(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
+      idelayRst      : slv(NUM_CHANNELS_G-1 downto 0);  
+      iserdesRst     : slv(NUM_CHANNELS_G-1 downto 0); 
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -112,7 +114,9 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
       adcStreamsEn_n => (others => '0'),
-      lockedCountRst => '0');
+      lockedCountRst => '0',
+      idelayRst      => (others => '1'),
+      iserdesRst     => (others => '1'));
 
    signal lockedSync      : slv(NUM_CHANNELS_G-1 downto 0);
    signal lockedFallCount : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -150,6 +154,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
 
    -- Local Signals
    signal adcBitRst      : sl;
+   signal idelayRst      : slv(NUM_CHANNELS_G-1 downto 0);  
+   signal iserdesRst     : slv(NUM_CHANNELS_G-1 downto 0); 
    signal adcDataPadOut  : slv(NUM_CHANNELS_G-1 downto 0);
    signal adcDataPad     : slv(NUM_CHANNELS_G-1 downto 0);
    signal adcData        : Slv20Array(NUM_CHANNELS_G-1 downto 0);
@@ -231,6 +237,26 @@ begin
          rst     => adcBitRst,
          dataIn  => axilR.adcStreamsEn_n(i),
          dataOut => adcSEnSync(i));
+
+     Synchronizer_idelay_i : entity work.Synchronizer
+       generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2)
+       port map (
+         clk     => bitClk,
+         rst     => adcBitRst,
+         dataIn  => axilR.idelayRst(i),
+         dataOut => idelayRst(i));
+
+     Synchronizer_iserdes_i : entity work.Synchronizer
+       generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2)
+       port map (
+         clk     => bitClk,
+         rst     => adcBitRst,
+         dataIn  => axilR.iserdesRst(i),
+         dataOut => iserdesRst(i));     
    end generate;
 
    Synchronizer_Resync : entity work.Synchronizer
@@ -271,6 +297,8 @@ begin
 
       axiSlaveRegister (axilEp, X"00", 0, v.adcStreamsEn_n);
       axiSlaveRegister (axilEp, X"04", 0, v.resync);
+      axiSlaveRegister (axilEp, X"08", 0, v.idelayRst);
+      axiSlaveRegister (axilEp, X"0C", 0, v.iserdesRst);
       
       -- Up to 8 delay registers
       -- Write delay values to IDELAY primatives
@@ -350,6 +378,8 @@ begin
         MSB_LSB_G         => '0')
       port map (
         adcClkRst     => adcBitRst,
+        idelayRst     => idelayRst(i),
+        iserdesRst    => iserdesRst(i),
         dClk          => bitClk,                         -- Data clock
         dClkDiv4      => deserClk,
         dClkDiv5      => byteClk,
