@@ -2,7 +2,7 @@
 -- File       : HrAdcReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-03-02
+-- Last update: 2019-05-08
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -66,7 +66,9 @@ entity HrAdcReadoutGroup is
       idelayCtrlRdy : sl := '1';
 
       -- Serial Data from ADC
-      adcSerial : in HrAdcSerialGroupType;
+      adcSerial         : in  HrAdcSerialGroupType;
+      adcSerialOutP     : out sl;
+      adcSerialOutN     : out sl;
 
       -- Deserialized ADC Data
       adcStreamClk    : in  sl;
@@ -109,6 +111,8 @@ begin
         adcStreamsEn_n    => adcStreamsEn_n,
         monitoringSig     => monitoringSig
         );
+      adcSerialOutP     <= '1';
+      adcSerialOutN     <= '0';
   end generate GEN_ULTRASCALE_HRADC;
 
     GEN_ULTRASCALE_HRADC16 : if ((XIL_DEVICE_G = "ULTRASCALE") and (DATA_TYPE_G = "16b20b")) generate
@@ -134,6 +138,8 @@ begin
         adcClkRst         => adcClkRst,
         idelayCtrlRdy     => idelayCtrlRdy,
         adcSerial         => adcSerial,
+        adcSerialOutP     => adcSerialOutP,
+        adcSerialOutN     => adcSerialOutN,
         adcStreamClk      => adcStreamClk,
         adcStreams        => adcStreams,
         adcStreamsEn_n    => adcStreamsEn_n

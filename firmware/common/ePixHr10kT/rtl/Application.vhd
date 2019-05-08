@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-05-07
+-- Last update: 2019-05-08
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -257,6 +257,8 @@ architecture mapping of Application is
    signal adcSpiCsL_i      : slv(1 downto 0);
    signal adcPdwn_i        : slv(0 downto 0);
    signal idelayRdy        : sl;
+   signal adcSerialOutP    : slv(NUMBER_OF_ASICS_C-1 downto 0);
+   signal adcSerialOutN    : slv(NUMBER_OF_ASICS_C-1 downto 0);
 
    -- Power up reset to SERDES block (Monitoring ADC)
    signal adcCardPowerUp     : sl;
@@ -429,8 +431,7 @@ begin
       slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
-      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else
-      
+      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else   
       '0';   
 
    connMps    <= not connMpsMux;        -- required because the board has a
@@ -458,8 +459,18 @@ begin
       slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel2 = "10110" else
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10111" else
-
       '0';
+
+  smaTxP          <=
+     adcSerialOutP(0) when boardConfig.epixhrDbgSel3 = "00" else
+     adcSerialOutP(1) when boardConfig.epixhrDbgSel3 = "01" else
+     adcSerialOutP(2) when boardConfig.epixhrDbgSel3 = "10" else
+     adcSerialOutP(3);
+  smaTxN          <=
+     adcSerialOutN(0) when boardConfig.epixhrDbgSel3 = "00" else
+     adcSerialOutN(1) when boardConfig.epixhrDbgSel3 = "01" else
+     adcSerialOutN(2) when boardConfig.epixhrDbgSel3 = "10" else
+     adcSerialOutN(3);
 
    -----------------------------------------------------------------------------
    -- ASIC signal routing
@@ -476,9 +487,6 @@ begin
    mbIrq           <= (others => '0');  
    gtTxP           <= '0';
    gtTxN           <= '1';
-   smaTxP          <= '0';
-   smaTxN          <= '1';
-
 
    ------------------------------------------
    -- Generate clocks from 156.25 MHz PGP  --
@@ -1152,6 +1160,8 @@ begin
         adcClkRst       => serdesReset,
         idelayCtrlRdy   => idelayRdy,
         adcSerial       => adcSerial(i),
+        adcSerialOutP   => adcSerialOutP(i),
+        adcSerialOutN   => adcSerialOutN(i),
         adcStreamClk    => byteClk,
         adcStreams      => asicStreams(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
         adcStreamsEn_n  => adcStreamsEn_n(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C)

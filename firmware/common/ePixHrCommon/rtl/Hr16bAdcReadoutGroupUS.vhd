@@ -64,7 +64,8 @@ entity Hr16bAdcReadoutGroupUS is
 
       -- Serial Data from ADC
       adcSerial         : in HrAdcSerialGroupType;
-
+      adcSerialOutP     : out sl;
+      adcSerialOutN     : out sl;
       -- Deserialized ADC Data
       adcStreamClk      : in  sl;
       adcStreams        : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
@@ -100,7 +101,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       adcStreamsEn_n : slv(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
       idelayRst      : slv(NUM_CHANNELS_G-1 downto 0);  
-      iserdesRst     : slv(NUM_CHANNELS_G-1 downto 0); 
+      iserdesRst     : slv(NUM_CHANNELS_G-1 downto 0);
+      sDataOutControl: slv(2 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -116,7 +118,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       adcStreamsEn_n => (others => '0'),
       lockedCountRst => '0',
       idelayRst      => (others => '1'),
-      iserdesRst     => (others => '1'));
+      iserdesRst     => (others => '1'),
+      sDataOutControl=> (others => '0'));
 
    signal lockedSync      : slv(NUM_CHANNELS_G-1 downto 0);
    signal lockedFallCount : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -163,7 +166,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    signal curDelayData   : slv9Array(NUM_CHANNELS_G-1 downto 0);
    signal resync         : sl;
    signal adcSEnSync     : slv(NUM_CHANNELS_G-1 downto 0);
-
+   signal sDataOutP      : slv(NUM_CHANNELS_G-1 downto 0);
+   signal sDataOutN      : slv(NUM_CHANNELS_G-1 downto 0);
    type Slv10bData is array (natural range<>) of slv10Array(63 downto 0);
    signal tenbData       : Slv10bData(NUM_CHANNELS_G-1 downto 0);
 
@@ -186,6 +190,25 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
 
 begin
 
+
+  adcSerialOutN <=
+    sDataOutN(0) when axilR.sDataOutControl ="000" else
+    sDataOutN(1) when axilR.sDataOutControl ="001" else
+    sDataOutN(2) when axilR.sDataOutControl ="010" else
+    sDataOutN(3) when axilR.sDataOutControl ="011" else
+    sDataOutN(4) when axilR.sDataOutControl ="100" else
+    sDataOutN(5) when axilR.sDataOutControl ="101" else
+    '0';
+
+  adcSerialOutP <=
+    sDataOutP(0) when axilR.sDataOutControl ="000" else
+    sDataOutP(1) when axilR.sDataOutControl ="001" else
+    sDataOutP(2) when axilR.sDataOutControl ="010" else
+    sDataOutP(3) when axilR.sDataOutControl ="011" else
+    sDataOutP(4) when axilR.sDataOutControl ="100" else
+    sDataOutP(5) when axilR.sDataOutControl ="101" else
+    '0';
+  
    -- Regional clock reset
    ADC_BITCLK_RST_SYNC : entity work.RstSync
       generic map (
@@ -297,6 +320,7 @@ begin
 
       axiSlaveRegister (axilEp, X"00", 0, v.adcStreamsEn_n);
       axiSlaveRegister (axilEp, X"04", 0, v.resync);
+      axiSlaveRegister (axilEp, X"04", 1, v.sDataOutControl);
       axiSlaveRegister (axilEp, X"08", 0, v.idelayRst);
       axiSlaveRegister (axilEp, X"0C", 0, v.iserdesRst);
       
@@ -385,6 +409,8 @@ begin
         dClkDiv5      => byteClk,
         sDataP        => adcSerial.chP(i),                       
         sDataN        => adcSerial.chN(i),
+        sDataOutP     => sDataOutP(i),
+        sDataOutN     => sDataOutN(i),
         loadDelay     => dataDelaySet(i),
         delay         => dataDelay(i),
         delayValueOut => curDelayData(i),

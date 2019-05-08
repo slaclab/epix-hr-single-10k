@@ -4,7 +4,7 @@
 -- File       : RegControlEpixHR.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 2018-09-17
+-- Last update: 2019-05-08
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -328,6 +328,7 @@ begin
       axiSlaveRegister(regCon,  x"000210",  0, v.boardRegOut.asicMask);
       axiSlaveRegister(regCon,  x"000228",  0, v.boardRegOut.epixhrDbgSel1);
       axiSlaveRegister(regCon,  x"00022C",  0, v.boardRegOut.epixhrDbgSel2);
+      axiSlaveRegister(regCon,  x"000230",  0, v.boardRegOut.epixhrDbgSel3);
       
       axiSlaveRegister(regCon,  x"000300",  0, v.adcClkHalfT);
       axiSlaveRegister(regCon,  x"000304",  0, v.boardRegOut.requestStartupCal);

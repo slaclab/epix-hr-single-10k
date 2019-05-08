@@ -244,7 +244,11 @@ begin
    fifoExtData_GEN : for i in 0 to STREAMS_PER_ASIC_G-1 generate
      dataExt : process(dFifoOut)
        begin
-         dFifoExtData(16*i+15 downto 16*i) <= dFifoOut(i);         
+         if adcStreamsEn_n(i) = '1' then
+           dFifoExtData(16*i+15 downto 16*i) <= (others => '0');
+         else
+           dFifoExtData(16*i+15 downto 16*i) <= dFifoOut(i);
+         end if;
        end process;
    end generate;
    

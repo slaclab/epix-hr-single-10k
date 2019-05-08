@@ -1870,6 +1870,8 @@ class AsicDeserHr16bRegisters6St(pr.Device):
       
       #Setup registers & variables
       self.add(pr.RemoteVariable(name='StreamsEn_n',  description='Enable/Disable', offset=0x00000000, bitSize=6,  bitOffset=0,  base=pr.UInt, mode='RW'))    
+      self.add(pr.RemoteVariable(name=('IdelayRst'),     description='iDelay reset',  offset=0x00000008, bitSize=6, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RW'))
+      self.add(pr.RemoteVariable(name=('IserdeseRst'),   description='iSerdese3 reset',  offset=0x0000000C, bitSize=6, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RW'))
       self.add(pr.RemoteVariable(name='Resync',       description='Resync',         offset=0x00000004, bitSize=1,  bitOffset=0,  base=pr.Bool, verify = False, mode='RW'))
       self.add(pr.RemoteVariable(name='Delay0_', description='Data ADC Idelay3 value', offset=0x00000010, bitSize=10,  bitOffset=0,  base=pr.UInt, disp = '{}', verify=False, mode='RW', hidden=True))
       self.add(pr.LinkVariable(  name='Delay0',  description='Data ADC Idelay3 value', linkedGet=self.getDelay, linkedSet=self.setDelay, dependencies=[self.Delay0_]))
