@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-05-08
+-- Last update: 2019-05-09
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -81,6 +81,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
   constant NUM_BITS_C       : natural          := 20;
   constant IDLE_PATTERN_1_C : slv((NUM_BITS_C-1) downto 0) := "1010101010" & "0101111100";
   constant IDLE_PATTERN_2_C : slv((NUM_BITS_C-1) downto 0) := "1010101010" & "1010000011";
+  constant IDLE_PATTERN_3_C : slv((NUM_BITS_C-1) downto 0) := "0101010101" & "1010000011";
+  constant IDLE_PATTERN_4_C : slv((NUM_BITS_C-1) downto 0) := "0101010101" & "0101111100";
   constant FRAME_PATTERN_C  : slv((NUM_BITS_C-1) downto 0) := "1111111111" & "0000000000";
   constant LOCKED_COUNTER_VALUE_C : slv(15 downto 0) := x"0100";
   constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
@@ -103,6 +105,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       idelayRst      : slv(NUM_CHANNELS_G-1 downto 0);  
       iserdesRst     : slv(NUM_CHANNELS_G-1 downto 0);
       sDataOutControl: slv(2 downto 0);
+      restartBERT    : sl;
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -119,7 +122,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       lockedCountRst => '0',
       idelayRst      => (others => '1'),
       iserdesRst     => (others => '1'),
-      sDataOutControl=> (others => '0'));
+      sDataOutControl=> (others => '0'),
+      restartBERT    => '0');
 
    signal lockedSync      : slv(NUM_CHANNELS_G-1 downto 0);
    signal lockedFallCount : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -139,6 +143,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       locked         : slv(NUM_CHANNELS_G-1 downto 0);
       dataValidAll   : sl;
       fifoWrData     : Slv20Array(NUM_CHANNELS_G-1 downto 0);
+      countBertEn    : slv(NUM_CHANNELS_G-1 downto 0);
+      counterBERT    : Slv44Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant ADC_REG_INIT_C : AdcRegType := (
@@ -149,7 +155,9 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       idleWord       => (others => '0'),
       locked         => (others => '0'),
       dataValidAll   => '0',
-      fifoWrData     => (others => (others => '0')));
+      fifoWrData     => (others => (others => '0')),
+      countBertEn    => (others => '0'),
+      counterBERT    => (others => (others => '0')));
 
    signal adcR   : AdcRegType := ADC_REG_INIT_C;
    signal adcRin : AdcRegType;
@@ -166,6 +174,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    signal curDelayData   : slv9Array(NUM_CHANNELS_G-1 downto 0);
    signal resync         : sl;
    signal adcSEnSync     : slv(NUM_CHANNELS_G-1 downto 0);
+   signal restartBERTsync : sl;
+   signal counterBERTsync : Slv44Array(NUM_CHANNELS_G-1 downto 0);
    signal sDataOutP      : slv(NUM_CHANNELS_G-1 downto 0);
    signal sDataOutN      : slv(NUM_CHANNELS_G-1 downto 0);
    type Slv10bData is array (natural range<>) of slv10Array(63 downto 0);
@@ -261,6 +271,17 @@ begin
          dataIn  => axilR.adcStreamsEn_n(i),
          dataOut => adcSEnSync(i));
 
+     SynchronizerCounterBERT : entity work.SynchronizerVector 
+       generic map(
+         TPD_G          => TPD_G,
+         STAGES_G       => 2,
+         WIDTH_G        => 44)
+       port map(
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => adcR.counterBERT(i),
+         dataOut => counterBERTsync(i)); 
+
      Synchronizer_idelay_i : entity work.Synchronizer
        generic map (
          TPD_G    => TPD_G,
@@ -291,11 +312,22 @@ begin
          rst     => adcBitRst,
          dataIn  => axilR.resync,
          dataOut => resync);
+  Synchronizer_restartBertSync : entity work.Synchronizer
+     generic map (
+       TPD_G    => TPD_G,
+       STAGES_G => 2)
+     port map (
+       clk     => byteClk,
+       rst     => adcBitRst,
+       dataIn  => axilR.restartBERT,
+       dataOut => restartBERTsync);
+
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
    axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy, tenbData) is
+                       debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy, tenbData,
+                       counterBERTsync) is
       variable v        : AxilRegType;
       variable axilEp   : AxiLiteEndpointType;
       variable local10b : slv10Array(63 downto 0);
@@ -353,7 +385,11 @@ begin
       
 
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
-
+      axiSlaveRegister(axilEp, X"A0", 1, v.restartBERT);
+      for i in 0 to NUM_CHANNELS_G-1 loop
+        axiSlaveRegisterR(axilEp, X"A4"+toSlv((i*8),8), 0,  counterBERTsync(i));
+      end loop;
+      
       for i in 0 to NUM_CHANNELS_G-1 loop
         local10b := tenbData(i);
         for j in 0 to 7 loop
@@ -443,7 +479,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Bit Clocked Logic
    -------------------------------------------------------------------------------------------------
-   adcComb : process (adcData, dataValid, adcR, resync, adcSEnSync) is
+   adcComb : process (adcData, dataValid, adcR, resync, adcSEnSync, restartBERTsync) is
       variable v : AdcRegType;
    begin
       v := adcR;
@@ -453,10 +489,26 @@ begin
       -------------------------------------------------------------------------
       for i in NUM_CHANNELS_G-1 downto 0 loop
         if dataValid(i) = '1' then
-          if adcData(i) = IDLE_PATTERN_1_C or adcData(i) = IDLE_PATTERN_2_C or adcData(i) = FRAME_PATTERN_C then
+          if adcData(i) = IDLE_PATTERN_1_C or adcData(i) = IDLE_PATTERN_2_C or adcData(i) = IDLE_PATTERN_3_C or adcData(i) = IDLE_PATTERN_4_C or dcData(i) = FRAME_PATTERN_C then
             v.idleWord(i) := '1';
           else
             v.idleWord(i) := '0';
+          end if;
+        end if;
+      end loop;
+
+      -------------------------------------------------------------------------
+      -- PSEUDO BERT counter based on idleWord
+      -------------------------------------------------------------------------
+      for i in NUM_CHANNELS_G-1 downto 0 loop
+        if restartBERTsync = '1' then
+          v.countBertEn(i) := '1';
+          v.counterBERT(i) := (others => '0');
+        else
+          if adcR.idleWord(i) = '1' and adcR.countBertEn(i) = '1' then
+            v.counterBERT(i) := adcR.counterBERT(i) + 1;            
+          else
+            v.countBertEn(i) := '0';
           end if;
         end if;
       end loop;
@@ -486,7 +538,11 @@ begin
         if adcR.locked(i) = '1' then
           v.count(i) := (others => '1');
         else
-          v.count(i) := adcR.count(i) + 1;  
+          if (adcR.count(i) = 29) then
+            v.count(i) := (others => '0');
+          else
+            v.count(i) := adcR.count(i) + 1;
+          end if;
         end if;
       end loop;
       
