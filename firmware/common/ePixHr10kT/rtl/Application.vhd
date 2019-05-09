@@ -462,15 +462,15 @@ begin
       '0';
 
   smaTxP          <=
-     adcSerialOutP(0) when boardConfig.epixhrDbgSel3 = "00" else
-     adcSerialOutP(1) when boardConfig.epixhrDbgSel3 = "01" else
-     adcSerialOutP(2) when boardConfig.epixhrDbgSel3 = "10" else
+     adcSerialOutP(0) when boardConfig.epixhrDbgSel3(1 downto 0) = "00" else
+     adcSerialOutP(1) when boardConfig.epixhrDbgSel3(1 downto 0) = "01" else
+     adcSerialOutP(2) when boardConfig.epixhrDbgSel3(1 downto 0) = "10" else
      adcSerialOutP(3);
   smaTxN          <=
-     adcSerialOutN(0) when boardConfig.epixhrDbgSel3 = "00" else
-     adcSerialOutN(1) when boardConfig.epixhrDbgSel3 = "01" else
-     adcSerialOutN(2) when boardConfig.epixhrDbgSel3 = "10" else
-     adcSerialOutN(3);
+     adcSerialOutP(0) when boardConfig.epixhrDbgSel3(3 downto 2) = "00" else
+     adcSerialOutP(1) when boardConfig.epixhrDbgSel3(3 downto 2) = "01" else
+     adcSerialOutP(2) when boardConfig.epixhrDbgSel3(3 downto 2) = "10" else
+     adcSerialOutP(3);
 
    -----------------------------------------------------------------------------
    -- ASIC signal routing
