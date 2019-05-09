@@ -86,7 +86,7 @@ parser.add_argument(
     "--verbose", 
     type     = bool,
     required = False,
-    default  = False,
+    default  = True,
     help     = "true for verbose printout",
 )
 
@@ -118,14 +118,14 @@ if ( args.type == 'pgp-gen3' ):
     
 elif ( args.type == 'kcu1500' ):
     # Create the PGP interfaces for ePix hr camera
-    pgpL0Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*32)+0, True) # Data & cmds
-    pgpL0Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*32)+1, True) # Registers for ePix board
-    pgpL0Vc2 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*32)+2, True) # PseudoScope
-    pgpL0Vc3 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*32)+3, True) # Monitoring (Slow ADC)
+    pgpL0Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+0, True) # Data & cmds
+    pgpL0Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+1, True) # Registers for ePix board
+    pgpL0Vc2 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+2, True) # PseudoScope
+    pgpL0Vc3 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+3, True) # Monitoring (Slow ADC)
 
-    #pgpL1Vc0 = rogue.hardware.data.DataCard('/dev/datadev_0',(0*32)+0) # Data (when using all four lanes it should be swapped back with L0)
-    pgpL2Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(2*32)+0, True) # Data
-    pgpL3Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(3*32)+0, True) # Data
+    pgpL1Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(1*256)+0, True) # Data
+    pgpL2Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(2*256)+0, True) # Data
+    pgpL3Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(3*256)+0, True) # Data
 elif ( args.type == 'SIM' ):          
     print('Sim mode')
     simPort = 11000
@@ -134,6 +134,7 @@ elif ( args.type == 'SIM' ):
     pgpL0Vc1  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*1) # VC1
     pgpL0Vc2  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*2) # VC2
     pgpL0Vc3  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*3) # VC3    
+    pgpL1Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*1)+2*0) # L2VC0    
     pgpL2Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*2)+2*0) # L2VC0    
     pgpL3Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*3)+2*0) # L3VC0
     
@@ -146,7 +147,10 @@ else:
 # Add data stream to file as channel 1 File writer
 dataWriter = pyrogue.utilities.fileio.StreamWriter(name='dataWriter')
 if ( args.type != 'dataFile' ):
-    pyrogue.streamConnect(pgpL0Vc0, dataWriter.getChannel(0x1))
+    pyrogue.streamConnect(pgpL0Vc0, dataWriter.getChannel(0x01))
+    pyrogue.streamConnect(pgpL1Vc0, dataWriter.getChannel(0x11))
+    pyrogue.streamConnect(pgpL2Vc0, dataWriter.getChannel(0x21))
+    pyrogue.streamConnect(pgpL3Vc0, dataWriter.getChannel(0x31))
 
 cmd = rogue.protocols.srp.Cmd()
 if ( args.type != 'dataFile' ):
@@ -233,7 +237,7 @@ if (args.verbose): pyrogue.streamTap(pgpL0Vc0, dbgData)
 
 if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
 if (args.verbose): dbgData.setDebug(60, "DATA Verbose 1[{}]".format(0))
-# if (args.verbose): pyrogue.streamTap(pgpL1Vc0, dbgData)
+if (args.verbose): pyrogue.streamTap(pgpL1Vc0, dbgData)
 
 if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
 if (args.verbose): dbgData.setDebug(60, "DATA Verbose 2[{}]".format(0))
@@ -260,6 +264,9 @@ if (args.start_viewer == 'True'):
     onlineViewer.eventReader.frameIndex = 0
     onlineViewer.setReadDelay(0)
     pyrogue.streamTap(pgpL0Vc0, onlineViewer.eventReader)
+    pyrogue.streamTap(pgpL1Vc0, onlineViewer.eventReader)
+    pyrogue.streamTap(pgpL2Vc0, onlineViewer.eventReader)
+    pyrogue.streamTap(pgpL3Vc0, onlineViewer.eventReader)
 
     if (args.type != 'dataFile'):
         pyrogue.streamTap(pgpL0Vc2, onlineViewer.eventReaderScope)# PseudoScope
@@ -293,5 +300,5 @@ if (args.start_gui=='True'):
 
 # Close window and stop polling
 ePixHrBoard.stop()
-exit()
+
 

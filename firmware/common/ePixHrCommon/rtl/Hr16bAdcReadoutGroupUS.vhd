@@ -384,16 +384,16 @@ begin
       end loop;
       
 
-      axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
-      axiSlaveRegister(axilEp, X"A0", 1, v.restartBERT);
+      axiSlaveRegister(axilEp, X"100", 0, v.freezeDebug);
+      axiSlaveRegister(axilEp, X"100", 1, v.restartBERT);
       for i in 0 to NUM_CHANNELS_G-1 loop
-        axiSlaveRegisterR(axilEp, X"A4"+toSlv((i*8),8), 0,  counterBERTsync(i));
+        axiSlaveRegisterR(axilEp, X"104"+toSlv((i*8),8), 0,  counterBERTsync(i));
       end loop;
       
       for i in 0 to NUM_CHANNELS_G-1 loop
         local10b := tenbData(i);
         for j in 0 to 7 loop
-          axiSlaveRegisterR(axilEp, X"100"+toSlv((i*64*4+j*4),12), 0,  local10b(j));
+          axiSlaveRegisterR(axilEp, X"200"+toSlv((i*64*4+j*4),12), 0,  local10b(j));
         end loop;  -- j
       end loop;
       
@@ -489,7 +489,7 @@ begin
       -------------------------------------------------------------------------
       for i in NUM_CHANNELS_G-1 downto 0 loop
         if dataValid(i) = '1' then
-          if adcData(i) = IDLE_PATTERN_1_C or adcData(i) = IDLE_PATTERN_2_C or adcData(i) = IDLE_PATTERN_3_C or adcData(i) = IDLE_PATTERN_4_C or dcData(i) = FRAME_PATTERN_C then
+          if adcData(i) = IDLE_PATTERN_1_C or adcData(i) = IDLE_PATTERN_2_C or adcData(i) = IDLE_PATTERN_3_C or adcData(i) = IDLE_PATTERN_4_C or adcData(i) = FRAME_PATTERN_C then
             v.idleWord(i) := '1';
           else
             v.idleWord(i) := '0';
@@ -502,13 +502,13 @@ begin
       -------------------------------------------------------------------------
       for i in NUM_CHANNELS_G-1 downto 0 loop
         if restartBERTsync = '1' then
-          v.countBertEn(i) := '1';
+          --v.countBertEn(i) := '1';
           v.counterBERT(i) := (others => '0');
         else
-          if adcR.idleWord(i) = '1' and adcR.countBertEn(i) = '1' then
+          if adcR.idleWord(i) = '0' then -- and adcR.countBertEn(i) = '1' then
             v.counterBERT(i) := adcR.counterBERT(i) + 1;            
           else
-            v.countBertEn(i) := '0';
+            --v.countBertEn(i) := '0';
           end if;
         end if;
       end loop;

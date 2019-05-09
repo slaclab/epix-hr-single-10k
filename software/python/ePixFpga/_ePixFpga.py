@@ -1901,10 +1901,14 @@ class AsicDeserHr16bRegisters6St(pr.Device):
       for j in range(0, 6):
           for i in range(0, 2):
               self.add(pr.RemoteVariable(name=('IserdeseOut%d_%d' % (j, i)),   description='IserdeseOut'+str(i),  offset=0x00000080+i*4+j*8, bitSize=20, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
-      
+
+      self.add(pr.RemoteVariable(name='FreezeDebug',      description='Restart BERT',  offset=0x00000100, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))      
+      self.add(pr.RemoteVariable(name='BERTRst',      description='Restart BERT',      offset=0x00000100, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))      
+      for i in range(0, 6):
+         self.add(pr.RemoteVariable(name='BERTCounter'+str(i),   description='Counter value.'+str(i),  offset=0x00000104+i*8, bitSize=44, bitOffset=0, base=pr.UInt,  disp = '{}', mode='RO'))
 
       for i in range(0,6):
-          self.add(AsicDeser10bDataRegisters(name='tenbData_ser%d'%i,      offset=(0x00000100+(i*0x00000100)), expand=False))
+          self.add(AsicDeser10bDataRegisters(name='tenbData_ser%d'%i,      offset=(0x00000200+(i*0x00000100)), expand=False))
       #####################################
       # Create commands
       #####################################
