@@ -156,7 +156,7 @@ begin
   PixData <= adcDv5R.masterPixData(10)&adcDv5R.masterPixData(11)&adcDv5R.masterPixData(12)&adcDv5R.masterPixData(13)&adcDv5R.masterPixData(14)&adcDv5R.masterPixData(15)&adcDv5R.masterPixData(16)&adcDv5R.masterPixData(17)&adcDv5R.masterPixData(18)&adcDv5R.masterPixData(19)&adcDv5R.masterPixData(0)&adcDv5R.masterPixData(1)&adcDv5R.masterPixData(2)&adcDv5R.masterPixData(3)&adcDv5R.masterPixData(4)&adcDv5R.masterPixData(5)&adcDv5R.masterPixData(6)&adcDv5R.masterPixData(7)&adcDv5R.masterPixData(8)&adcDv5R.masterPixData(9)                       when BIT_REV_G = '1'
              else adcDv5R.masterPixData;
 
-  sDataOutP <= sData_d;--
+  sDataOutP <= '1';--sData_d;-- sending sData_d is not routable
   sDataOutN <= '0';
   -------------------------------------------------------------------------------------------------
   -- Create Clocks
