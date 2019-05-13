@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-05-09
+-- Last update: 2019-05-13
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -135,7 +135,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
-      slip           : Slv3Array(NUM_CHANNELS_G-1 downto 0); 
+      slip           : Slv4Array(NUM_CHANNELS_G-1 downto 0); 
       count          : Slv6Array(NUM_CHANNELS_G-1 downto 0);
       lockedCounter  : Slv16Array(NUM_CHANNELS_G-1 downto 0);
       gearBoxOffset  : Slv2Array(NUM_CHANNELS_G-1 downto 0); 

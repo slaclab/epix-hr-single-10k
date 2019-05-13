@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-05-08
+-- Last update: 2019-05-13
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -64,7 +64,7 @@ entity Hr16bAdcDeserializer is
       loadDelay       : in sl;
       delay           : in slv(8 downto 0) := "000000000";
       delayValueOut   : out slv(8 downto 0);
-      bitSlip         : in slv(2 downto 0) := "000";
+      bitSlip         : in slv(3 downto 0) := "0000";
       tenbOrder       : in sl := '1';
       gearboxOffset   : in slv(1 downto 0) := "00";
       dataValid       : out sl;
@@ -83,10 +83,11 @@ architecture rtl of Hr16bAdcDeserializer is
   type AdcClkDiv4RegType is record
     masterData         : slv(7  downto 0);
     masterData_1       : slv(7  downto 0);
+    masterData_2       : slv(7  downto 0);
     longDataCounter    : slv(2  downto 0);
     longData           : slv(39 downto 0);
     longData_1         : slv(39 downto 0);
-    bitSlip            : slv(2  downto 0);
+    bitSlip            : slv(3  downto 0);
     masterDataBS       : slv(7  downto 0);
     masterDataBS_1     : slv(7  downto 0);
     longDataStable     : sl;
@@ -95,6 +96,7 @@ architecture rtl of Hr16bAdcDeserializer is
   constant ADC_CLK_DV4_REG_INIT_C : AdcClkDiv4RegType := (
     masterData         => (others => '0'),
     masterData_1       => (others => '0'),
+    masterData_2       => (others => '0'),
     longDataCounter    => (others => '0'),
     longData           => (others => '0'),
     longData_1         => (others => '0'),
@@ -260,6 +262,7 @@ begin
 
      -- creates pipeline
      v.masterData_1 := adcDv4R.masterData;
+     v.masterData_2 := adcDv4R.masterData_1;
      v.longData_1   := adcDv4R.longData;
      v.masterDataBS_1 := adcDv4R.masterDataBS;
      
@@ -296,22 +299,38 @@ begin
    
      --bit slip logic
      case (adcDv4R.bitSlip) is
-       when "000" =>
+       when "0000" =>
          v.masterDataBS := adcDv4R.masterData(7 downto 0);
-       when "001" =>
+       when "0001" =>
          v.masterDataBS := adcDv4R.masterData(6 downto 0) & adcDv4R.masterData_1(7);
-       when "010" =>
+       when "0010" =>
          v.masterDataBS := adcDv4R.masterData(5 downto 0) & adcDv4R.masterData_1(7 downto 6);
-       when "011" =>
+       when "0011" =>
          v.masterDataBS := adcDv4R.masterData(4 downto 0) & adcDv4R.masterData_1(7 downto 5);
-       when "100" =>
+       when "0100" =>
          v.masterDataBS := adcDv4R.masterData(3 downto 0) & adcDv4R.masterData_1(7 downto 4);
-       when "101" =>
+       when "0101" =>
          v.masterDataBS := adcDv4R.masterData(2 downto 0) & adcDv4R.masterData_1(7 downto 3);
-       when "110" =>
+       when "0110" =>
          v.masterDataBS := adcDv4R.masterData(1 downto 0) & adcDv4R.masterData_1(7 downto 2);
-       when "111" =>
+       when "0111" =>
          v.masterDataBS := adcDv4R.masterData(0)          & adcDv4R.masterData_1(7 downto  1);
+       when "1000" =>
+         v.masterDataBS := adcDv4R.masterData_1(7 downto 0);
+       when "1001" =>
+         v.masterDataBS := adcDv4R.masterData_1(6 downto 0) & adcDv4R.masterData_2(7);
+       when "1010" =>
+         v.masterDataBS := adcDv4R.masterData_1(5 downto 0) & adcDv4R.masterData_2(7 downto 6);
+       when "1011" =>
+         v.masterDataBS := adcDv4R.masterData_1(4 downto 0) & adcDv4R.masterData_2(7 downto 5);
+       when "1100" =>
+         v.masterDataBS := adcDv4R.masterData_1(3 downto 0) & adcDv4R.masterData_2(7 downto 4);
+       when "1101" =>
+         v.masterDataBS := adcDv4R.masterData_1(2 downto 0) & adcDv4R.masterData_2(7 downto 3);
+       when "1110" =>
+         v.masterDataBS := adcDv4R.masterData_1(1 downto 0) & adcDv4R.masterData_2(7 downto 2);
+       when "1111" =>
+         v.masterDataBS := adcDv4R.masterData_1(0)          & adcDv4R.masterData_2(7 downto  1);
        when others =>
          v.masterDataBS := (others => '0');
      end case;
