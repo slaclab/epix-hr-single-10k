@@ -2020,6 +2020,16 @@ class AsicDeserHr16bRegisters6St(pr.Device):
        print("Suggested delay_3: " + str(self.sugDelay3))     
        print("Suggested delay_4: " + str(self.sugDelay4))     
        print("Suggested delay_5: " + str(self.sugDelay5))     
+       # apply suggested settings
+       self.Delay0.set(self.sugDelay0)
+       self.Delay1.set(self.sugDelay1)
+       self.Delay2.set(self.sugDelay2)
+       self.Delay3.set(self.sugDelay3)
+       self.Delay4.set(self.sugDelay4)
+       self.Delay5.set(self.sugDelay5)
+       self.Resync.set(True)
+       time.sleep(1.0 / float(100))
+       self.Resync.set(False)
 
    
    @staticmethod   

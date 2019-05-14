@@ -769,7 +769,7 @@ class EpixHr10kTAsic(pr.Device):
         #Setup registers & variables
                 
         # CMD = 0, Addr = 0  : Prepare for readout
-        self.add(pr.RemoteCommand(name='CmdPrepForRead', description='ePix Prepare For Readout',offset=0x00000000*addrSize, bitSize=1, bitOffset=0, function=pr.Command.touchZero, hidden=True))
+        self.add(pr.RemoteCommand(name='CmdPrepForRead', description='ePix Prepare For Readout',offset=0x00000000*addrSize, bitSize=1, bitOffset=0, function=pr.Command.touchZero, hidden=False))
         
         # CMD = 1, Addr = 1 
         # TODO: fix CompEn so it is one uint register
