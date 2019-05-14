@@ -135,7 +135,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
-      slip           : Slv4Array(NUM_CHANNELS_G-1 downto 0); 
+      slip           : Slv5Array(NUM_CHANNELS_G-1 downto 0); 
       count          : Slv6Array(NUM_CHANNELS_G-1 downto 0);
       lockedCounter  : Slv16Array(NUM_CHANNELS_G-1 downto 0);
       gearBoxOffset  : Slv2Array(NUM_CHANNELS_G-1 downto 0); 
@@ -522,7 +522,11 @@ begin
             v.lockedCounter(i) := adcR.lockedCounter(i) + 1;           
           else
             v.lockedCounter(i) := (others => '0');
-            v.slip(i)   := adcR.slip(i) + 1;       
+            if  adcR.slip(i) = 20 then
+              v.slip(i)   := (others => '0');
+            else
+              v.slip(i)   := adcR.slip(i) + 1;
+            end if;
             -- increments the gearbox
             if adcR.slip(i) = 0 then
               v.gearBoxOffset(i) := adcR.gearBoxOffset(i) + 1;
