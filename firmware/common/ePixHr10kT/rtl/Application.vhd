@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-05-08
+-- Last update: 2019-05-14
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -219,7 +219,7 @@ architecture mapping of Application is
    signal iAsicEnA             : sl;
    signal iAsicEnB             : sl;
    signal iAsicVid             : sl;
-   signal iAsicSR0             : sl;
+   signal iAsicSR0, oAsicSR0   : sl;
    signal iAsic01DM1           : sl;
    signal iAsic01DM2           : sl;
    signal iAsicPPbe            : sl;
@@ -413,7 +413,7 @@ begin
       iAsic01DM1        when boardConfig.epixhrDbgSel1 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel1 = "00001" else
       iAsicAcq          when boardConfig.epixhrDbgSel1 = "00010" else
-      iAsicSR0          when boardConfig.epixhrDbgSel1 = "00011" else
+      oAsicSR0          when boardConfig.epixhrDbgSel1 = "00011" else
       iSaciClk          when boardConfig.epixhrDbgSel1 = "00100" else
       iSaciCmd          when boardConfig.epixhrDbgSel1 = "00101" else
       asicSaciRsp       when boardConfig.epixhrDbgSel1 = "00110" else
@@ -440,7 +440,7 @@ begin
       iAsic01DM2        when boardConfig.epixhrDbgSel2 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel2 = "00001" else
       iAsicAcq          when boardConfig.epixhrDbgSel2 = "00010" else
-      iAsicSR0          when boardConfig.epixhrDbgSel2 = "00011" else
+      oAsicSR0          when boardConfig.epixhrDbgSel2 = "00011" else
       iSaciClk          when boardConfig.epixhrDbgSel2 = "00100" else
       iSaciCmd          when boardConfig.epixhrDbgSel2 = "00101" else
       asicSaciRsp       when boardConfig.epixhrDbgSel2 = "00110" else
@@ -480,7 +480,7 @@ begin
    asicSync        <= iAsicSync;
    asicAcq         <= iAsicAcq;
    asicR0          <= iAsicR0;
-   spareHrP(0)     <= iAsicSR0;
+   spareHrP(0)     <= oAsicSR0;
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
@@ -488,6 +488,16 @@ begin
    gtTxP           <= '0';
    gtTxN           <= '1';
 
+   Synchronizer_SR0 : entity work.Synchronizer
+     generic map (
+       TPD_G    => TPD_G,
+       STAGES_G => 2)
+     port map (
+       clk     => asicRdClk,
+       rst     => asicRdClkRst,
+       dataIn  => iAsicSR0,
+       dataOut => oAsicSR0);
+  
    ------------------------------------------
    -- Generate clocks from 156.25 MHz PGP  --
    ------------------------------------------
