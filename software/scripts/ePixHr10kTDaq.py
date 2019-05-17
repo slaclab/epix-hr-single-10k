@@ -86,7 +86,7 @@ parser.add_argument(
     "--verbose", 
     type     = bool,
     required = False,
-    default  = True,
+    default  = False,
     help     = "true for verbose printout",
 )
 
@@ -246,6 +246,9 @@ if (args.verbose): pyrogue.streamTap(pgpL2Vc0, dbgData)
 if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
 if (args.verbose): dbgData.setDebug(60, "DATA Verbose 3[{}]".format(0))
 if (args.verbose): pyrogue.streamTap(pgpL3Vc0, dbgData)
+
+#this command can fill up the hard drive /var/log
+#if (args.verbose): pgpL2Vc0.setDriverDebug(True)
 
 # Create GUI
 appTop = QApplication(sys.argv)

@@ -1098,7 +1098,7 @@ class Camera():
     def _descrambleEpixHR10kTImage(self, rawData):
         """performs the Epix10kT image descrambling """
         print("Length raw data: %d" % (len(rawData)))
-        if (len(rawData)==56088):
+        if (len(rawData)==56076):
             #if (PRINT_VERBOSE): print('raw data 0:', rawData[0,0:10])
             #if (PRINT_VERBOSE): print('raw data 1:', rawData[1,0:10])
              if (type(rawData != 'numpy.ndarray')):

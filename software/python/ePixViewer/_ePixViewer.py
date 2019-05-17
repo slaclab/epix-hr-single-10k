@@ -359,7 +359,10 @@ class Window(QMainWindow, QObject):
         #self.image = QtGui.QImage(_8bitImg.repeat(4), self.imgTool.imgWidth, self.imgTool.imgHeight, QtGui.QImage.Format_RGB32)
         
         #pp = QtGui.QPixmap.fromImage(self.image)
-        self.mainImageDisp.update_figure(_8bitImg, contrast=[self.imageScaleMax, self.imageScaleMin], autoScale = False)
+        if self.imageScaleMax > self.imageScaleMin:
+            self.mainImageDisp.update_figure(_8bitImg, contrast=[self.imageScaleMax, self.imageScaleMin], autoScale = False)
+        else:
+            self.mainImageDisp.update_figure(_8bitImg, contrast=[self.imageScaleMin, self.imageScaleMax], autoScale = False)
         #self.label.setPixmap(pp.scaled(self.label.size(),QtCore.Qt.KeepAspectRatio,QtCore.Qt.SmoothTransformation))
         #self.label.adjustSize()
         # updates the frame number

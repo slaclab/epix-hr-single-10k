@@ -76,7 +76,6 @@ class EpixHRGenEmpty(pr.Device):
             if waveform.shape == (1024,):
                 for x in range (0, 1024):
                     self.waveformMem.Mem[x].set(int(waveform[x]))
-
             else:
                 print('wrong csv file format')
 
@@ -313,7 +312,7 @@ class EpixHR10kT(pr.Device):
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
             # app registers
-            MMCM7Registers(          name='MMCM7Registers',                    offset=0x80000000, expand=False, enabled=False),
+            MMCM7Registers(          name='MMCMRegisters',                    offset=0x80000000, expand=False, enabled=False),
             TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
@@ -348,7 +347,7 @@ class EpixHR10kT(pr.Device):
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
         self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
-
+        self.add(pr.LocalCommand(name='InitASIC',      description='Inicialization routines', function=self.fnInitAsic))
 
     def fnSetWaveform(self, dev,cmd,arg):
         """SetTestBitmap command function"""
@@ -371,7 +370,114 @@ class EpixHR10kT(pr.Device):
             np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
 
 
+    def fnInitAsic(self, dev,cmd,arg):
+        """SetTestBitmap command function"""       
+        print("Rysync ASIC started")
+        if arg == 1:
+            self.filenameMMCM = "./yml/ePix10kT_MMCM_125MHz.yml"
+            self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
+            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
+            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
+        if arg == 2:
+            self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz.yml"
+            self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
+            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
+            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
 
+        if arg == 3:
+            self.filenameMMCM = "./yml/ePix10kT_MMCM_62p5MHz.yml"
+            self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
+            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
+            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
+
+        if arg != 0:
+            self.fnInitAsicScript(dev,cmd,arg)
+
+    def fnInitAsicScript(self, dev,cmd,arg):
+        """SetTestBitmap command function"""       
+        print("Init ASIC script started")
+        delay = 1
+        print("Loading MMCM configuration")
+        self.MMCMRegisters.enable.set(True)
+        self.root.readBlocks()
+        time.sleep(delay/10) 
+        self.root.ReadConfig(self.filenameMMCM)
+        print(self.filenameMMCM)
+        time.sleep(delay/10) 
+        self.root.readBlocks()
+        self.MMCMRegisters.enable.set(False)
+        time.sleep(delay) 
+        self.root.readBlocks()
+        print("Completed")
+
+        # load config that sets prog supply
+        print("Loading supply configuration")
+        self.root.ReadConfig(self.filenamePowerSupply)
+        print(self.filenamePowerSupply)
+        time.sleep(delay) 
+
+
+        # load config that sets waveforms
+        print("Loading waveforms configuration")
+        self.root.ReadConfig(self.filenameWaveForms)
+        print(self.filenameWaveForms)
+        time.sleep(delay) 
+
+        # load config that sets packet registers
+        print("Loading packet registers")
+        self.root.ReadConfig(self.filenamePacketReg)
+        print(self.filenamePacketReg)
+        time.sleep(delay)         
+
+        ## takes the asic off of reset
+        for i in range(2):
+            print("Taking asic off of reset")
+            self.RegisterControl.enable.set(True)
+            self.RegisterControl.GlblRstPolarity.set(False)
+            time.sleep(delay) 
+            self.RegisterControl.GlblRstPolarity.set(True)
+            time.sleep(delay) 
+            self.root.readBlocks()
+            time.sleep(delay) 
+
+            ## load config for the asic
+            print("Loading ASIC and timing configuration")
+            self.root.ReadConfig(self.filenameASIC)
+            time.sleep(5*delay) 
+
+        ## load config for the asic
+        print("Loading ASIC and timing configuration")
+        self.root.ReadConfig(self.filenameASIC)
+        time.sleep(5*delay) 
+
+
+        ## start deserializer config for the asic
+        EN_DESERIALIZERS = True
+        if EN_DESERIALIZERS : 
+            print("Starting deserializer")
+            self.serializerSyncAttempsts = 0
+            while True:
+                #make sure idle
+                self.DeserRegisters0.enable.set(True)
+                self.DeserRegisters0.IdelayRst.set(0)
+                self.DeserRegisters0.IserdeseRst.set(0)
+                self.root.readBlocks()
+                time.sleep(2*delay) 
+                self.DeserRegisters0.InitAdcDelay()
+                time.sleep(delay)                   
+                self.DeserRegisters0.Resync.set(True)
+                time.sleep(delay) 
+                self.DeserRegisters0.Resync.set(False)
+                time.sleep(5*delay) 
+                if (self.DeserRegisters0.Locked0.get() and self.DeserRegisters0.Locked1.get() and self.DeserRegisters0.Locked2.get() and  self.DeserRegisters0.Locked3.get() and self.DeserRegisters0.Locked4.get() and  self.DeserRegisters0.Locked5.get()):
+                    break
+                #limits the number of attempts to get serializer synch.
+                self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
+                if self.serializerSyncAttempsts > 0:
+                    break
 
 
 
