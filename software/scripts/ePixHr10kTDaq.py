@@ -263,17 +263,30 @@ guiTop.resize(800,800)
 
 # Viewer gui
 if (args.start_viewer == 'True'):
-    onlineViewer = vi.Window(cameraType='ePixHr10kT')
-    onlineViewer.eventReader.frameIndex = 0
-    onlineViewer.setReadDelay(0)
-    pyrogue.streamTap(pgpL0Vc0, onlineViewer.eventReader)
-    pyrogue.streamTap(pgpL1Vc0, onlineViewer.eventReader)
-    pyrogue.streamTap(pgpL2Vc0, onlineViewer.eventReader)
-    pyrogue.streamTap(pgpL3Vc0, onlineViewer.eventReader)
+    onlineViewer0 = vi.Window(cameraType='ePixHr10kT')
+    onlineViewer0.eventReader.frameIndex = 0
+    onlineViewer0.setReadDelay(0)
+    onlineViewer0.setWindowTitle("ePix image viewer ASIC 0")
+    pyrogue.streamTap(pgpL0Vc0, onlineViewer0.eventReader)
+    onlineViewer1 = vi.Window(cameraType='ePixHr10kT')
+    onlineViewer1.eventReader.frameIndex = 0 
+    onlineViewer1.setReadDelay(0)
+    onlineViewer1.setWindowTitle("ePix image viewer ASIC 1")
+    pyrogue.streamTap(pgpL1Vc0, onlineViewer1.eventReader)
+    onlineViewer2 = vi.Window(cameraType='ePixHr10kT')
+    onlineViewer2.eventReader.frameIndex = 0
+    onlineViewer2.setReadDelay(0)
+    onlineViewer2.setWindowTitle("ePix image viewer ASIC 2")
+    pyrogue.streamTap(pgpL2Vc0, onlineViewer2.eventReader)
+    onlineViewer3 = vi.Window(cameraType='ePixHr10kT')
+    onlineViewer3.eventReader.frameIndex = 0
+    onlineViewer3.setReadDelay(0)
+    onlineViewer3.setWindowTitle("ePix image viewer ASIC 3")
+    pyrogue.streamTap(pgpL3Vc0, onlineViewer3.eventReader)
 
     if (args.type != 'dataFile'):
-        pyrogue.streamTap(pgpL0Vc2, onlineViewer.eventReaderScope)# PseudoScope
-        pyrogue.streamTap(pgpL0Vc3, onlineViewer.eventReaderMonitoring) # Slow Monitoring
+        pyrogue.streamTap(pgpL0Vc2, onlineViewer0.eventReaderScope)# PseudoScope
+        pyrogue.streamTap(pgpL0Vc3, onlineViewer0.eventReaderMonitoring) # Slow Monitoring
 
 if ( args.type == 'dataFile' or args.type == 'SIM'):
     print("Simulation mode does not initialize monitoring ADC")

@@ -299,8 +299,8 @@ class EpixHR10kT(pr.Device):
             kwargs['description'] = "HR Gen1 FPGA attached to ePixHr and ePix M test board"
       
         trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
-        inChaEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
-        inChbEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
+        inChaEnum={0:'Asic0TpsMux', 1:'Asic1TpsMux', 2:'Asic2TpsMux', 3:'Asic3TpsMux'}
+        inChbEnum={0:'Asic0TpsMux', 1:'Asic1TpsMux', 2:'Asic2TpsMux', 3:'Asic3TpsMux'}
         HsDacEnum={0:'None', 1:'DAC A (SE)', 2:'DAC B (Diff)', 3:'DAC A & DAC B'}
       
         super(self.__class__, self).__init__(**kwargs)
