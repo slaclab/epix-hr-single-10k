@@ -377,20 +377,20 @@ class EpixHR10kT(pr.Device):
             self.filenameMMCM = "./yml/ePix10kT_MMCM_125MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
-            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_u2_PLLBypass.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
         if arg == 2:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
-            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_u2_PLLBypass.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
 
         if arg == 3:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_62p5MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
-            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_u2_PLLBypass.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
 
         if arg != 0:
@@ -455,8 +455,8 @@ class EpixHR10kT(pr.Device):
 
 
         ## start deserializer config for the asic
-        EN_DESERIALIZERS = True
-        if EN_DESERIALIZERS : 
+        EN_DESERIALIZERS_0 = True
+        if EN_DESERIALIZERS_0 : 
             print("Starting deserializer")
             self.serializerSyncAttempsts = 0
             while True:
@@ -473,6 +473,30 @@ class EpixHR10kT(pr.Device):
                 self.DeserRegisters0.Resync.set(False)
                 time.sleep(5*delay) 
                 if (self.DeserRegisters0.Locked0.get() and self.DeserRegisters0.Locked1.get() and self.DeserRegisters0.Locked2.get() and  self.DeserRegisters0.Locked3.get() and self.DeserRegisters0.Locked4.get() and  self.DeserRegisters0.Locked5.get()):
+                    break
+                #limits the number of attempts to get serializer synch.
+                self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
+                if self.serializerSyncAttempsts > 0:
+                    break
+
+        EN_DESERIALIZERS_2 = True
+        if EN_DESERIALIZERS_2 : 
+            print("Starting deserializer")
+            self.serializerSyncAttempsts = 0
+            while True:
+                #make sure idle
+                self.DeserRegisters2.enable.set(True)
+                self.DeserRegisters2.IdelayRst.set(0)
+                self.DeserRegisters2.IserdeseRst.set(0)
+                self.root.readBlocks()
+                time.sleep(2*delay) 
+                self.DeserRegisters2.InitAdcDelay()
+                time.sleep(delay)                   
+                self.DeserRegisters2.Resync.set(True)
+                time.sleep(delay) 
+                self.DeserRegisters2.Resync.set(False)
+                time.sleep(5*delay) 
+                if (self.DeserRegisters2.Locked0.get() and self.DeserRegisters2.Locked1.get() and self.DeserRegisters2.Locked2.get() and  self.DeserRegisters2.Locked3.get() and self.DeserRegisters2.Locked4.get() and  self.DeserRegisters2.Locked5.get()):
                     break
                 #limits the number of attempts to get serializer synch.
                 self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
