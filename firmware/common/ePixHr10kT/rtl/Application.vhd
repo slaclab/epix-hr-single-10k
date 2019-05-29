@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-05-14
+-- Last update: 2019-05-29
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -161,6 +161,8 @@ architecture mapping of Application is
 
    attribute keep : string;
 
+   constant AXIL_ASIC_CONFIG_C : AxiLiteCrossbarMasterConfigArray(3 downto 0) := genAxiLiteConfig(4, (HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C(ASIC_READOUT_AXI_INDEX_C).baseAddr), 20, 16);
+
    --heart beat signal
    signal heartBeat      : sl;
    
@@ -193,7 +195,12 @@ architecture mapping of Application is
    signal mAxiWriteMasters : AxiLiteWriteMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadMasters  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
-   signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
+   signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0);
+   -- AXI-Lite Signals (Asic xbar)
+   signal axilAsicWriteMasters : AxiLiteWriteMasterArray(3 downto 0);
+   signal axilAsicWriteSlaves  : AxiLiteWriteSlaveArray(3 downto 0);
+   signal axilAsicReadMasters  : AxiLiteReadMasterArray(3 downto 0);
+   signal axilAsicReadSlaves   : AxiLiteReadSlaveArray(3 downto 0);
 
    --constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
@@ -673,6 +680,24 @@ begin
       axiClk              => appClk,
       axiClkRst           => appRst
    );
+
+  U_ASIC_XBAR : entity work.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => 4,
+         MASTERS_CONFIG_G   => AXIL_ASIC_CONFIG_C)
+      port map (
+         axiClk              => appClk,
+         axiClkRst           => appRst,
+         sAxiWriteMasters(0) => mAxiWriteMasters(ASIC_READOUT_AXI_INDEX_C),
+         sAxiWriteSlaves(0)  => mAxiWriteSlaves(ASIC_READOUT_AXI_INDEX_C),
+         sAxiReadMasters(0)  => mAxiReadMasters(ASIC_READOUT_AXI_INDEX_C),
+         sAxiReadSlaves(0)   => mAxiReadSlaves(ASIC_READOUT_AXI_INDEX_C),
+         mAxiWriteMasters    => axilAsicWriteMasters,
+         mAxiWriteSlaves     => axilAsicWriteSlaves,
+         mAxiReadMasters     => axilAsicReadMasters,
+         mAxiReadSlaves      => axilAsicReadSlaves);
 
   -----------------------------------------------------------------------------
   -- Regiester control
@@ -1160,10 +1185,10 @@ begin
       port map (
         axilClk         => appClk,
         axilRst         => appRst,
-        axilWriteMaster => mAxiWriteMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
-        axilWriteSlave  => mAxiWriteSlaves(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
-        axilReadMaster  => mAxiReadMasters(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
-        axilReadSlave   => mAxiReadSlaves(CRYO_ASIC0_READOUT_AXI_INDEX_C+i),
+        axilWriteMaster => axilAsicWriteMasters(i),
+        axilWriteSlave  => axilAsicWriteSlaves(i),
+        axilReadMaster  => axilAsicReadMasters(i),
+        axilReadSlave   => axilAsicReadSlaves(i),
         bitClk          => asicClk,
         byteClk         => byteClk,
         deserClk        => deserClk,

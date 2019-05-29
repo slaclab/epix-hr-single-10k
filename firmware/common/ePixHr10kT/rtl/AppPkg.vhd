@@ -2,7 +2,7 @@
 -- File       : AppPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-05-09
+-- Last update: 2019-05-29
 -------------------------------------------------------------------------------
 -- Description: Application's Package File
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ package AppPkg is
    constant NUMBER_OF_ASICS_C : natural := 4;   
    constant NUMBER_OF_LANES_C : natural := 4;   
    
-   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 26;
+   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 23;
    constant HR_FD_NUM_AXI_SLAVE_SLOTS_C   : natural := 1;
    
    constant PLLREGS_AXI_INDEX_C            : natural := 0;
@@ -47,17 +47,13 @@ package AppPkg is
    constant ADC_RD_AXI_INDEX_C             : natural := 14;   
    constant ADC_CFG_AXI_INDEX_C            : natural := 15;   
    constant MONADC_REG_AXI_INDEX_C         : natural := 16;
-   constant CRYO_ASIC0_READOUT_AXI_INDEX_C : natural := 17;
-   constant CRYO_ASIC1_READOUT_AXI_INDEX_C : natural := 18;
-   constant CRYO_ASIC2_READOUT_AXI_INDEX_C : natural := 19;
-   constant CRYO_ASIC3_READOUT_AXI_INDEX_C : natural := 20;
-   --constant CRYO_ASIC0_READOUT_AXI_INDEX_C : natural := 2x;
-   constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 21;
-   constant DIG_ASIC1_STREAM_AXI_INDEX_C   : natural := 22;
-   constant DIG_ASIC2_STREAM_AXI_INDEX_C   : natural := 23;
-   constant DIG_ASIC3_STREAM_AXI_INDEX_C   : natural := 24;
+   constant ASIC_READOUT_AXI_INDEX_C       : natural := 17;
+   constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 18;
+   constant DIG_ASIC1_STREAM_AXI_INDEX_C   : natural := 19;
+   constant DIG_ASIC2_STREAM_AXI_INDEX_C   : natural := 20;
+   constant DIG_ASIC3_STREAM_AXI_INDEX_C   : natural := 21;
    --constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 2x;
-   constant APP_REG_AXI_INDEX_C            : natural := 25;
+   constant APP_REG_AXI_INDEX_C            : natural := 22;
    
    constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"80000000";--0
    constant TRIG_REG_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"81000000";--1
@@ -76,14 +72,11 @@ package AppPkg is
    constant ADC_RD_AXI_ADDR_C               : slv(31 downto 0) := X"8E000000";--14
    constant ADC_CFG_AXI_ADDR_C              : slv(31 downto 0) := X"8F000000";--15
    constant MONADC_REG_AXI_ADDR_C           : slv(31 downto 0) := X"90000000";--16
-   constant CRYO_ASIC0_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"94000000";--20
-   constant CRYO_ASIC1_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"94100000";--20
-   constant CRYO_ASIC2_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"94200000";--20
-   constant CRYO_ASIC3_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"94300000";--20
+   constant ASIC_READOUT_AXI_ADDR_C         : slv(31 downto 0) := X"94000000";--17
    --constant CRYO_ASIC1_READOUT_AXI_ADDR_C   : slv(31 downto 0) := X"0A100000";--2X
-   constant DIG_ASIC0_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95000000";--21
-   constant DIG_ASIC1_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95100000";--21
-   constant DIG_ASIC2_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95200000";--21
+   constant DIG_ASIC0_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95000000";--18
+   constant DIG_ASIC1_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95100000";--19
+   constant DIG_ASIC2_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95200000";--20
    constant DIG_ASIC3_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95300000";--21
    --constant DIG_ASIC1_STREAM_AXI_ADDR_C      : slv(31 downto 0) := X"0B000000";--2X
    constant APP_REG_AXI_ADDR_C              : slv(31 downto 0) := X"96000000";--22
@@ -158,21 +151,9 @@ package AppPkg is
          baseAddr             => MONADC_REG_AXI_ADDR_C,
          addrBits             => 24,
          connectivity         => x"FFFF"),
-      CRYO_ASIC0_READOUT_AXI_INDEX_C     => ( 
-         baseAddr             => CRYO_ASIC0_READOUT_AXI_ADDR_C,
-         addrBits             => 20,
-         connectivity         => x"FFFF"),
-      CRYO_ASIC1_READOUT_AXI_INDEX_C     => ( 
-         baseAddr             => CRYO_ASIC1_READOUT_AXI_ADDR_C,
-         addrBits             => 20,
-         connectivity         => x"FFFF"),
-      CRYO_ASIC2_READOUT_AXI_INDEX_C     => ( 
-         baseAddr             => CRYO_ASIC2_READOUT_AXI_ADDR_C,
-         addrBits             => 20,
-         connectivity         => x"FFFF"),
-      CRYO_ASIC3_READOUT_AXI_INDEX_C     => ( 
-         baseAddr             => CRYO_ASIC3_READOUT_AXI_ADDR_C,
-         addrBits             => 20,
+      ASIC_READOUT_AXI_INDEX_C     => ( 
+         baseAddr             => ASIC_READOUT_AXI_ADDR_C,
+         addrBits             => 24,
          connectivity         => x"FFFF"),
       DIG_ASIC0_STREAM_AXI_INDEX_C       => ( 
          baseAddr             => DIG_ASIC0_STREAM_AXI_ADDR_C,
