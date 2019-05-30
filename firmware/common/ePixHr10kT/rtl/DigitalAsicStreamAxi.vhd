@@ -288,7 +288,8 @@ begin
          validIn   => iRxValid(i),
          dataIn    => adcStreams(i).tData(19 downto 0),
          validOut  => decValidOut(i),
-         dataOut   => decDataOut(i),
+         dataOut(15 downto 1)   => decDataOut(i)(14 downto 0),
+         dataOut(0)             => decDataOut(i)(15),
          sof       => decSof(i),
          eof       => decEof(i),
          eofe      => decEofe(i));
