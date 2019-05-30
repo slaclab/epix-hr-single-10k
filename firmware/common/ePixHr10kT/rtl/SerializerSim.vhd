@@ -25,7 +25,8 @@ use ieee.math_real.all;
 -- DDR serializer
 entity serializerSim is
     generic(
-        g_dwidth : positive := 14 -- must be an even number
+      TPD_G    : time := 1 ns;
+      g_dwidth : positive := 14 -- must be an even number
     );
     port(
         clk_i     : in  std_logic;
@@ -55,7 +56,7 @@ begin
     s_data_o_h <= s_data(to_integer(g_dwidth - 1 - s_cnt_h));
     s_data_o_l <= s_data(to_integer(g_dwidth - 1 - s_cnt_l));
 
-    data_o <= s_data_o_h when clk_i = '1' else s_data_o_l;
+    data_o <= s_data_o_h after TPD_G when clk_i = '1' else s_data_o_l after TPD_G;
 
     -- even bits on rising edge
     process(clk_i)

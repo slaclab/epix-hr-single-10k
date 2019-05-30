@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "AD9249ClkUS"
+-- Title      : Testbench for design "ePixHr10kT"
 -- Project    : 
 -------------------------------------------------------------------------------
 -- File       : ePixHr10kT_full_tb.vhd
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2019-05-06
+-- Last update: 2019-05-30
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -255,24 +255,27 @@ architecture arch of ePixHr10kT_full_tb is
   signal EncReadyOut : sl              := '1';
   signal EncDataOut  : slv(19 downto 0);
   signal EncDataOutRev  : slv(19 downto 0);
-  signal EncDataOut_d: Slv20Array(7 downto 0);
+  signal EncDataOut_d: Slv20Array(7 downto 0) := (others => (others => '0'));
   signal EncDispOut  : slv(1 downto 0);
   signal EncSof      : sl := '0';
   signal EncEof      : sl := '0';
 
-  signal dClkP : sl := '1'; -- Data clock
-  signal dClkN : sl := '0';
-  signal fClkP : sl := '0'; -- Frame clock
-  signal fClkN : sl := '1';
+  signal dClkP   : sl := '1'; -- Data clock
+  signal dClkN   : sl := '0';
+  signal fClkP   : sl := '0'; -- Frame clock
+  signal fClkN   : sl := '1';
+  signal dClkP2x : sl := '1'; -- Data clock
   signal serData1_20b : slv(19 downto 0);
   signal serData1_10b : slv( 9 downto 0);
   signal serData2_20b : slv(19 downto 0);
   signal serData2_10b : slv( 9 downto 0);
-  signal serialDataOut1 : sl;
-  signal serialDataOut2 : sl;
+  signal serialDataOut1  : sl;
+  signal serialDataOut2  : sl;
+  signal serialDataOut1d : slv(39 downto 0) := (others => '0');
+  signal serialDataOut2d : slv(39 downto 0) := (others => '0');
   signal chId           : slv(15 downto 0);
 
-signal dummy : slv(1 downto 0);
+signal dummy : slv(2 downto 0);
 
 begin  --
 
@@ -308,7 +311,7 @@ begin  --
       INPUT_BUFG_G           => true,
       FB_BUFG_G              => true,
       RST_IN_POLARITY_G      => '1',     -- '0' for active low
-      NUM_CLOCKS_G           => 2,
+      NUM_CLOCKS_G           => 3,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
@@ -325,14 +328,21 @@ begin  --
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT1_DUTY_CYCLE_G   => 0.5,
       CLKOUT1_RST_HOLD_G     => 3,
-      CLKOUT1_RST_POLARITY_G => '1')
+      CLKOUT1_RST_POLARITY_G => '1',
+      CLKOUT2_DIVIDE_G       => 2,
+      CLKOUT2_PHASE_G        => 0.0,
+      CLKOUT2_DUTY_CYCLE_G   => 0.5,
+      CLKOUT2_RST_HOLD_G     => 3,
+      CLKOUT2_RST_POLARITY_G => '1')
    port map(
       clkIn           => sysClk,
       rstIn           => sysRst,
       clkOut(0)       => dClkP,       --bit clk
       clkOut(1)       => fClkP,
+      clkOut(2)       => dClkP2x,
       rstOut(0)       => dummy(0),
       rstOut(1)       => dummy(1),
+      rstOut(2)       => dummy(2),
       locked          => open
    );
   
@@ -404,7 +414,7 @@ begin  --
       EncDataOut_d(i) <= EncDataOut_d(i-1);
     end loop;
   end process;
-  
+
   U_encoder : entity work.SspEncoder8b10b 
    generic map (
      TPD_G          => TPD_G,
@@ -431,7 +441,8 @@ begin  --
   
   U_serializer :  entity work.serializerSim 
     generic map(
-        g_dwidth => 10 
+      TPD_G    => 2ns,
+      g_dwidth => 10 
     )
     port map(
         clk_i     => dClkP,
@@ -443,7 +454,8 @@ begin  --
 
   U_serializer2 :  entity work.serializerSim 
     generic map(
-        g_dwidth => 10 
+      TPD_G    => 0ns,
+      g_dwidth => 10 
     )
     port map(
         clk_i     => dClkP,
@@ -452,57 +464,72 @@ begin  --
         data_o    => serialDataOut2
     );
 
+  DelaySerialData_Proc: process 
+  begin
+    wait until dClkP2x = '1';
+    serialDataOut1d(0) <= serialDataOut1;
+    for i in 1 to 39 loop
+      serialDataOut1d(i) <= serialDataOut1d(i-1);
+    end loop;
 
+    serialDataOut2d(0) <= serialDataOut2;
+    for i in 1 to 39 loop
+      serialDataOut2d(i) <= serialDataOut2d(i-1);
+    end loop;
+  end process;
+
+
+  
   sysRst_n   <= not sysRst;
     
   asicDataP(0) <=     serialDataOut1;
   asicDataN(0) <= not serialDataOut1;
-  asicDataP(1) <=     serialDataOut1;
-  asicDataN(1) <= not serialDataOut1;
-  asicDataP(2) <=     serialDataOut2;
-  asicDataN(2) <= not serialDataOut2;
-  asicDataP(3) <=     serialDataOut1;
-  asicDataN(3) <= not serialDataOut1;
-  asicDataP(4) <=     serialDataOut1;
-  asicDataN(4) <= not serialDataOut1;
-  asicDataP(5) <=     serialDataOut2;
-  asicDataN(5) <= not serialDataOut2;
-  asicDataP(6) <=     serialDataOut1;
-  asicDataN(6) <= not serialDataOut1;
-  asicDataP(7) <=     serialDataOut1;
-  asicDataN(7) <= not serialDataOut1;
-  asicDataP(8) <=     serialDataOut2;
-  asicDataN(8) <= not serialDataOut2;
-  asicDataP(9) <=     serialDataOut1;
-  asicDataN(9) <= not serialDataOut1;
-  asicDataP(10) <=     serialDataOut1;
-  asicDataN(10) <= not serialDataOut1;
-  asicDataP(11) <=     serialDataOut2;
-  asicDataN(11) <= not serialDataOut2;
-  asicDataP(12) <=     serialDataOut1;
-  asicDataN(12) <= not serialDataOut1;
-  asicDataP(13) <=     serialDataOut1;
-  asicDataN(13) <= not serialDataOut1;
-  asicDataP(14) <=     serialDataOut2;
-  asicDataN(14) <= not serialDataOut2;
-  asicDataP(15) <=     serialDataOut1;
-  asicDataN(15) <= not serialDataOut1;
-  asicDataP(16) <=     serialDataOut1;
-  asicDataN(16) <= not serialDataOut1;
-  asicDataP(17) <=     serialDataOut2;
-  asicDataN(17) <= not serialDataOut2;
-  asicDataP(18) <=     serialDataOut1;
-  asicDataN(18) <= not serialDataOut1;
-  asicDataP(19) <=     serialDataOut1;
-  asicDataN(19) <= not serialDataOut1;
-  asicDataP(20) <=     serialDataOut2;
-  asicDataN(20) <= not serialDataOut2;
-  asicDataP(21) <=     serialDataOut1;
-  asicDataN(21) <= not serialDataOut1;
-  asicDataP(22) <=     serialDataOut1;
-  asicDataN(22) <= not serialDataOut1;
-  asicDataP(23) <=     serialDataOut2;
-  asicDataN(23) <= not serialDataOut2;
+  asicDataP(1) <=     serialDataOut1d(0);
+  asicDataN(1) <= not serialDataOut1d(0);
+  asicDataP(2) <=     serialDataOut1d(1);
+  asicDataN(2) <= not serialDataOut1d(1);
+  asicDataP(3) <=     serialDataOut1d(2);
+  asicDataN(3) <= not serialDataOut1d(2);
+  asicDataP(4) <=     serialDataOut1d(3);
+  asicDataN(4) <= not serialDataOut1d(3);
+  asicDataP(5) <=     serialDataOut1d(4);
+  asicDataN(5) <= not serialDataOut1d(4);
+  asicDataP(6) <=     serialDataOut1d(5);
+  asicDataN(6) <= not serialDataOut1d(5);
+  asicDataP(7) <=     serialDataOut1d(6);
+  asicDataN(7) <= not serialDataOut1d(6);
+  asicDataP(8) <=     serialDataOut1d(7);
+  asicDataN(8) <= not serialDataOut1d(7);
+  asicDataP(9) <=     serialDataOut1d(8);
+  asicDataN(9) <= not serialDataOut1d(8);
+  asicDataP(10) <=     serialDataOut1d(9);
+  asicDataN(10) <= not serialDataOut1d(9);
+  asicDataP(11) <=     serialDataOut1d(10);
+  asicDataN(11) <= not serialDataOut1d(10);
+  asicDataP(12) <=     serialDataOut1d(11);
+  asicDataN(12) <= not serialDataOut1d(11);
+  asicDataP(13) <=     serialDataOut1d(12);
+  asicDataN(13) <= not serialDataOut1d(12);
+  asicDataP(14) <=     serialDataOut1d(13);
+  asicDataN(14) <= not serialDataOut1d(13);
+  asicDataP(15) <=     serialDataOut1d(14);
+  asicDataN(15) <= not serialDataOut1d(14);
+  asicDataP(16) <=     serialDataOut1d(15);
+  asicDataN(16) <= not serialDataOut1d(15);
+  asicDataP(17) <=     serialDataOut1d(16);
+  asicDataN(17) <= not serialDataOut1d(16);
+  asicDataP(18) <=     serialDataOut1d(17);
+  asicDataN(18) <= not serialDataOut1d(17);
+  asicDataP(19) <=     serialDataOut1d(18);
+  asicDataN(19) <= not serialDataOut1d(18);
+  asicDataP(20) <=     serialDataOut1d(19);
+  asicDataN(20) <= not serialDataOut1d(19);
+  asicDataP(21) <=     serialDataOut1d(20);
+  asicDataN(21) <= not serialDataOut1d(20);
+  asicDataP(22) <=     serialDataOut1d(21);
+  asicDataN(22) <= not serialDataOut1d(21);
+  asicDataP(23) <=     serialDataOut1d(22);
+  asicDataN(23) <= not serialDataOut1d(22);
   
  
   U_App : entity work.Application

@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-05-13
+-- Last update: 2019-05-30
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -64,11 +64,11 @@ entity Hr16bAdcDeserializer is
       loadDelay       : in sl;
       delay           : in slv(8 downto 0) := "000000000";
       delayValueOut   : out slv(8 downto 0);
-      bitSlip         : in slv(3 downto 0) := "0000";
+      bitSlip         : in slv(4 downto 0) := "00000";
       tenbOrder       : in sl := '1';
       gearboxOffset   : in slv(1 downto 0) := "00";
       dataValid       : out sl;
-      tenbData        : out Slv10Array(63 downto 0);            
+      tenbData        : out Slv10Array(7 downto 0);            
       pixData         : out slv(19 downto 0)     
       );
 end Hr16bAdcDeserializer;
@@ -84,10 +84,12 @@ architecture rtl of Hr16bAdcDeserializer is
     masterData         : slv(7  downto 0);
     masterData_1       : slv(7  downto 0);
     masterData_2       : slv(7  downto 0);
+    masterData_3       : slv(7  downto 0);
+    masterData_4       : slv(7  downto 0);
     longDataCounter    : slv(2  downto 0);
     longData           : slv(39 downto 0);
     longData_1         : slv(39 downto 0);
-    bitSlip            : slv(3  downto 0);
+    bitSlip            : slv(4  downto 0);
     masterDataBS       : slv(7  downto 0);
     masterDataBS_1     : slv(7  downto 0);
     longDataStable     : sl;
@@ -97,6 +99,8 @@ architecture rtl of Hr16bAdcDeserializer is
     masterData         => (others => '0'),
     masterData_1       => (others => '0'),
     masterData_2       => (others => '0'),
+    masterData_3       => (others => '0'),
+    masterData_4       => (others => '0'),
     longDataCounter    => (others => '0'),
     longData           => (others => '0'),
     longData_1         => (others => '0'),
@@ -109,7 +113,7 @@ architecture rtl of Hr16bAdcDeserializer is
   type AdcClkDiv5RegType is record
     gearboxCounter      : slv(1 downto 0);
     gearboxSeq          : slv(1 downto 0);
-    tenbData            : Slv10Array(63 downto 0);
+    tenbData            : Slv10Array(7 downto 0);
     masterPixData       : slv(19 downto 0);
     tenbOrder           : sl;
     dataAligned         : sl;
@@ -263,6 +267,8 @@ begin
      -- creates pipeline
      v.masterData_1 := adcDv4R.masterData;
      v.masterData_2 := adcDv4R.masterData_1;
+     v.masterData_3 := adcDv4R.masterData_2;
+     v.masterData_4 := adcDv4R.masterData_3;
      v.longData_1   := adcDv4R.longData;
      v.masterDataBS_1 := adcDv4R.masterDataBS;
      
@@ -299,38 +305,70 @@ begin
    
      --bit slip logic
      case (adcDv4R.bitSlip) is
-       when "0000" =>
+       when "00000" =>
          v.masterDataBS := adcDv4R.masterData(7 downto 0);
-       when "0001" =>
+       when "00001" =>
          v.masterDataBS := adcDv4R.masterData(6 downto 0) & adcDv4R.masterData_1(7);
-       when "0010" =>
+       when "00010" =>
          v.masterDataBS := adcDv4R.masterData(5 downto 0) & adcDv4R.masterData_1(7 downto 6);
-       when "0011" =>
+       when "00011" =>
          v.masterDataBS := adcDv4R.masterData(4 downto 0) & adcDv4R.masterData_1(7 downto 5);
-       when "0100" =>
+       when "00100" =>
          v.masterDataBS := adcDv4R.masterData(3 downto 0) & adcDv4R.masterData_1(7 downto 4);
-       when "0101" =>
+       when "00101" =>
          v.masterDataBS := adcDv4R.masterData(2 downto 0) & adcDv4R.masterData_1(7 downto 3);
-       when "0110" =>
+       when "00110" =>
          v.masterDataBS := adcDv4R.masterData(1 downto 0) & adcDv4R.masterData_1(7 downto 2);
-       when "0111" =>
-         v.masterDataBS := adcDv4R.masterData(0)          & adcDv4R.masterData_1(7 downto  1);
-       when "1000" =>
+       when "00111" =>
+         v.masterDataBS := adcDv4R.masterData(0)          & adcDv4R.masterData_1(7 downto 1);
+       when "01000" =>
          v.masterDataBS := adcDv4R.masterData_1(7 downto 0);
-       when "1001" =>
+       when "01001" =>
          v.masterDataBS := adcDv4R.masterData_1(6 downto 0) & adcDv4R.masterData_2(7);
-       when "1010" =>
+       when "01010" =>
          v.masterDataBS := adcDv4R.masterData_1(5 downto 0) & adcDv4R.masterData_2(7 downto 6);
-       when "1011" =>
+       when "01011" =>
          v.masterDataBS := adcDv4R.masterData_1(4 downto 0) & adcDv4R.masterData_2(7 downto 5);
-       when "1100" =>
+       when "01100" =>
          v.masterDataBS := adcDv4R.masterData_1(3 downto 0) & adcDv4R.masterData_2(7 downto 4);
-       when "1101" =>
+       when "01101" =>
          v.masterDataBS := adcDv4R.masterData_1(2 downto 0) & adcDv4R.masterData_2(7 downto 3);
-       when "1110" =>
+       when "01110" =>
          v.masterDataBS := adcDv4R.masterData_1(1 downto 0) & adcDv4R.masterData_2(7 downto 2);
-       when "1111" =>
-         v.masterDataBS := adcDv4R.masterData_1(0)          & adcDv4R.masterData_2(7 downto  1);
+       when "01111" =>
+         v.masterDataBS := adcDv4R.masterData_1(0)          & adcDv4R.masterData_2(7 downto 1);
+       when "10000" =>
+         v.masterDataBS := adcDv4R.masterData_2(7 downto 0);
+       when "10001" =>
+         v.masterDataBS := adcDv4R.masterData_2(6 downto 0) & adcDv4R.masterData_3(7);
+       when "10010" =>
+         v.masterDataBS := adcDv4R.masterData_2(5 downto 0) & adcDv4R.masterData_3(7 downto 6);
+       when "10011" =>
+         v.masterDataBS := adcDv4R.masterData_2(4 downto 0) & adcDv4R.masterData_3(7 downto 5);
+       when "10100" =>
+         v.masterDataBS := adcDv4R.masterData_2(3 downto 0) & adcDv4R.masterData_3(7 downto 4);
+       when "10101" =>
+         v.masterDataBS := adcDv4R.masterData_2(2 downto 0) & adcDv4R.masterData_3(7 downto 3);
+       when "10110" =>
+         v.masterDataBS := adcDv4R.masterData_2(1 downto 0) & adcDv4R.masterData_3(7 downto 2);
+       when "10111" =>
+         v.masterDataBS := adcDv4R.masterData_2(0)          & adcDv4R.masterData_3(7 downto 1);
+       when "11000" =>
+         v.masterDataBS := adcDv4R.masterData_3(7 downto 0);
+       when "11001" =>
+         v.masterDataBS := adcDv4R.masterData_4(6 downto 0) & adcDv4R.masterData_3(7);
+       when "11010" =>
+         v.masterDataBS := adcDv4R.masterData_4(5 downto 0) & adcDv4R.masterData_3(7 downto 6);
+       when "11011" =>
+         v.masterDataBS := adcDv4R.masterData_4(4 downto 0) & adcDv4R.masterData_3(7 downto 5);
+       when "11100" =>
+         v.masterDataBS := adcDv4R.masterData_4(3 downto 0) & adcDv4R.masterData_3(7 downto 4);
+       when "11101" =>
+         v.masterDataBS := adcDv4R.masterData_4(2 downto 0) & adcDv4R.masterData_3(7 downto 3);
+       when "11110" =>
+         v.masterDataBS := adcDv4R.masterData_4(1 downto 0) & adcDv4R.masterData_3(7 downto 2);
+       when "11111" =>
+         v.masterDataBS := adcDv4R.masterData_4(0)          & adcDv4R.masterData_3(7 downto 1);
        when others =>
          v.masterDataBS := (others => '0');
      end case;
@@ -419,7 +457,7 @@ begin
     end if;
     
     -- 10 bit words pipeline
-    for i in 1 to 63 loop
+    for i in 1 to 7 loop
          v.tenbData(i) := adcDv5R.tenbData(i-1);
     end loop;
 

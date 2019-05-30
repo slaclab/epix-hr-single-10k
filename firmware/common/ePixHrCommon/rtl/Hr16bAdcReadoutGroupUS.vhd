@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-05-13
+-- Last update: 2019-05-30
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -135,7 +135,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
-      slip           : Slv4Array(NUM_CHANNELS_G-1 downto 0); 
+      slip           : Slv5Array(NUM_CHANNELS_G-1 downto 0); 
       count          : Slv6Array(NUM_CHANNELS_G-1 downto 0);
       lockedCounter  : Slv16Array(NUM_CHANNELS_G-1 downto 0);
       gearBoxOffset  : Slv2Array(NUM_CHANNELS_G-1 downto 0); 
@@ -178,7 +178,7 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    signal counterBERTsync : Slv44Array(NUM_CHANNELS_G-1 downto 0);
    signal sDataOutP      : slv(NUM_CHANNELS_G-1 downto 0);
    signal sDataOutN      : slv(NUM_CHANNELS_G-1 downto 0);
-   type Slv10bData is array (natural range<>) of slv10Array(63 downto 0);
+   type Slv10bData is array (natural range<>) of slv10Array(7 downto 0);
    signal tenbData       : Slv10bData(NUM_CHANNELS_G-1 downto 0);
 
    signal fifoDataValid  : sl;
@@ -330,7 +330,7 @@ begin
                        counterBERTsync) is
       variable v        : AxilRegType;
       variable axilEp   : AxiLiteEndpointType;
-      variable local10b : slv10Array(63 downto 0);
+      variable local10b : slv10Array(7 downto 0);
    begin
       v := axilR;
 
