@@ -52,7 +52,6 @@ set_clock_groups -asynchronous -group [get_clocks adcBitClkRD4] -group [get_cloc
 set_clock_groups -asynchronous -group [get_clocks adcMonDoClkP] -group [get_clocks -of_objects [get_pins U_App/U_MonAdcReadout/U_AdcBitClkR/O]]
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_Core/U_Mmcm/PllGen.U_Pll/CLKOUT0]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]]
 set_clock_groups -asynchronous -group [get_clocks adcMonDoClkP] -group [get_clocks -of_objects [get_pins U_App/U_MonAdcReadout/U_AdcBitClkR/O]]
-set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins {U_App/G_ASICS[1].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[1].U_DATA_DESERIALIZER/U_ISERDESE3_master/INTERNAL_DIVCLK}]] -group [get_clocks -of_objects [get_pins U_App/U_BUFGCE_DIV_1/O]]
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_BUFGCE_DIV_0/O]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]]
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_MonAdcReadout/U_FRAME_DESERIALIZER/U_ISERDESE3_master/INTERNAL_DIVCLK]] -group [get_clocks -of_objects [get_pins U_App/U_MonAdcReadout/U_AdcBitClkRD4/O]]
 

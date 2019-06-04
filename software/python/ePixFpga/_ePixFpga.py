@@ -389,7 +389,7 @@ class EpixHR10kT(pr.Device):
         if arg == 3:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_62p5MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
-            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
+            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us_62p5MHz.yml"
             self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_u2_PLLBypass.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
 
