@@ -168,20 +168,21 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
 
 
    -- Local Signals
-   signal adcBitRst      : sl;
-   signal idelayRst      : slv(NUM_CHANNELS_G-1 downto 0);  
-   signal iserdesRst     : slv(NUM_CHANNELS_G-1 downto 0); 
-   signal adcDataPadOut  : slv(NUM_CHANNELS_G-1 downto 0);
-   signal adcDataPad     : slv(NUM_CHANNELS_G-1 downto 0);
-   signal adcData        : Slv20Array(NUM_CHANNELS_G-1 downto 0);
-   signal dataValid      : slv(NUM_CHANNELS_G-1 downto 0);
-   signal curDelayData   : slv9Array(NUM_CHANNELS_G-1 downto 0);
-   signal resync         : sl;
-   signal adcSEnSync     : slv(NUM_CHANNELS_G-1 downto 0);
-   signal restartBERTsync : sl;
-   signal counterBERTsync : Slv44Array(NUM_CHANNELS_G-1 downto 0);
-   signal sDataOutP      : slv(NUM_CHANNELS_G-1 downto 0);
-   signal sDataOutN      : slv(NUM_CHANNELS_G-1 downto 0);
+   signal adcBitRst        : sl;
+   signal idelayRst        : slv(NUM_CHANNELS_G-1 downto 0);  
+   signal iserdesRst       : slv(NUM_CHANNELS_G-1 downto 0); 
+   signal adcDataPadOut    : slv(NUM_CHANNELS_G-1 downto 0);
+   signal adcDataPad       : slv(NUM_CHANNELS_G-1 downto 0);
+   signal adcData          : Slv20Array(NUM_CHANNELS_G-1 downto 0);
+   signal dataValid        : slv(NUM_CHANNELS_G-1 downto 0);
+   signal curDelayData     : slv9Array(NUM_CHANNELS_G-1 downto 0);
+   signal curDelayDatasync : slv9Array(NUM_CHANNELS_G-1 downto 0);
+   signal resync           : sl;
+   signal adcSEnSync       : slv(NUM_CHANNELS_G-1 downto 0);
+   signal restartBERTsync  : sl;
+   signal counterBERTsync  : Slv44Array(NUM_CHANNELS_G-1 downto 0);
+   signal sDataOutP        : slv(NUM_CHANNELS_G-1 downto 0);
+   signal sDataOutN        : slv(NUM_CHANNELS_G-1 downto 0);
    type Slv10bData is array (natural range<>) of slv10Array(7 downto 0);
    signal tenbData       : Slv10bData(NUM_CHANNELS_G-1 downto 0);
 
@@ -284,7 +285,18 @@ begin
          clk     => axilClk,
          rst     => axilRst,
          dataIn  => adcR.counterBERT(i),
-         dataOut => counterBERTsync(i)); 
+         dataOut => counterBERTsync(i));
+
+     SynchronizerCurDelayData : entity work.SynchronizerVector 
+       generic map(
+         TPD_G          => TPD_G,
+         STAGES_G       => 2,
+         WIDTH_G        => 9)
+       port map(
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => curDelayData(i),
+         dataOut => curDelayDatasync(i)); 
 
      Synchronizer_idelay_i : entity work.Synchronizer
        generic map (
@@ -329,7 +341,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
+   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayDatasync,
                        debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy, tenbData,
                        counterBERTsync) is
       variable v        : AxilRegType;
@@ -344,7 +356,7 @@ begin
       --updates ctrl signal status
       v.idelayCtrlRdy   := idelayCtrlRdy;
       v.counterBERT     := counterBERTsync;
-      v.curDelayData    := curDelayData;
+      v.curDelayData    := curDelayDatasync;
 
       -- Store last two samples read from ADC
       for i in 0 to NUM_CHANNELS_G-1 loop
