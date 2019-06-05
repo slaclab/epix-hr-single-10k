@@ -377,20 +377,23 @@ class EpixHR10kT(pr.Device):
             self.filenameMMCM = "./yml/ePix10kT_MMCM_125MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
-            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_u2_PLLBypass.yml"
+            self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
         if arg == 2:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
-            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_u2_PLLBypass.yml"
+            self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
 
         if arg == 3:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_62p5MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us_62p5MHz.yml"
-            self.filenameASIC = "./yml/ePixHr10kT_ASIC_u0_u2_PLLBypass.yml"
+            self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
 
         if arg != 0:
@@ -445,12 +448,14 @@ class EpixHR10kT(pr.Device):
 
             ## load config for the asic
             print("Loading ASIC and timing configuration")
-            self.root.ReadConfig(self.filenameASIC)
+            self.root.ReadConfig(self.filenameASIC0)
+            self.root.ReadConfig(self.filenameASIC2)
             time.sleep(5*delay) 
 
         ## load config for the asic
         print("Loading ASIC and timing configuration")
-        self.root.ReadConfig(self.filenameASIC)
+        self.root.ReadConfig(self.filenameASIC0)
+        self.root.ReadConfig(self.filenameASIC2)
         time.sleep(5*delay) 
 
 

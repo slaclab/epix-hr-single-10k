@@ -73,7 +73,7 @@ ePixHr10kT:
       RefGenC: 0x2
       dbus_del_sel: True
       SDclk_b: 0x0
-      SDrst_b: 0x0
+      SDrst_b: 0x8
       Filter_DAC: 0x26
       CompEn: 0x7
       Pixel_CB: 0x4
@@ -150,7 +150,7 @@ ePixHr10kT:
       RefGenC: 0x2
       dbus_del_sel: True
       SDclk_b: 0x0
-      SDrst_b: 0x0
+      SDrst_b: 0x8
       Filter_DAC: 0x26
       CompEn: 0x7
       Pixel_CB: 0x4
