@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-05-30
+-- Last update: 2019-06-05
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -105,7 +105,9 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       idelayRst      : slv(NUM_CHANNELS_G-1 downto 0);  
       iserdesRst     : slv(NUM_CHANNELS_G-1 downto 0);
       sDataOutControl: slv(2 downto 0);
+      curDelayData   : slv9Array(NUM_CHANNELS_G-1 downto 0);
       restartBERT    : sl;
+      counterBERT    : Slv44Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -123,7 +125,9 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       idelayRst      => (others => '1'),
       iserdesRst     => (others => '1'),
       sDataOutControl=> (others => '0'),
-      restartBERT    => '0');
+      curDelayData   => (others => (others => '0')),
+      restartBERT    => '0',
+      counterBERT    => (others => (others => '0')));
 
    signal lockedSync      : slv(NUM_CHANNELS_G-1 downto 0);
    signal lockedFallCount : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -338,7 +342,9 @@ begin
       v.axilReadSlave.rdata := (others => '0');
 
       --updates ctrl signal status
-      v.idelayCtrlRdy := idelayCtrlRdy;
+      v.idelayCtrlRdy   := idelayCtrlRdy;
+      v.counterBERT     := counterBERTsync;
+      v.curDelayData    := curDelayData;
 
       -- Store last two samples read from ADC
       for i in 0 to NUM_CHANNELS_G-1 loop
@@ -366,7 +372,7 @@ begin
 
       -- Override read from r.delay and use curDealy output from delay primative instead
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"10"+toSlv((i*4), 8), 0, curDelayData(i));
+         axiSlaveRegisterR(axilEp, X"10"+toSlv((i*4), 8), 0, axilR.curDelayData(i));
       end loop;
 
 
@@ -387,7 +393,7 @@ begin
       axiSlaveRegister(axilEp, X"100", 0, v.freezeDebug);
       axiSlaveRegister(axilEp, X"100", 1, v.restartBERT);
       for i in 0 to NUM_CHANNELS_G-1 loop
-        axiSlaveRegisterR(axilEp, X"104"+toSlv((i*8),8), 0,  counterBERTsync(i));
+        axiSlaveRegisterR(axilEp, X"104"+toSlv((i*8),8), 0,  axilR.counterBERT(i));
       end loop;
       
       for i in 0 to NUM_CHANNELS_G-1 loop
