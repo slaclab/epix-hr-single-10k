@@ -479,6 +479,21 @@ class EpixHR10kT(pr.Device):
                 if self.serializerSyncAttempsts > 0:
                     break
 
+            self.DeserRegisters0.BERTRst.set(True)
+            time.sleep(delay) 
+            self.DeserRegisters0.BERTRst.set(False)
+
+            print("Starting deserializer - 2")
+            self.serializerSyncAttempsts = 0
+            while True:
+                #make sure idle
+                #self.DeserRegisters0.AdcDelayFineTune()
+                #limits the number of attempts to get serializer synch.
+                self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
+                if self.serializerSyncAttempsts > 0:
+                    break
+
+
         EN_DESERIALIZERS_2 = True
         if EN_DESERIALIZERS_2 : 
             print("Starting deserializer")
@@ -503,6 +518,9 @@ class EpixHR10kT(pr.Device):
                 if self.serializerSyncAttempsts > 0:
                     break
 
+            self.DeserRegisters2.BERTRst.set(True)
+            time.sleep(delay) 
+            self.DeserRegisters2.BERTRst.set(False)
 
 
 #######################################################
