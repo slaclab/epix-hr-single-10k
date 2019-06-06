@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-06-05
+-- Last update: 2019-06-06
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -410,11 +410,10 @@ begin
       
       for i in 0 to NUM_CHANNELS_G-1 loop
         local10b := tenbData(i);
-        for j in 0 to 7 loop
+        for j in 0 to 1 loop
           axiSlaveRegisterR(axilEp, X"200"+toSlv((i*64*4+j*4),12), 0,  local10b(j));
         end loop;  -- j
       end loop;
-      
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
