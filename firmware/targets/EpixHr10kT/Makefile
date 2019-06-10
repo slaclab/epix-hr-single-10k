@@ -11,10 +11,10 @@ export COMM_TYPE = pgp3
 export COMMON_NAME = ePixHr10kT
 
 # Define the Microblaze source path
-export SDK_SRC_PATH = $(PROJ_DIR)/../../common/$(COMMON_NAME)/src
+#export SDK_SRC_PATH = $(PROJ_DIR)/../../common/$(COMMON_NAME)/src
 
 # Define if you want to build the user Microblaze core
-export BUILD_MB_CORE = 1
+export BUILD_MB_CORE = 0
 
 # Define if you want to build the DDR MIG core
 export BUILD_MIG_CORE = 1
