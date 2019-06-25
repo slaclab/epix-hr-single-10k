@@ -348,6 +348,8 @@ class EpixHR10kT(pr.Device):
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
         self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
         self.add(pr.LocalCommand(name='InitASIC',      description='Inicialization routines', function=self.fnInitAsic))
+        self.add(pr.LocalCommand(name='ASIC0_SDrst_SDclk_scan',      description='asic scan routine', function=self.fnScanSDrstSDClkScript))
+
 
     def fnSetWaveform(self, dev,cmd,arg):
         """SetTestBitmap command function"""
@@ -395,6 +397,15 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
+
+        if arg == 4:
+            self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz_OSR128.yml"
+            self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
+            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
+            self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass_OSR128.yml"
+            self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass_OSR128.yml"
+            self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
+
 
         if arg != 0:
             self.fnInitAsicScript(dev,cmd,arg)
@@ -527,6 +538,32 @@ class EpixHR10kT(pr.Device):
             time.sleep(delay) 
             self.DeserRegisters2.BERTRst.set(False)
 
+
+
+    def fnScanSDrstSDClkScript(self, dev,cmd,arg):
+        """SetTestBitmap command function"""       
+        print("ASIC0 SDrst and SDclk scan started")
+        print(arg)
+        delay = 1
+        self.root.readBlocks()
+        #save filename
+        self.root.dataWriter.enable.set(True)
+        self.root.dataWriter.open.set(False)
+        self.currentFilename = self.root.dataWriter.dataFile.get()
+
+        # scan routine
+        for SDrstValue  in range(16):
+            for SDclkValue  in range(16):
+                self.Hr10kTAsic0.SDrst_b.set(SDrstValue)
+                self.Hr10kTAsic0.SDclk_b.set(SDclkValue)
+                time.sleep(delay/5)               
+                self.root.dataWriter.dataFile.set(self.currentFilename +"_SDrst_"+ str(SDrstValue)+"_SDclk_"+ str(SDclkValue)+".dat")
+                self.root.dataWriter.open.set(True)
+                # acquire data for 1 second
+                time.sleep(delay)               
+                self.root.dataWriter.open.set(False)       
+
+        print("Completed")
 
 #######################################################
 #
