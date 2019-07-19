@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-06-06
+-- Last update: 2019-07-19
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -175,8 +175,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    signal adcDataPad       : slv(NUM_CHANNELS_G-1 downto 0);
    signal adcData          : Slv20Array(NUM_CHANNELS_G-1 downto 0);
    signal dataValid        : slv(NUM_CHANNELS_G-1 downto 0);
-   signal curDelayData     : slv9Array(NUM_CHANNELS_G-1 downto 0);
-   signal curDelayDatasync : slv9Array(NUM_CHANNELS_G-1 downto 0);
+   signal curDelayData     : slv10Array(NUM_CHANNELS_G-1 downto 0);
+   signal curDelayDatasync : slv10Array(NUM_CHANNELS_G-1 downto 0);
    signal resync           : sl;
    signal adcSEnSync       : slv(NUM_CHANNELS_G-1 downto 0);
    signal restartBERTsync  : sl;
@@ -291,7 +291,7 @@ begin
        generic map(
          TPD_G          => TPD_G,
          STAGES_G       => 2,
-         WIDTH_G        => 9)
+         WIDTH_G        => 10)
        port map(
          clk     => axilClk,
          rst     => axilRst,
@@ -356,7 +356,7 @@ begin
       --updates ctrl signal status
       v.idelayCtrlRdy   := idelayCtrlRdy;
       v.counterBERT     := counterBERTsync;
-      v.curDelayData    := curDelayDatasync;
+      v.curDelayData    := curDelayDatasync(9 downto 1);
 
       -- Store last two samples read from ADC
       for i in 0 to NUM_CHANNELS_G-1 loop

@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-05-30
+-- Last update: 2019-07-19
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -63,7 +63,7 @@ entity Hr16bAdcDeserializer is
       -- Signal to control data gearboxes
       loadDelay       : in sl;
       delay           : in slv(8 downto 0) := "000000000";
-      delayValueOut   : out slv(8 downto 0);
+      delayValueOut   : out slv(9 downto 0);
       bitSlip         : in slv(4 downto 0) := "00000";
       tenbOrder       : in sl := '1';
       gearboxOffset   : in slv(1 downto 0) := "00";
@@ -149,6 +149,10 @@ architecture rtl of Hr16bAdcDeserializer is
   signal sDataPadN  : sl;
   signal sData_i    : sl;
   signal sData_d    : sl;
+  signal cascOut    : sl;
+  signal cascRet    : sl;
+  signal delayValueOut1   : slv(9 downto 0);
+  signal delayValueOut2   : slv(9 downto 0);
 
   -- iserdes signal
   signal masterData      : slv(7 downto 0);
@@ -201,22 +205,48 @@ begin
                                   -- SYNC)
       )
     port map (
-      CASC_OUT => OPEN,       -- 1-bit output: Cascade delay output to ODELAY input cascade
-      CNTVALUEOUT => delayValueOut, -- 9-bit output: Counter value output
-      DATAOUT => sData_d,         -- 1-bit output: Delayed data output
-      CASC_IN => '1',         -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
-      CASC_RETURN => '1', -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
-      CE => '0',                   -- 1-bit input: Active high enable increment/decrement input
-      CLK => dClkDiv4,                 -- 1-bit input: Clock input
-      CNTVALUEIN => delay,   -- 9-bit input: Counter value input
-      DATAIN => '1',           -- 1-bit input: Data input from the logic
-      EN_VTC => '0',           -- 1-bit input: Keep delay constant over VT
-      IDATAIN => sData_i,         -- 1-bit input: Data input from the IOBUF
-      INC => '0',                 -- 1-bit input: Increment / Decrement tap delay input
-      LOAD => loadDelay,               -- 1-bit input: Load DELAY_VALUE input
-      RST => idelayRst            -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+      CASC_OUT => cascOut,           -- 1-bit output: Cascade delay output to ODELAY input cascade
+      CNTVALUEOUT => delayValueOut1, -- 9-bit output: Counter value output
+      DATAOUT => sData_d,            -- 1-bit output: Delayed data output
+      CASC_IN => '0',                -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+      CASC_RETURN => cascRet,        -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+      CE => '0',                     -- 1-bit input: Active high enable increment/decrement input
+      CLK => dClkDiv4,               -- 1-bit input: Clock input
+      CNTVALUEIN => delay,           -- 9-bit input: Counter value input
+      DATAIN => '1',                 -- 1-bit input: Data input from the logic
+      EN_VTC => '0',                 -- 1-bit input: Keep delay constant over VT
+      IDATAIN => sData_i,            -- 1-bit input: Data input from the IOBUF
+      INC => '0',                    -- 1-bit input: Increment / Decrement tap delay input
+      LOAD => loadDelay,             -- 1-bit input: Load DELAY_VALUE input
+      RST => idelayRst               -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       );    
-   
+
+  ODELAYE3_inst : ODELAYE3
+    generic map (
+      CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+      DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
+      DELAY_TYPE => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+      DELAY_VALUE => conv_integer(DEFAULT_DELAY_G), -- Input delay value setting
+      IS_CLK_INVERTED => '0',    -- Optional inversion for CLK
+      IS_RST_INVERTED => '0',    -- Optional inversion for RST
+      REFCLK_FREQUENCY => 300.0, -- IDELAYCTRL clock input frequency in MHz (200.0-2400.0)
+      UPDATE_MODE => "ASYNC")    -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+    port map (
+      CASC_IN     => cascOut,          -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
+      CASC_OUT    => open,             -- 1-bit output: Cascade delay output to IDELAY input cascade 
+      CASC_RETURN => '0',              -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT 
+      ODATAIN     => '0',              -- 1-bit input: Data input
+      DATAOUT     => cascRet,          -- 1-bit output: Delayed data from ODATAIN input port 
+      CLK         => dClkDiv4,         -- 1-bit input: Clock input 
+      EN_VTC      => '0',              -- 1-bit input: Keep delay constant over VT 
+      INC         => '0',              -- 1-bit input: Increment / Decrement tap delay input
+      CE          => '0',              -- 1-bit input: Active high enable increment/decrement input 
+      LOAD        => loadDelay,        -- 1-bit input: Load DELAY_VALUE input 
+      RST         => idelayRst,        -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+      CNTVALUEIN  => delay,            -- 9-bit input: Counter value input
+      CNTVALUEOUT => delayValueOut2);  -- 9-bit output: Counter value output
+
+  delayValueOut <= resize(delayValueOut1, 10, '0') + delayValueOut2;-- 
   ----------------------------------------------------------------------------
   -- iserdes3
   ----------------------------------------------------------------------------
