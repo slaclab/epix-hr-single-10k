@@ -102,7 +102,10 @@ class ImageProcessing():
         self.imgDark_isSet = False
 
     def getDarkSubtractedImg(self, rawImg):
-        return rawImg - self.imgDark
+        if (rawImg.shape == self.imgDark.shape):
+            return rawImg - self.imgDark
+        print("Warning: Could not perform dark image subtraction.")
+        return rawImg
 
     def reScaleImgTo8bit(self, rawImage, scaleMax=20000, scaleMin=-200):
         #init
