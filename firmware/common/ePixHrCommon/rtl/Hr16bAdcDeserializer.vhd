@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-07-19
+-- Last update: 2019-07-22
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -151,8 +151,8 @@ architecture rtl of Hr16bAdcDeserializer is
   signal sData_d    : sl;
   signal cascOut    : sl;
   signal cascRet    : sl;
-  signal delayValueOut1   : slv(9 downto 0);
-  signal delayValueOut2   : slv(9 downto 0);
+  signal delayValueOut1   : slv(8 downto 0);
+  signal delayValueOut2   : slv(8 downto 0);
 
   -- iserdes signal
   signal masterData      : slv(7 downto 0);
