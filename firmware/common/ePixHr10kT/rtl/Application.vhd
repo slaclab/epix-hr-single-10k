@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-05-29
+-- Last update: 2019-07-22
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ architecture mapping of Application is
    signal monAdc           : Ad9249SerialGroupType;
    signal adcSpiCsL_i      : slv(1 downto 0);
    signal adcPdwn_i        : slv(0 downto 0);
-   signal idelayRdy        : sl;
+   signal idelayRdy        : sl := '1';
    signal adcSerialOutP    : slv(NUMBER_OF_ASICS_C-1 downto 0);
    signal adcSerialOutN    : slv(NUMBER_OF_ASICS_C-1 downto 0);
 
@@ -618,17 +618,17 @@ begin
       rstOut   => byteClkRst
    );
 
-   idelayCtrlRst_i <= idelayCtrlRst;    --cmt_locked or
-   U_IDELAYCTRL_0 : IDELAYCTRL
-   generic map (
-      SIM_DEVICE => "ULTRASCALE"  -- Must be set to "ULTRASCALE" 
-   )
-   port map (
-      RDY => idelayRdy,        -- 1-bit output: Ready output
-      REFCLK => idelayCtrlClk, -- 1-bit input: Reference clock input
-      RST => idelayCtrlRst_i   -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
-                               -- REFCLK.
-   );
+--   idelayCtrlRst_i <= idelayCtrlRst;    --cmt_locked or
+--   U_IDELAYCTRL_0 : IDELAYCTRL
+--   generic map (
+--      SIM_DEVICE => "ULTRASCALE"  -- Must be set to "ULTRASCALE" 
+--   )
+--   port map (
+--      RDY => idelayRdy,        -- 1-bit output: Ready output
+--      REFCLK => idelayCtrlClk, -- 1-bit input: Reference clock input
+--      RST => idelayCtrlRst_i   -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
+--                               -- REFCLK.
+--   );
    
    ---------------------------------------------
    -- AXI Lite Async - cross clock domain     --
