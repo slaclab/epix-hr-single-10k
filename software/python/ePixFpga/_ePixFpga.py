@@ -381,6 +381,7 @@ class EpixHR10kT(pr.Device):
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameDESER = "./yml/ePix10kT_DESER_125MHz.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
         if arg == 2:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz.yml"
@@ -388,30 +389,31 @@ class EpixHR10kT(pr.Device):
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-
         if arg == 3:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_62p5MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us_62p5MHz.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-
         if arg == 4:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz_OSR128.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass_OSR128.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass_OSR128.yml"
+            self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-
         if arg == 5:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_100MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us_62p5MHz.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
         if arg != 0:
             self.fnInitAsicScript(dev,cmd,arg)
@@ -477,7 +479,30 @@ class EpixHR10kT(pr.Device):
 
 
         ## start deserializer config for the asic
-        EN_DESERIALIZERS_0 = True
+        if self.filenameDESER == "":
+            EN_DESERIALIZERS_0 = True
+            EN_DESERIALIZERS_2 = True
+        else:
+            print("Loading deserializer parameters")
+            EN_DESERIALIZERS_0 = False
+            EN_DESERIALIZERS_2 = False
+            self.root.ReadConfig(self.filenameDESER)                    
+            self.root.readBlocks()
+            time.sleep(delay)                   
+            self.DeserRegisters0.Resync.set(True)
+            self.DeserRegisters2.Resync.set(True)
+            time.sleep(delay) 
+            self.DeserRegisters0.Resync.set(False)
+            self.DeserRegisters2.Resync.set(False)
+            time.sleep(delay) 
+            #
+            self.DeserRegisters0.BERTRst.set(True)
+            self.DeserRegisters2.BERTRst.set(True)
+            time.sleep(delay) 
+            self.DeserRegisters0.BERTRst.set(False)
+            self.DeserRegisters2.BERTRst.set(False)
+
+
         if EN_DESERIALIZERS_0 : 
             print("Starting deserializer")
             self.serializerSyncAttempsts = 0
@@ -516,7 +541,7 @@ class EpixHR10kT(pr.Device):
                     break
 
 
-        EN_DESERIALIZERS_2 = True
+        
         if EN_DESERIALIZERS_2 : 
             print("Starting deserializer")
             self.serializerSyncAttempsts = 0
@@ -543,6 +568,8 @@ class EpixHR10kT(pr.Device):
             self.DeserRegisters2.BERTRst.set(True)
             time.sleep(delay) 
             self.DeserRegisters2.BERTRst.set(False)
+
+        print("Initialization routine completed.")
 
 
 
@@ -2116,6 +2143,7 @@ class AsicDeserHr16bRegisters6St(pr.Device):
       # The command object and the arg are passed
 
       self.add(pr.LocalCommand(name='InitAdcDelay',description='Find and set best delay for the adc channels', function=self.fnSetFindAndSetDelays))
+      self.add(pr.LocalCommand(name='Refines delay settings',description='Find and set best delay for the adc channels', function=self.fnRefineDelays))
       
 
    def fnSetFindAndSetDelays(self,dev,cmd,arg):
@@ -2145,12 +2173,18 @@ class AsicDeserHr16bRegisters6St(pr.Device):
            self.Resync.set(True)
            self.Resync.set(False)
            time.sleep(1.0 / float(100))
-           self.testResult[0,delay] = ((self.IserdeseOut0_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut0_0.get()==self.IDLE_PATTERN2))
-           self.testResult[1,delay] = ((self.IserdeseOut1_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut1_0.get()==self.IDLE_PATTERN2)) 
-           self.testResult[2,delay] = ((self.IserdeseOut2_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut2_0.get()==self.IDLE_PATTERN2)) 
-           self.testResult[3,delay] = ((self.IserdeseOut3_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut3_0.get()==self.IDLE_PATTERN2)) 
-           self.testResult[4,delay] = ((self.IserdeseOut4_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut4_0.get()==self.IDLE_PATTERN2)) 
-           self.testResult[5,delay] = ((self.IserdeseOut5_0.get()==self.IDLE_PATTERN1)or(self.IserdeseOut5_0.get()==self.IDLE_PATTERN2)) 
+           IserdeseOut_value = self.IserdeseOut0_0.get()
+           self.testResult[0,delay] = ((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2))
+           IserdeseOut_value = self.IserdeseOut1_0.get()
+           self.testResult[1,delay] = ((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2)) 
+           IserdeseOut_value = self.IserdeseOut2_0.get()
+           self.testResult[2,delay] = ((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2)) 
+           IserdeseOut_value = self.IserdeseOut3_0.get()
+           self.testResult[3,delay] = ((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2)) 
+           IserdeseOut_value = self.IserdeseOut4_0.get()
+           self.testResult[4,delay] = ((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2)) 
+           IserdeseOut_value = self.IserdeseOut5_0.get()
+           self.testResult[5,delay] = ((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2)) 
        print("Test result adc 0:")     
        print(self.testResult[0,:]*self.testDelay)
        print("Test result adc 1:")     
@@ -2163,6 +2197,10 @@ class AsicDeserHr16bRegisters6St(pr.Device):
        print(self.testResult[4,:]*self.testDelay)
        print("Test result adc 5:")     
        print(self.testResult[5,:]*self.testDelay)
+       np.savetxt(str(self.name)+'_delayTestResultAll.csv', (self.testResult*self.testDelay), delimiter=',') 
+
+
+       
        
        self.resultArray =  np.zeros((6,numDelayTaps))
        for j in range(0, 6):
@@ -2226,6 +2264,125 @@ class AsicDeserHr16bRegisters6St(pr.Device):
        self.Resync.set(True)
        time.sleep(1.0 / float(100))
        self.Resync.set(False)
+
+
+   def fnRefineDelays(self,dev,cmd,arg):
+       """Find and set Monitoring ADC delays"""
+       parent = self.parent
+       numDelayTaps = 512
+       self.IDLE_PATTERN1 = 0xAAA83
+       self.IDLE_PATTERN2 = 0xAA97C
+       print("Executing delay test for ePixHr")
+
+       #check adcs
+       self.testResult = np.zeros((6,numDelayTaps))
+       self.testDelay  = np.zeros((6,numDelayTaps))
+       for delay in range (0, numDelayTaps):
+           self.Delay0.set(delay)
+           self.Delay1.set(delay)
+           self.Delay2.set(delay)
+           self.Delay3.set(delay)
+           self.Delay4.set(delay)
+           self.Delay5.set(delay)
+           time.sleep(1.0 / float(100))
+           self.testDelay[0,delay] = self.Delay0.get()
+           self.testDelay[1,delay] = self.Delay1.get()
+           self.testDelay[2,delay] = self.Delay2.get()
+           self.testDelay[3,delay] = self.Delay3.get()
+           self.testDelay[4,delay] = self.Delay4.get()
+           self.testDelay[5,delay] = self.Delay5.get()
+           ###
+           #self.Resync.set(True)
+           #self.Resync.set(False)
+           ###
+           time.sleep(1.0 / float(100))
+           for checks in range(0,10):
+               IserdeseOut_value = self.IserdeseOut0_0.get()
+               self.testResult[0,delay] = (((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2))+(self.testResult[0,delay]))
+               IserdeseOut_value = self.IserdeseOut1_0.get()
+               self.testResult[1,delay] = (((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2))+(self.testResult[1,delay])) 
+               IserdeseOut_value = self.IserdeseOut2_0.get()
+               self.testResult[2,delay] = (((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2))+(self.testResult[2,delay])) 
+               IserdeseOut_value = self.IserdeseOut3_0.get()
+               self.testResult[3,delay] = (((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2))+(self.testResult[3,delay])) 
+               IserdeseOut_value = self.IserdeseOut4_0.get()
+               self.testResult[4,delay] = (((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2))+(self.testResult[4,delay])) 
+               IserdeseOut_value = self.IserdeseOut5_0.get()
+               self.testResult[5,delay] = (((IserdeseOut_value==self.IDLE_PATTERN1)or(IserdeseOut_value==self.IDLE_PATTERN2))+(self.testResult[5,delay])) 
+       print("Test result adc 0:")     
+       print(self.testResult[0,:]*self.testDelay)
+       print("Test result adc 1:")     
+       print(self.testResult[1,:]*self.testDelay)
+       print("Test result adc 2:")     
+       print(self.testResult[2,:]*self.testDelay)
+       print("Test result adc 3:")     
+       print(self.testResult[3,:]*self.testDelay)
+       print("Test result adc 4:")     
+       print(self.testResult[4,:]*self.testDelay)
+       print("Test result adc 5:")     
+       print(self.testResult[5,:]*self.testDelay)
+       #np.savetxt(str(self.name)+'_delayRefineTestResultAll.csv', (self.testResult*self.testDelay), delimiter=',') 
+       np.savetxt(str(self.name)+'_delayRefineTestResultAll.csv', (self.testResult), delimiter=',') 
+       
+       self.resultArray =  np.zeros((6,numDelayTaps))
+       for j in range(0, 6):
+           for i in range(1, numDelayTaps):
+               if (self.testResult[j,i] != 0):
+                   self.resultArray[j,i] = self.resultArray[j,i-1] + 1 #self.testResult[j,i]
+
+       self.longestDelay0 = np.where(self.resultArray[0]==np.max(self.resultArray[0]))
+       if len(self.longestDelay0[0])==1:
+           self.sugDelay0 = int(self.longestDelay0[0]) - int(self.resultArray[0][self.longestDelay0]/2)
+       else:
+           self.sugDelay0 = int(self.longestDelay0[0][0]) - int(self.resultArray[0][self.longestDelay0[0][0]]/2)
+
+       self.longestDelay1 = np.where(self.resultArray[1]==np.max(self.resultArray[1]))
+       if len(self.longestDelay1[0])==1:
+           self.sugDelay1 = int(self.longestDelay1[0]) - int(self.resultArray[1][self.longestDelay1]/2)
+       else:
+           self.sugDelay1 = int(self.longestDelay1[0][0]) - int(self.resultArray[1][self.longestDelay1[0][0]]/2)
+
+       self.longestDelay2 = np.where(self.resultArray[2]==np.max(self.resultArray[2]))
+       if len(self.longestDelay2[0])==1:
+           self.sugDelay2 = int(self.longestDelay2[0]) - int(self.resultArray[2][self.longestDelay2]/2)
+       else:
+           self.sugDelay2 = int(self.longestDelay2[0][0]) - int(self.resultArray[2][self.longestDelay2[0][0]]/2)
+
+       self.longestDelay3 = np.where(self.resultArray[3]==np.max(self.resultArray[3]))
+       if len(self.longestDelay3[0])==1:
+           self.sugDelay3 = int(self.longestDelay3[0]) - int(self.resultArray[3][self.longestDelay3]/2)
+       else:
+           self.sugDelay3 = int(self.longestDelay3[0][0]) - int(self.resultArray[3][self.longestDelay3[0][0]]/2)
+
+       self.longestDelay4 = np.where(self.resultArray[4]==np.max(self.resultArray[4]))
+       if len(self.longestDelay4[0])==1:
+           self.sugDelay4 = int(self.longestDelay4[0]) - int(self.resultArray[4][self.longestDelay4]/2)
+       else:
+           self.sugDelay4 = int(self.longestDelay4[0][0]) - int(self.resultArray[4][self.longestDelay4[0][0]]/2)
+
+       self.longestDelay5 = np.where(self.resultArray[5]==np.max(self.resultArray[5]))
+       if len(self.longestDelay5[0])==1:
+           self.sugDelay5 = int(self.longestDelay5[0]) - int(self.resultArray[5][self.longestDelay5]/2)
+       else:
+           self.sugDelay5 = int(self.longestDelay5[0][0]) - int(self.resultArray[5][self.longestDelay5[0][0]]/2)
+       print("Suggested delay_0: " + str(self.sugDelay0))     
+       print("Suggested delay_1: " + str(self.sugDelay1))
+       print("Suggested delay_2: " + str(self.sugDelay2))     
+       print("Suggested delay_3: " + str(self.sugDelay3))     
+       print("Suggested delay_4: " + str(self.sugDelay4))     
+       print("Suggested delay_5: " + str(self.sugDelay5))     
+       # apply suggested settings
+       self.Delay0.set(self.sugDelay0)
+       self.Delay1.set(self.sugDelay1)
+       self.Delay2.set(self.sugDelay2)
+       self.Delay3.set(self.sugDelay3)
+       self.Delay4.set(self.sugDelay4)
+       self.Delay5.set(self.sugDelay5)
+       ###
+       #self.Resync.set(True)
+       #time.sleep(1.0 / float(100))
+       #self.Resync.set(False)
+       ###
 
    
    @staticmethod   
