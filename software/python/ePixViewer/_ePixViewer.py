@@ -45,7 +45,7 @@ except ImportError:
     from PyQt4.QtGui     import *
 
 
-PRINT_VERBOSE = 1
+PRINT_VERBOSE = 0
 
 ################################################################################
 ################################################################################
@@ -284,7 +284,8 @@ class Window(QMainWindow, QObject):
                                             QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Yes:
             print("Exiting now...")
-            sys.exit()
+            #sys.exit()
+            self.hide()
         else:
             pass
 
@@ -642,30 +643,30 @@ class EventReader(rogue.interfaces.stream.Slave):
         ## enter debug mode
         #print("\n---------------------------------\n-\n- Entering DEBUG mode _acceptFrame \n-\n-\n--------------------------------- ")
         #pdb.set_trace()
-        
-        self.lastFrame = frame
-        # reads entire frame
-        p = bytearray(self.lastFrame.getPayload())
-        self.lastFrame.read(p,0)
-        if (PRINT_VERBOSE): print('_accepted p[',self.numAcceptedFrames, ']: ', p[0:10])
-        if (PRINT_VERBOSE): print('Length of accpeted frame: ' , len(p)) 
-        self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
-        self.numAcceptedFrames += 1
+        if (not self.parent.isHidden()):
+            self.lastFrame = frame
+            # reads entire frame
+            p = bytearray(self.lastFrame.getPayload())
+            self.lastFrame.read(p,0)
+            if (PRINT_VERBOSE): print('_accepted p[',self.numAcceptedFrames, ']: ', p[0:10])
+            if (PRINT_VERBOSE): print('Length of accpeted frame: ' , len(p)) 
+            self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
+            self.numAcceptedFrames += 1
 
-        VcNum =  p[0] & 0xF    
+            VcNum =  p[0] & 0xF    
 
-        if (time.clock_gettime(0)-self.lastTime)>1:
-            self.lastTime = time.clock_gettime(0)
-            if ((VcNum == self.VIEW_PSEUDOSCOPE_ID)):
-                if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
-                self.parent.processPseudoScopeFrameTrigger.emit()
-            elif (VcNum == self.VIEW_MONITORING_DATA_ID):
-                if (PRINT_VERBOSE): print('Decoding Monitoring Data')
-                self.parent.processMonitoringFrameTrigger.emit()
-            elif (VcNum == 0):
-                if (PRINT_VERBOSE): print('Decoding ASIC Data')
-                if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
-                    self.parent.processFrameTrigger.emit()
+            if (time.clock_gettime(0)-self.lastTime)>1:
+                self.lastTime = time.clock_gettime(0)
+                if ((VcNum == self.VIEW_PSEUDOSCOPE_ID)):
+                    if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
+                    self.parent.processPseudoScopeFrameTrigger.emit()
+                elif (VcNum == self.VIEW_MONITORING_DATA_ID):
+                    if (PRINT_VERBOSE): print('Decoding Monitoring Data')
+                    self.parent.processMonitoringFrameTrigger.emit()
+                elif (VcNum == 0):
+                    if (PRINT_VERBOSE): print('Decoding ASIC Data')
+                    if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
+                        self.parent.processFrameTrigger.emit()
 
 
     def _processFrame(self):
@@ -683,6 +684,7 @@ class EventReader(rogue.interfaces.stream.Slave):
             # Check if channel number is 0x1 (streaming data channel)
             if (chNum == self.VIEW_DATA_CHANNEL_ID or VcNum == 0) :
                 # Collect the data
+                if (PRINT_VERBOSE): print('-------- Frame ',self.numAcceptedFrames,'Channel flags',self.lastFrame.getFlags() , ' Channel Num:' , chNum, ' Vc Num:' , VcNum)
                 if (PRINT_VERBOSE): print('Num. image data readout: ', len(p))
                 self.frameData = p
                 cnt = 0

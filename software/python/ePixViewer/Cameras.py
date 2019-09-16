@@ -39,7 +39,7 @@ except ImportError:
     from PyQt4.QtCore    import *
     from PyQt4.QtGui     import *
 
-PRINT_VERBOSE = 1
+PRINT_VERBOSE = 0
 
 # define global constants
 NOCAMERA   = 0
@@ -1097,13 +1097,13 @@ class Camera():
 
     def _descrambleEpixHR10kTImage(self, rawData):
         """performs the Epix10kT image descrambling """
-        print("Length raw data: %d" % (len(rawData)))
+        if (PRINT_VERBOSE):print("Length raw data: %d" % (len(rawData)))
         if (len(rawData)==56076):
             #if (PRINT_VERBOSE): print('raw data 0:', rawData[0,0:10])
             #if (PRINT_VERBOSE): print('raw data 1:', rawData[1,0:10])
              if (type(rawData != 'numpy.ndarray')):
                 img = np.frombuffer(rawData,dtype='uint16')
-             print("shape", img.shape)
+             if (PRINT_VERBOSE):print("shape", img.shape)
              quadrant0 = np.frombuffer(img[6:28038],dtype='uint16')
              adcImg = quadrant0.reshape(-1,6)
              for i in range(0,6):

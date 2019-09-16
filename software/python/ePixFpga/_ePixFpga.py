@@ -349,6 +349,7 @@ class EpixHR10kT(pr.Device):
         self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
         self.add(pr.LocalCommand(name='InitASIC',      description='Inicialization routines', function=self.fnInitAsic))
         self.add(pr.LocalCommand(name='ASIC0_SDrst_SDclk_scan',      description='asic scan routine', function=self.fnScanSDrstSDClkScript))
+        self.add(pr.LocalCommand(name='AcqDataWithSaciClkRst',      description='acquires a set of frame sending a clock reset between frames', function=self.fnAcqDataWithSaciClkRstScript))
 
 
     def fnSetWaveform(self, dev,cmd,arg):
@@ -375,6 +376,7 @@ class EpixHR10kT(pr.Device):
     def fnInitAsic(self, dev,cmd,arg):
         """SetTestBitmap command function"""       
         print("Rysync ASIC started")
+        print(arg)
         if arg == 1:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_125MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
@@ -413,6 +415,14 @@ class EpixHR10kT(pr.Device):
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us_62p5MHz.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameDESER = ""
+            self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
+        if arg == 6:
+            self.filenameMMCM = "./yml/ePix10kT_MMCM_125MHz_OSR128.yml"
+            self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
+            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
+            self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass_OSR128.yml"
+            self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass_OSR128.yml"
             self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
         if arg != 0:
@@ -468,13 +478,13 @@ class EpixHR10kT(pr.Device):
             ## load config for the asic
             print("Loading ASIC and timing configuration")
             self.root.ReadConfig(self.filenameASIC0)
-            self.root.ReadConfig(self.filenameASIC2)
+            #self.root.ReadConfig(self.filenameASIC2)
             time.sleep(5*delay) 
 
         ## load config for the asic
         print("Loading ASIC and timing configuration")
         self.root.ReadConfig(self.filenameASIC0)
-        self.root.ReadConfig(self.filenameASIC2)
+        #self.root.ReadConfig(self.filenameASIC2)
         time.sleep(5*delay) 
 
 
@@ -571,6 +581,71 @@ class EpixHR10kT(pr.Device):
 
         print("Initialization routine completed.")
 
+    def fnAcqDataWithSaciClkRstScript(self, dev,cmd,arg):
+        """SetTestBitmap command function"""       
+        print("Acquiring data with clock reset between frames")            
+        delay = 1
+        numFrames = arg
+        if numFrames == 0:
+            numFrames = 100
+        print("A total of %d frames will be added to the current file" % (numFrames))
+
+        self.root.dataWriter.enable.set(True)
+        self.currentFilename = self.root.dataWriter.dataFile.get()
+        self.root.dataWriter.dataFile.set(self.currentFilename +"_refData"+".dat")
+
+        print("Saving reference data")
+        for frame in range(numFrames):
+            #resync channels
+            self.DeserRegisters0.Resync.set(True)
+            self.DeserRegisters2.Resync.set(True)
+            time.sleep(delay) 
+            self.DeserRegisters0.Resync.set(False)
+            self.DeserRegisters2.Resync.set(False)
+
+            #enable to write frames          
+            self.root.dataWriter.open.set(True)
+
+            #acquire an image
+            self.root.Trigger()
+            time.sleep(delay) 
+            
+            #close file
+            self.root.dataWriter.open.set(False)
+
+            #no issued reset
+            #self.Hr10kTAsic0.DigRO_disable.set(True)
+            #self.Hr10kTAsic2.DigRO_disable.set(True)
+            #self.Hr10kTAsic0.DigRO_disable.set(False)
+            #self.Hr10kTAsic2.DigRO_disable.set(False)
+
+        self.root.dataWriter.dataFile.set(self.currentFilename +"_testData"+".dat")
+        print("Saving test data")
+        for frame in range(numFrames):
+            #resync channels
+            self.DeserRegisters0.Resync.set(True)
+            self.DeserRegisters2.Resync.set(True)
+            time.sleep(delay) 
+            self.DeserRegisters0.Resync.set(False)
+            self.DeserRegisters2.Resync.set(False)
+
+            #enable to write frames          
+            self.root.dataWriter.open.set(True)
+
+            #acquire an image
+            self.root.Trigger()
+            time.sleep(delay) 
+            
+            #close file
+            self.root.dataWriter.open.set(False)
+
+            #issue reset
+            self.Hr10kTAsic0.DigRO_disable.set(True)
+            self.Hr10kTAsic2.DigRO_disable.set(True)
+            self.Hr10kTAsic0.DigRO_disable.set(False)
+            self.Hr10kTAsic2.DigRO_disable.set(False)
+        
+            
 
 
     def fnScanSDrstSDClkScript(self, dev,cmd,arg):
