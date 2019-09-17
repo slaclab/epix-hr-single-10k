@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-07-22
+-- Last update: 2019-09-17
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -461,7 +461,7 @@ begin
       WFdacLdacL_i      when boardConfig.epixhrDbgSel2 = "01110" else
       WFdacClrL_i       when boardConfig.epixhrDbgSel2 = "01111" else
       iAsicGrst         when boardConfig.epixhrDbgSel2 = "10000" else
-      iAsicR0           when boardConfig.epixhrDbgSel1 = "10001" else   
+      iAsicR0           when boardConfig.epixhrDbgSel2 = "10001" else   
       slowAdcDin_i      when boardConfig.epixhrDbgSel2 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel2 = "10110" else
