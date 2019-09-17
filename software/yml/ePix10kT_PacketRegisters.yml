@@ -15,7 +15,7 @@ ePixHr10kT:
       ResetCounters: False
       asicDataReq: 4671
     PacketRegisters1:
-      enable: False
+      enable: True
       TestModeCh0: False
       TestModeCh1: False
       forceAdcData: False
@@ -37,7 +37,7 @@ ePixHr10kT:
       ResetCounters: False
       asicDataReq: 4671
     PacketRegisters3:
-      enable: False
+      enable: True
       TestModeCh0: False
       TestModeCh1: False
       forceAdcData: False

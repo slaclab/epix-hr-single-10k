@@ -498,9 +498,9 @@ class Window(QMainWindow, QObject):
         #full line plot
         try:
             if (self.imgTool.imgDark_isSet):
-                self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.ImgDarkSub[self.mouseY,self.mouseY])
+                self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.ImgDarkSub[self.mouseY,self.mouseX])
             else:
-                self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.imgDesc[self.mouseY,self.mouseY])
+                self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.imgDesc[self.mouseY,self.mouseX])
 
             if(not self.cbpixelTimeSeriesEnabled.isChecked()):
                 self. clearPixelTimeSeriesLinePlot()

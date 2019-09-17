@@ -40,7 +40,7 @@ ePixHr10kT:
       AsicPwrManualAna: False
       AsicPwrManualIo: False
       AsicPwrManualFpga: False
-      DebugSel1: 0
-      DebugSel2: 3
+      DebugSel1: 17
+      DebugSel2: 17
       AdcClkHalfT: 1
       StartupReq: True

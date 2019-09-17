@@ -347,7 +347,7 @@ class EpixHR10kT(pr.Device):
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
         self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
-        self.add(pr.LocalCommand(name='InitASIC',      description='Inicialization routines', function=self.fnInitAsic))
+        self.add(pr.LocalCommand(name='InitASIC',   description='[routine, asic0, asic1, asic2, asic3]', value=[0,0,0,0,0] ,function=self.fnInitAsic))
         self.add(pr.LocalCommand(name='ASIC0_SDrst_SDclk_scan',      description='asic scan routine', function=self.fnScanSDrstSDClkScript))
         self.add(pr.LocalCommand(name='AcqDataWithSaciClkRst',      description='acquires a set of frame sending a clock reset between frames', function=self.fnAcqDataWithSaciClkRstScript))
 
@@ -376,56 +376,68 @@ class EpixHR10kT(pr.Device):
     def fnInitAsic(self, dev,cmd,arg):
         """SetTestBitmap command function"""       
         print("Rysync ASIC started")
-        print(arg)
-        if arg == 1:
+        arguments = np.asarray(arg)
+        if arguments[0] == 1:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_125MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC1 = "./yml/ePixHr10kT_ASIC_u1_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass.yml"
             self.filenameDESER = "./yml/ePix10kT_DESER_125MHz.yml"
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-        if arg == 2:
+        if arguments[0] == 2:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
-            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
+            self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us_250MHz.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC1 = "./yml/ePixHr10kT_ASIC_u1_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass.yml"
             self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-        if arg == 3:
+        if arguments[0] == 3:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_62p5MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us_62p5MHz.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC1 = "./yml/ePixHr10kT_ASIC_u1_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass.yml"
             self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-        if arg == 4:
+        if arguments[0] == 4:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz_OSR128.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass_OSR128.yml"
+            self.filenameASIC1 = "./yml/ePixHr10kT_ASIC_u1_PLLBypass_OSR128.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass_OSR128.yml"
+            self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass_OSR128.yml"
             self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-        if arg == 5:
+        if arguments[0] == 5:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_100MHz.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us_62p5MHz.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC1 = "./yml/ePixHr10kT_ASIC_u1_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass.yml"
             self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-        if arg == 6:
+        if arguments[0] == 6:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_125MHz_OSR128.yml"
             self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
             self.filenameWaveForms = "./yml/ePix10kT_waveforms_32us.yml"
             self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass_OSR128.yml"
+            self.filenameASIC1 = "./yml/ePixHr10kT_ASIC_u1_PLLBypass_OSR128.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass_OSR128.yml"
+            self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass_OSR128.yml"
             self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
-        if arg != 0:
+        if arguments[0] != 0:
             self.fnInitAsicScript(dev,cmd,arg)
 
     def fnInitAsicScript(self, dev,cmd,arg):
@@ -477,25 +489,42 @@ class EpixHR10kT(pr.Device):
 
             ## load config for the asic
             print("Loading ASIC and timing configuration")
-            self.root.ReadConfig(self.filenameASIC0)
-            #self.root.ReadConfig(self.filenameASIC2)
+            if arg[1] != 0:
+                self.root.ReadConfig(self.filenameASIC0)
+            if arg[2] != 0:
+                self.root.ReadConfig(self.filenameASIC1)
+            if arg[3] != 0:
+                self.root.ReadConfig(self.filenameASIC2)
+            if arg[4] != 0:
+                self.root.ReadConfig(self.filenameASIC3)
             time.sleep(5*delay) 
 
         ## load config for the asic
         print("Loading ASIC and timing configuration")
-        self.root.ReadConfig(self.filenameASIC0)
-        #self.root.ReadConfig(self.filenameASIC2)
+        if arg[1] != 0:
+            self.root.ReadConfig(self.filenameASIC0)
+        if arg[2] != 0:
+            self.root.ReadConfig(self.filenameASIC1)
+        if arg[3] != 0:
+            self.root.ReadConfig(self.filenameASIC2)
+        if arg[4] != 0:
+            self.root.ReadConfig(self.filenameASIC3)
         time.sleep(5*delay) 
 
 
         ## start deserializer config for the asic
         if self.filenameDESER == "":
-            EN_DESERIALIZERS_0 = True
-            EN_DESERIALIZERS_2 = True
+            EN_DESERIALIZERS_0 = arg[1]
+            EN_DESERIALIZERS_1 = arg[2]
+            EN_DESERIALIZERS_2 = arg[3]
+            EN_DESERIALIZERS_3 = arg[4]
+
         else:
             print("Loading deserializer parameters")
             EN_DESERIALIZERS_0 = False
+            EN_DESERIALIZERS_1 = False
             EN_DESERIALIZERS_2 = False
+            EN_DESERIALIZERS_3 = False
             self.root.ReadConfig(self.filenameDESER)                    
             self.root.readBlocks()
             time.sleep(delay)                   
@@ -550,7 +579,42 @@ class EpixHR10kT(pr.Device):
                 if self.serializerSyncAttempsts > 0:
                     break
 
+        if EN_DESERIALIZERS_1 : 
+            print("Starting deserializer")
+            self.serializerSyncAttempsts = 0
+            while True:
+                #make sure idle
+                self.DeserRegisters1.enable.set(True)
+                self.DeserRegisters1.IdelayRst.set(0)
+                self.DeserRegisters1.IserdeseRst.set(0)
+                self.root.readBlocks()
+                time.sleep(2*delay) 
+                self.DeserRegisters1.InitAdcDelay()
+                time.sleep(delay)                   
+                self.DeserRegisters1.Resync.set(True)
+                time.sleep(delay) 
+                self.DeserRegisters1.Resync.set(False)
+                time.sleep(5*delay) 
+                if (self.DeserRegisters1.Locked0.get() and self.DeserRegisters1.Locked1.get() and self.DeserRegisters1.Locked2.get() and  self.DeserRegisters1.Locked3.get() and self.DeserRegisters1.Locked4.get() and  self.DeserRegisters1.Locked5.get()):
+                    break
+                #limits the number of attempts to get serializer synch.
+                self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
+                if self.serializerSyncAttempsts > 0:
+                    break
 
+            self.DeserRegisters1.BERTRst.set(True)
+            time.sleep(delay) 
+            self.DeserRegisters1.BERTRst.set(False)
+
+            print("Starting deserializer - 2")
+            self.serializerSyncAttempsts = 0
+            while True:
+                #make sure idle
+                #self.DeserRegisters0.AdcDelayFineTune()
+                #limits the number of attempts to get serializer synch.
+                self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
+                if self.serializerSyncAttempsts > 0:
+                    break
         
         if EN_DESERIALIZERS_2 : 
             print("Starting deserializer")
@@ -578,6 +642,43 @@ class EpixHR10kT(pr.Device):
             self.DeserRegisters2.BERTRst.set(True)
             time.sleep(delay) 
             self.DeserRegisters2.BERTRst.set(False)
+
+        if EN_DESERIALIZERS_3: 
+            print("Starting deserializer")
+            self.serializerSyncAttempsts = 0
+            while True:
+                #make sure idle
+                self.DeserRegisters3.enable.set(True)
+                self.DeserRegisters3.IdelayRst.set(0)
+                self.DeserRegisters3.IserdeseRst.set(0)
+                self.root.readBlocks()
+                time.sleep(2*delay) 
+                self.DeserRegisters3.InitAdcDelay()
+                time.sleep(delay)                   
+                self.DeserRegisters3.Resync.set(True)
+                time.sleep(delay) 
+                self.DeserRegisters3.Resync.set(False)
+                time.sleep(5*delay) 
+                if (self.DeserRegisters3.Locked0.get() and self.DeserRegisters3.Locked1.get() and self.DeserRegisters3.Locked2.get() and  self.DeserRegisters3.Locked3.get() and self.DeserRegisters3.Locked4.get() and  self.DeserRegisters3.Locked5.get()):
+                    break
+                #limits the number of attempts to get serializer synch.
+                self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
+                if self.serializerSyncAttempsts > 0:
+                    break
+
+            self.DeserRegisters3.BERTRst.set(True)
+            time.sleep(delay) 
+            self.DeserRegisters3.BERTRst.set(False)
+
+            print("Starting deserializer - 2")
+            self.serializerSyncAttempsts = 0
+            while True:
+                #make sure idle
+                #self.DeserRegisters0.AdcDelayFineTune()
+                #limits the number of attempts to get serializer synch.
+                self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
+                if self.serializerSyncAttempsts > 0:
+                    break
 
         print("Initialization routine completed.")
 
@@ -1013,7 +1114,7 @@ class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
       #############################################
       # Create block / variable combinations
       #############################################
-      debugChEnum={0:'Asic01DM', 1:'AsicSync', 2:'AsicEnA', 3:'AsicAcq', 4:'AsicEnB', 5:'AsicR0', 6:'SaciClk', 7:'SaciCmd', 8:'saciRsp', 9:'SaciSelL(0)', 10:'SaciSelL(1)', 11:'asicRdClk', 12:'bitClk', 13:'byteClk', 14:'asicSR0', 15: 'acqStart'}
+      debugChEnum={0:'Asic01DM', 1:'AsicSync', 2:'AsicAcq', 3:'AsicSR0', 4:'AsicSaciClk', 5:'AsicSaciCmd', 6:'AsicSaciResp', 7:'AsicSaciSelL(0)', 8:'AsicSaciSelL(1)', 9:'AsicRdClk', 10:'byteClk', 11:'WFdacDin', 12:'WFdacSclk', 13:'WFdacCsL', 14:'WFdacLdacL', 15: 'WFdacCrtlL', 16: 'AsicGRst', 17: 'AsicR0', 18: 'SlowAdcDin', 19: 'SlowAdcDrdy', 20: 'SlowAdcDout', 21: 'slowAdcRefClk'}
 
       #Setup registers & variables
       
@@ -1057,8 +1158,8 @@ class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
          pr.RemoteVariable(name='AsicPwrManualIo',       description='AsicPower',         offset=0x0000020C, bitSize=1, bitOffset=22, base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='AsicPwrManualFpga',     description='AsicPower',         offset=0x0000020C, bitSize=1, bitOffset=23, base=pr.Bool, mode='RW')))
       self.add(pr.RemoteVariable(name='AsicMask',        description='AsicMask',          offset=0x00000210, bitSize=32,bitOffset=0,  base=pr.UInt, disp = '{:#x}',  mode='RO'))
-      self.add(pr.RemoteVariable(name='DebugSel1',       description='TG connector sel.', offset=0x00000228, bitSize=5, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.RemoteVariable(name='DebugSel2',       description='MPS connector sel.',offset=0x0000022C, bitSize=5, bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.RemoteVariable(name='DebugSel1',       description='TG connector sel.', offset=0x00000228, bitSize=5, bitOffset=0,  mode='RW', enum=debugChEnum))
+      self.add(pr.RemoteVariable(name='DebugSel2',       description='MPS connector sel.',offset=0x0000022C, bitSize=5, bitOffset=0,  mode='RW', enum=debugChEnum))
       self.add(pr.RemoteVariable(name='AdcClkHalfT',     description='',                  offset=0x00000300, bitSize=32,bitOffset=0,  base=pr.UInt, disp = '{}', mode='RW'))
       self.add((
          pr.RemoteVariable(name='StartupReq',            description='AdcStartup',        offset=0x00000304, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
