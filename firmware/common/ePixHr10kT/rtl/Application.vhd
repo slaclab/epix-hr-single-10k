@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-09-17
+-- Last update: 2019-09-27
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -162,10 +162,7 @@ architecture mapping of Application is
    attribute keep : string;
 
    constant AXIL_ASIC_CONFIG_C : AxiLiteCrossbarMasterConfigArray(3 downto 0) := genAxiLiteConfig(4, (HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C(ASIC_READOUT_AXI_INDEX_C).baseAddr), 20, 16);
-
-   --heart beat signal
-   signal heartBeat      : sl;
-   
+ 
    -- prbs signals
    signal prbsBusy       : slv(NUMBER_OF_LANES_C-1 downto 0) := (others => '0');
 
@@ -332,29 +329,51 @@ begin
   -----------------------------------------------------------------------------
   -- remaps data lines into adapter board control/status lines
   -----------------------------------------------------------------------------
+  IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN,    T => '1');
+  IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => spareHrN(0), T => '1');
   -----------------------------------------------------------------------------
   -- Differential asic signals IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN,    T => '1');
-  IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => spareHrN(0), T => '1');
-  OBUFDS_CLK0    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(0),OB => asicRoClkN(0));
-  OBUFDS_CLK1    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(1),OB => asicRoClkN(1));
-  OBUFDS_CLK2    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(2),OB => asicRoClkN(2));
-  OBUFDS_CLK3    : OBUFDS port map (I  => asicRdClk,    O  => asicRoClkP(3),OB => asicRoClkN(3));
+  OBUFDS_CLK0 : entity work.ClkOutBufDiff
+  generic map(
+    TPD_G         => TPD_G,
+    XIL_DEVICE_G  => "ULTRASCALE"
+    )
+  port map(
+    clkIn   => asicRdClk,
+    clkOutP => asicRoClkP(0),
+    clkOutN => asicRoClkN(0));
 
-    
-   ---------------------
-   -- Heart beat LED  --
-   ---------------------
-   U_Heartbeat : entity work.Heartbeat
-      generic map(
-         PERIOD_IN_G => 10.0E-9
-      )   
-      port map (
-         clk => sysClk,
-         o   => heartBeat
-      );
-   
+  OBUFDS_CLK1 : entity work.ClkOutBufDiff
+  generic map(
+    TPD_G         => TPD_G,
+    XIL_DEVICE_G  => "ULTRASCALE"
+    )
+  port map(
+    clkIn   => asicRdClk,
+    clkOutP => asicRoClkP(1),
+    clkOutN => asicRoClkN(1));
+
+  OBUFDS_CLK2 : entity work.ClkOutBufDiff
+  generic map(
+    TPD_G         => TPD_G,
+    XIL_DEVICE_G  => "ULTRASCALE"
+    )
+  port map(
+    clkIn   => asicRdClk,
+    clkOutP => asicRoClkP(2),
+    clkOutN => asicRoClkN(2));
+
+  OBUFDS_CLK3 : entity work.ClkOutBufDiff
+  generic map(
+    TPD_G         => TPD_G,
+    XIL_DEVICE_G  => "ULTRASCALE"
+    )
+  port map(
+    clkIn   => asicRdClk,
+    clkOutP => asicRoClkP(3),
+    clkOutN => asicRoClkN(3)); 
+  
    ----------------------------------------------------------------------------
    -- Signal routing
    ----------------------------------------------------------------------------  
@@ -481,13 +500,60 @@ begin
 
    -----------------------------------------------------------------------------
    -- ASIC signal routing
-   -----------------------------------------------------------------------------
-   asicPpmat       <= iAsicPpmat;
-   asicGlblRst     <= iAsicGrst;
-   asicSync        <= iAsicSync;
-   asicAcq         <= iAsicAcq;
-   asicR0          <= iAsicR0;
-   spareHrP(0)     <= oAsicSR0;
+  -----------------------------------------------------------------------------
+  AsicPpmatBuf: entity work.OutputBufferReg
+    generic map(
+      TPD_G          => TPD_G,
+      DIFF_PAIR_G    => false)
+    port map(
+      I  => iAsicPpmat,
+      C  => asicRdClk,
+      O  => asicPpmat);
+
+  AsicGlblRstBuf: entity work.OutputBufferReg
+    generic map(
+      TPD_G          => TPD_G,
+      DIFF_PAIR_G    => false)
+   port map(
+      I  => iAsicGrst,
+      C  => asicRdClk,
+      O  => asicGlblRst);
+
+  AsicSyncBuf: entity work.OutputBufferReg
+    generic map(
+      TPD_G          => TPD_G,
+      DIFF_PAIR_G    => false)
+    port map(
+      I  => iAsicSync,
+      C  => asicRdClk,
+      O  => asicSync);
+
+  AsicAcqBuf: entity work.OutputBufferReg
+    generic map(
+      TPD_G          => TPD_G,
+      DIFF_PAIR_G    => false)
+   port map(
+      I  => iAsicAcq,
+      C  => asicRdClk,
+      O  => asicAcq);
+
+  AsicR0Buf: entity work.OutputBufferReg 
+    generic map(
+      TPD_G          => TPD_G,
+      DIFF_PAIR_G    => false)
+    port map(
+      I  => iAsicR0,
+      C  => asicRdClk,
+      O  => asicR0);
+   
+  AsicSR0Buf: entity work.OutputBufferReg
+    generic map(
+      TPD_G          => TPD_G,
+      DIFF_PAIR_G    => false)
+    port map(
+      I  => oAsicSR0,
+      C  => asicRdClk,
+      O  => spareHrP(0));
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
