@@ -28,18 +28,24 @@ import rogue.utilities.fileio
 import rogue.interfaces.stream
 import pyrogue    
 import time
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtGui import *
-from PyQt4.QtCore import QObject, pyqtSignal
 import ePixViewer.imgProcessing as imgPr
 import ePixViewer.Cameras as cameras
 import numpy as np
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+
 import pdb
 
+try:
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore    import *
+    from PyQt5.QtGui     import *
+except ImportError:
+    from PyQt4.QtCore    import *
+    from PyQt4.QtGui     import *
 
-PRINT_VERBOSE = 1
+
+PRINT_VERBOSE = 0
 
 ################################################################################
 ################################################################################
@@ -48,7 +54,7 @@ PRINT_VERBOSE = 1
 #   Calls other classes defined in this file to properly read and process
 #   the images in a givel file
 ################################################################################
-class Window(QtGui.QMainWindow, QObject):
+class Window(QMainWindow, QObject):
     """Class that defines the main window for the viewer."""
     
     # Define a new signal called 'trigger' that has no arguments.
@@ -71,11 +77,11 @@ class Window(QtGui.QMainWindow, QObject):
         self.currentCam = cameras.Camera(cameraType = cameraType)
 
         # add actions for menu item
-        extractAction = QtGui.QAction("&Quit", self)
+        extractAction = QAction("&Quit", self)
         extractAction.setShortcut("Ctrl+Q")
         extractAction.setStatusTip('Leave The App')
         extractAction.triggered.connect(self.close_viewer)
-        openFile = QtGui.QAction("&Open File", self)
+        openFile = QAction("&Open File", self)
         openFile.setShortcut("Ctrl+O")
         openFile.setStatusTip('Open a new set of images')
         openFile.setStatusTip('Open file')
@@ -128,7 +134,7 @@ class Window(QtGui.QMainWindow, QObject):
         #init mouse variables
         self.mouseX = 0
         self.mouseY = 0
-        self.image = QtGui.QImage()
+        self.image = QImage()
         self.pixelTimeSeries = np.array([])
 
         #initialize data monitoring
@@ -148,7 +154,7 @@ class Window(QtGui.QMainWindow, QObject):
         # Center UI
         self.imageScaleMax = int(10000)
         self.imageScaleMin = int(-10000)
-        screen = QtGui.QDesktopWidget().screenGeometry(self)
+        screen = QDesktopWidget().screenGeometry(self)
         size = self.geometry()
         self.buildUi()
 
@@ -165,11 +171,11 @@ class Window(QtGui.QMainWindow, QObject):
         #self.label.setScaledContents(True)
         
         # left hand side layout
-        self.mainWidget = QtGui.QWidget(self)
+        self.mainWidget = QWidget(self)
         vbox1 = QVBoxLayout()
-        vbox1.setAlignment(QtCore.Qt.AlignTop)
+        vbox1.setAlignment(Qt.AlignTop)
         #vbox1.addWidget(self.label,  QtCore.Qt.AlignTop)
-        vbox1.addWidget(self.mainImageDisp,  QtCore.Qt.AlignTop)
+        vbox1.addWidget(self.mainImageDisp,  Qt.AlignTop)
 
         #tabbed control box
         self.gridVbox2 = TabbedCtrlCanvas(self)
@@ -211,7 +217,7 @@ class Window(QtGui.QMainWindow, QObject):
         self.eventReader.frameIndex = 1
         self.eventReader.VIEW_DATA_CHANNEL_ID = 1
         self.setReadDelay(0.1)
-        self.filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File', '', 'Rogue Images (*.dat);; GenDAQ Images (*.bin);;Any (*.*)')  
+        self.filename = QFileDialog.getOpenFileName(self, 'Open File', '', 'Rogue Images (*.dat);; GenDAQ Images (*.bin);;Any (*.*)')  
         if (os.path.splitext(self.filename)[1] == '.dat'): 
             self.displayImagDat(self.filename)
         else:
@@ -273,12 +279,13 @@ class Window(QtGui.QMainWindow, QObject):
 
     # checks if the user really wants to exit
     def close_viewer(self):
-        choice = QtGui.QMessageBox.question(self, 'Quit!',
+        choice = QMessageBox.question(self, 'Quit!',
                                             "Do you want to quit viewer?",
-                                            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if choice == QtGui.QMessageBox.Yes:
+                                            QMessageBox.Yes | QMessageBox.No)
+        if choice == QMessageBox.Yes:
             print("Exiting now...")
-            sys.exit()
+            #sys.exit()
+            self.hide()
         else:
             pass
 
@@ -287,7 +294,7 @@ class Window(QtGui.QMainWindow, QObject):
     def displayImag(self, path):
         print('File name: ', path)
         if path:
-            image = QtGui.QImage(path)
+            image = QImage(path)
             self.mainImageDisp.update_figure(image)
 #            pp = QtGui.QPixmap.fromImage(image)
 #            self.label.setPixmap(pp.scaled(
@@ -353,7 +360,10 @@ class Window(QtGui.QMainWindow, QObject):
         #self.image = QtGui.QImage(_8bitImg.repeat(4), self.imgTool.imgWidth, self.imgTool.imgHeight, QtGui.QImage.Format_RGB32)
         
         #pp = QtGui.QPixmap.fromImage(self.image)
-        self.mainImageDisp.update_figure(_8bitImg, contrast=[self.imageScaleMax, self.imageScaleMin], autoScale = False)
+        if self.imageScaleMax > self.imageScaleMin:
+            self.mainImageDisp.update_figure(_8bitImg, contrast=[self.imageScaleMax, self.imageScaleMin], autoScale = False)
+        else:
+            self.mainImageDisp.update_figure(_8bitImg, contrast=[self.imageScaleMin, self.imageScaleMax], autoScale = False)
         #self.label.setPixmap(pp.scaled(self.label.size(),QtCore.Qt.KeepAspectRatio,QtCore.Qt.SmoothTransformation))
         #self.label.adjustSize()
         # updates the frame number
@@ -386,11 +396,23 @@ class Window(QtGui.QMainWindow, QObject):
 
         #header are 8 32 bit words
         #footer are 5 32 bit words
-        data  = data[16:-10]
+        data  = data[16:-14]
         oscWords = len(data)
 
-        chAdata = -1.0 + data[0:int(oscWords/2)] * (2.0/2**14)
-        chBdata = -1.0 + data[int(oscWords/2): oscWords] * (2.0/2**14)
+        chAdata = -0.0 + data[0:int(oscWords/2)] * (2.0/2**14)
+        chBdata = -0.0 + data[int(oscWords/2): oscWords] * (2.0/2**14)
+
+        #TODO: add radio button to make the inversion selectable.
+        invertPolarityChA = True
+        invertPolarityChB = True
+
+        if invertPolarityChA == True :
+            chAdata = (2.0-0.053) + chAdata * (-1.04)
+
+        if invertPolarityChB == True :
+            chBdata = (2.0-0.053) + chBdata * (-1.04)
+
+        print("avgValueChA", str(np.mean(chAdata)))
         
         if (self.LinePlot2_RB1.isChecked()):
             self.lineDisplay2.update_plot(self.cbScopeCh0.isChecked(), "Scope Trace A", 'r',  chAdata, 
@@ -474,18 +496,21 @@ class Window(QtGui.QMainWindow, QObject):
         ##if (PRINT_VERBOSE): print('Horizontal plot processing')
    
         #full line plot
-        if (self.imgTool.imgDark_isSet):
-            self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.ImgDarkSub[self.mouseY,self.mouseY])
-        else:
-            self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.imgDesc[self.mouseY,self.mouseY])
+        try:
+            if (self.imgTool.imgDark_isSet):
+                self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.ImgDarkSub[self.mouseY,self.mouseX])
+            else:
+                self.pixelTimeSeries = np.append(self.pixelTimeSeries, self.imgDesc[self.mouseY,self.mouseX])
 
-        if(not self.cbpixelTimeSeriesEnabled.isChecked()):
-            self. clearPixelTimeSeriesLinePlot()
+            if(not self.cbpixelTimeSeriesEnabled.isChecked()):
+                self. clearPixelTimeSeriesLinePlot()
+        except:
+            print ("Error at updatePixelTimeSeriesLinePlot().\n")
 
     """Save the enabled series to file"""
     def SaveSeriesToFile(self):
         #open a pop up menu to set the filename
-        self.filename = QtGui.QFileDialog.getOpenFileName(self, 'Save File', '', 'csv file (*.csv);; Any (*.*)')
+        self.filename = QFileDialog.getSaveFileName(self, 'Save File', '', 'csv file (*.csv);; Any (*.*)')
         if (self.cbHorizontalLineEnabled.isChecked()):
             if (self.imgTool.imgDark_isSet):
                 np.savetxt(os.path.splitext(self.filename)[0] + "_horizontal" + os.path.splitext(self.filename)[1], self.ImgDarkSub[self.mouseY,:], fmt='%d', delimiter=',', newline='\n')
@@ -503,13 +528,13 @@ class Window(QtGui.QMainWindow, QObject):
         
         
     def _paintEvent(self, e):
-        qp = QtGui.QPainter()
+        qp = QPainter()
         qp.begin(self.image) 
         self.drawCross(qp)
         qp.end()
 
     def drawPoint(self, qp):
-        qp.setPen(QtCore.Qt.red)
+        qp.setPen(Qt.red)
         size = self.label.size()
         imageH = self.image.height()
         imageW = self.image.width()
@@ -523,7 +548,7 @@ class Window(QtGui.QMainWindow, QObject):
                 qp.drawPoint(x , y)
 
     def drawCross(self, qp):
-        qp.setPen(QtCore.Qt.red)
+        qp.setPen(Qt.red)
         size = self.label.size()
         imageH = self.image.height()
         imageW = self.image.width()
@@ -618,30 +643,30 @@ class EventReader(rogue.interfaces.stream.Slave):
         ## enter debug mode
         #print("\n---------------------------------\n-\n- Entering DEBUG mode _acceptFrame \n-\n-\n--------------------------------- ")
         #pdb.set_trace()
-        
-        self.lastFrame = frame
-        # reads entire frame
-        p = bytearray(self.lastFrame.getPayload())
-        self.lastFrame.read(p,0)
-        if (PRINT_VERBOSE): print('_accepted p[',self.numAcceptedFrames, ']: ', p[0:10])
-        if (PRINT_VERBOSE): print('Length of accpeted frame: ' , len(p)) 
-        self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
-        self.numAcceptedFrames += 1
+        if (not self.parent.isHidden()):
+            self.lastFrame = frame
+            # reads entire frame
+            p = bytearray(self.lastFrame.getPayload())
+            self.lastFrame.read(p,0)
+            if (PRINT_VERBOSE): print('_accepted p[',self.numAcceptedFrames, ']: ', p[0:10])
+            if (PRINT_VERBOSE): print('Length of accpeted frame: ' , len(p)) 
+            self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
+            self.numAcceptedFrames += 1
 
-        VcNum =  p[0] & 0xF    
+            VcNum =  p[0] & 0xF    
 
-        if (time.clock_gettime(0)-self.lastTime)>1:
-            self.lastTime = time.clock_gettime(0)
-            if ((VcNum == self.VIEW_PSEUDOSCOPE_ID)):
-                if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
-                self.parent.processPseudoScopeFrameTrigger.emit()
-            elif (VcNum == self.VIEW_MONITORING_DATA_ID):
-                if (PRINT_VERBOSE): print('Decoding Monitoring Data')
-                self.parent.processMonitoringFrameTrigger.emit()
-            elif (VcNum == 0):
-                if (PRINT_VERBOSE): print('Decoding ASIC Data')
-                if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
-                    self.parent.processFrameTrigger.emit()
+            if (time.clock_gettime(0)-self.lastTime)>1:
+                self.lastTime = time.clock_gettime(0)
+                if ((VcNum == self.VIEW_PSEUDOSCOPE_ID)):
+                    if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
+                    self.parent.processPseudoScopeFrameTrigger.emit()
+                elif (VcNum == self.VIEW_MONITORING_DATA_ID):
+                    if (PRINT_VERBOSE): print('Decoding Monitoring Data')
+                    self.parent.processMonitoringFrameTrigger.emit()
+                elif (VcNum == 0):
+                    if (PRINT_VERBOSE): print('Decoding ASIC Data')
+                    if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
+                        self.parent.processFrameTrigger.emit()
 
 
     def _processFrame(self):
@@ -659,6 +684,7 @@ class EventReader(rogue.interfaces.stream.Slave):
             # Check if channel number is 0x1 (streaming data channel)
             if (chNum == self.VIEW_DATA_CHANNEL_ID or VcNum == 0) :
                 # Collect the data
+                if (PRINT_VERBOSE): print('-------- Frame ',self.numAcceptedFrames,'Channel flags',self.lastFrame.getFlags() , ' Channel Num:' , chNum, ' Vc Num:' , VcNum)
                 if (PRINT_VERBOSE): print('Num. image data readout: ', len(p))
                 self.frameData = p
                 cnt = 0
@@ -712,7 +738,7 @@ class MplCanvas(FigureCanvas):
 
         FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
-        FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.MyTitle = MyTitle
         self.axes.set_title(self.MyTitle)
@@ -752,7 +778,11 @@ class MplCanvas(FigureCanvas):
                 ##if (PRINT_VERBOSE): print(lineName)
                 if (lineEnabled):
                     l = arg #[random.randint(0, 10) for i in range(4)]
+                    #self.axes.set_ylim((-0.1,2.1))
+                    #self.axes.set_xticks(np.arange(0, len(l), 20))
+                    #self.axes.set_yticks(np.arange(0, 2., 0.25))
                     self.axes.plot(l, lineColor)
+                    self.axes.grid()
                 argIndex = -1
             argIndex = argIndex + 1    
         self.axes.set_title(self.MyTitle)        
@@ -784,7 +814,7 @@ class MplCanvas(FigureCanvas):
 #   Tabbed control class
 #   
 ################################################################################
-class TabbedCtrlCanvas(QtGui.QTabWidget):
+class TabbedCtrlCanvas(QTabWidget):
     #https://pythonspot.com/qt4-tabs/ tips on tabs
     def __init__(self, parent):
         super(TabbedCtrlCanvas, self).__init__()
@@ -793,74 +823,74 @@ class TabbedCtrlCanvas(QtGui.QTabWidget):
         myParent = parent
 
         # Create tabs
-        tab1	= QtGui.QWidget()	
-        tab2	= QtGui.QWidget()
-        tab3    = QtGui.QWidget()
-        tab4    = QtGui.QWidget()
+        tab1	= QWidget()	
+        tab2	= QWidget()
+        tab3    = QWidget()
+        tab4    = QWidget()
 
         ######################################################      
         # create widgets for tab 1 (Main)
         ######################################################
         # label used to display frame number
-        self.labelFrameNum = QtGui.QLabel('')
+        self.labelFrameNum = QLabel('')
         # button set dark
-        btnSetDark = QtGui.QPushButton("Set Dark")
+        btnSetDark = QPushButton("Set Dark")
         btnSetDark.setMaximumWidth(150)
         btnSetDark.clicked.connect(myParent.setDark)
         btnSetDark.resize(btnSetDark.minimumSizeHint())
         # button unset dark
-        btnUnSetDark = QtGui.QPushButton("Unset Dark")
+        btnUnSetDark = QPushButton("Unset Dark")
         btnUnSetDark.setMaximumWidth(150)
         btnUnSetDark.clicked.connect(myParent.unsetDark)
         btnUnSetDark.resize(btnUnSetDark.minimumSizeHint())    
-        numDarkImgLabel = QtGui.QLabel("Number of Dark images")
-        myParent.numDarkImg = QtGui.QLineEdit()
+        numDarkImgLabel = QLabel("Number of Dark images")
+        myParent.numDarkImg = QLineEdit()
         myParent.numDarkImg.setMaximumWidth(150)
         myParent.numDarkImg.setMinimumWidth(100)
         myParent.numDarkImg.setText(str(10))
         # button quit
-        btnQuit = QtGui.QPushButton("Quit")
+        btnQuit = QPushButton("Quit")
         btnQuit.setMaximumWidth(150)
         btnQuit.clicked.connect(myParent.close_viewer)
         btnQuit.resize(btnQuit.minimumSizeHint())
         # mouse buttons
-        mouseLabel = QtGui.QLabel("Pixel Information")
-        myParent.mouseXLine = QtGui.QLineEdit()
+        mouseLabel = QLabel("Pixel Information")
+        myParent.mouseXLine = QLineEdit()
         myParent.mouseXLine.setMaximumWidth(150)
         myParent.mouseXLine.setMinimumWidth(100)
-        myParent.mouseYLine = QtGui.QLineEdit()
+        myParent.mouseYLine = QLineEdit()
         myParent.mouseYLine.setMaximumWidth(150)
         myParent.mouseYLine.setMinimumWidth(100)
-        myParent.mouseValueLine = QtGui.QLineEdit()
+        myParent.mouseValueLine = QLineEdit()
         myParent.mouseValueLine.setMaximumWidth(150)
         myParent.mouseValueLine.setMinimumWidth(100)
         # set bitmask
-        btnSetPixelBitMask = QtGui.QPushButton("Set")
+        btnSetPixelBitMask = QPushButton("Set")
         btnSetPixelBitMask.setMaximumWidth(150)
         btnSetPixelBitMask.clicked.connect(myParent.setPixelBitMask)
         btnSetPixelBitMask.resize(btnSetPixelBitMask.minimumSizeHint())    
-        pixelBitMaskLabel = QtGui.QLabel("Pixel Bit Mask")
-        myParent.pixelBitMask = QtGui.QLineEdit()
+        pixelBitMaskLabel = QLabel("Pixel Bit Mask")
+        myParent.pixelBitMask = QLineEdit()
         myParent.pixelBitMask.setMaximumWidth(150)
         myParent.pixelBitMask.setMinimumWidth(100)
         myParent.pixelBitMask.setInputMask("0xHHHH")
         # label contrast
-        imageScaleLabel = QtGui.QLabel("Contrast (max, min)")
-        myParent.imageScaleMaxLine = QtGui.QLineEdit()
+        imageScaleLabel = QLabel("Contrast (max, min)")
+        myParent.imageScaleMaxLine = QLineEdit()
         myParent.imageScaleMaxLine.setMaximumWidth(100)
         myParent.imageScaleMaxLine.setMinimumWidth(50)
         myParent.imageScaleMaxLine.setText(str(myParent.imageScaleMax))
-        myParent.imageScaleMinLine = QtGui.QLineEdit()
+        myParent.imageScaleMinLine = QLineEdit()
         myParent.imageScaleMinLine.setMaximumWidth(100)
         myParent.imageScaleMinLine.setMinimumWidth(50)
         myParent.imageScaleMinLine.setText(str(myParent.imageScaleMin))
         
         # set layout to tab 1
-        tab1Frame = QtGui.QFrame()
-        tab1Frame.setFrameStyle(QtGui.QFrame.Panel);
+        tab1Frame = QFrame()
+        tab1Frame.setFrameStyle(QFrame.Panel);
         tab1Frame.setGeometry(100, 200, 0, 0)
         tab1Frame.setLineWidth(1);
-        grid = QtGui.QGridLayout()
+        grid = QGridLayout()
         grid.setSpacing(5)
         grid.addWidget(tab1Frame,0,0,7,7)
 
@@ -887,31 +917,31 @@ class TabbedCtrlCanvas(QtGui.QTabWidget):
         # create widgets for tab 2 (File controls)
         ######################################################      
         # button prev
-        btnPrevFrame = QtGui.QPushButton("Prev")
+        btnPrevFrame = QPushButton("Prev")
         btnPrevFrame.setMaximumWidth(150)
         btnPrevFrame.clicked.connect(myParent.prevFrame)
         btnPrevFrame.resize(btnPrevFrame.minimumSizeHint())
 
         # button next
-        btnNextFrame = QtGui.QPushButton("Next")
+        btnNextFrame = QPushButton("Next")
         btnNextFrame.setMaximumWidth(150)
         btnNextFrame.clicked.connect(myParent.nextFrame)
         btnNextFrame.resize(btnNextFrame.minimumSizeHint())    
 
         # frame number
-        myParent.frameNumberLine = QtGui.QLineEdit()
+        myParent.frameNumberLine = QLineEdit()
         myParent.frameNumberLine.setMaximumWidth(100)
         myParent.frameNumberLine.setMinimumWidth(50)
         myParent.frameNumberLine.setText(str(1))
 
         # set layout to tab 2
-        tab2Frame1 = QtGui.QFrame()
-        tab2Frame1.setFrameStyle(QtGui.QFrame.Panel);
+        tab2Frame1 = QFrame()
+        tab2Frame1.setFrameStyle(QFrame.Panel);
         tab2Frame1.setGeometry(100, 200, 0, 0)
         tab2Frame1.setLineWidth(1);
         
         # add widgets into tab2
-        grid2 = QtGui.QGridLayout()
+        grid2 = QGridLayout()
         grid2.setSpacing(5)
         grid2.setColumnMinimumWidth(0, 1)
         grid2.setColumnMinimumWidth(2, 1)
@@ -931,28 +961,28 @@ class TabbedCtrlCanvas(QtGui.QTabWidget):
         ######################################################      
 
         # check boxes
-        myParent.cbHorizontalLineEnabled = QtGui.QCheckBox('Plot Horizontal Line')
+        myParent.cbHorizontalLineEnabled = QCheckBox('Plot Horizontal Line')
         #
-        myParent.cbVerticalLineEnabled = QtGui.QCheckBox('Plot Vertical Line')
+        myParent.cbVerticalLineEnabled = QCheckBox('Plot Vertical Line')
         #
-        myParent.cbpixelTimeSeriesEnabled = QtGui.QCheckBox('Pixel Time Series Line')
-        myParent.cbImageZoomEnabled = QtGui.QCheckBox('Image zoom')
+        myParent.cbpixelTimeSeriesEnabled = QCheckBox('Pixel Time Series Line')
+        myParent.cbImageZoomEnabled = QCheckBox('Image zoom')
 
         # button save trace to file
-        btnSaveSeriesToFile = QtGui.QPushButton("Save to file")
+        btnSaveSeriesToFile = QPushButton("Save to file")
         btnSaveSeriesToFile.setMaximumWidth(150)
         btnSaveSeriesToFile.clicked.connect(myParent.SaveSeriesToFile)
         btnSaveSeriesToFile.resize(btnSaveSeriesToFile.minimumSizeHint())    
 
 
         # set layout to tab 3
-        tab3Frame1 = QtGui.QFrame()
-        tab3Frame1.setFrameStyle(QtGui.QFrame.Panel);
+        tab3Frame1 = QFrame()
+        tab3Frame1.setFrameStyle(QFrame.Panel);
         tab3Frame1.setGeometry(100, 200, 0, 0)
         tab3Frame1.setLineWidth(1);
         
         # add widgets into tab2
-        grid3 = QtGui.QGridLayout()
+        grid3 = QGridLayout()
         grid3.setSpacing(5)
         grid3.setColumnMinimumWidth(0, 1)
         grid3.setColumnMinimumWidth(2, 1)
@@ -980,27 +1010,27 @@ class TabbedCtrlCanvas(QtGui.QTabWidget):
         myParent.LinePlot2_RB2 = QRadioButton("Env. Monitoring")
 
         # check boxes
-        myParent.cbScopeCh0 = QtGui.QCheckBox('Channel 0')
-        myParent.cbScopeCh1 = QtGui.QCheckBox('Channel 1')
+        myParent.cbScopeCh0 = QCheckBox('Channel 0')
+        myParent.cbScopeCh1 = QCheckBox('Channel 1')
         #        
-        myParent.cbEnvMonCh0 = QtGui.QCheckBox('Strong back temp.')
-        myParent.cbEnvMonCh1 = QtGui.QCheckBox('Ambient temp.')
-        myParent.cbEnvMonCh2 = QtGui.QCheckBox('Relative Hum.')
-        myParent.cbEnvMonCh3 = QtGui.QCheckBox('ASIC (A.) current (mA)')
-        myParent.cbEnvMonCh4 = QtGui.QCheckBox('ASIC (D.) current (mA)')
-        myParent.cbEnvMonCh5 = QtGui.QCheckBox('Guard ring current (uA)')
-        myParent.cbEnvMonCh6 = QtGui.QCheckBox('Vcc_a (mV)')
-        myParent.cbEnvMonCh7 = QtGui.QCheckBox('Vcc_d (mV)')
+        myParent.cbEnvMonCh0 = QCheckBox('Strong back temp.')
+        myParent.cbEnvMonCh1 = QCheckBox('Ambient temp.')
+        myParent.cbEnvMonCh2 = QCheckBox('Relative Hum.')
+        myParent.cbEnvMonCh3 = QCheckBox('ASIC (A.) current (mA)')
+        myParent.cbEnvMonCh4 = QCheckBox('ASIC (D.) current (mA)')
+        myParent.cbEnvMonCh5 = QCheckBox('Guard ring current (uA)')
+        myParent.cbEnvMonCh6 = QCheckBox('Vcc_a (mV)')
+        myParent.cbEnvMonCh7 = QCheckBox('Vcc_d (mV)')
 
 
         # set layout to tab 3
-        tab4Frame1 = QtGui.QFrame()
-        tab4Frame1.setFrameStyle(QtGui.QFrame.Panel);
+        tab4Frame1 = QFrame()
+        tab4Frame1.setFrameStyle(QFrame.Panel);
         tab4Frame1.setGeometry(100, 200, 0, 0)
         tab4Frame1.setLineWidth(1);
         
         # add widgets into tab2
-        grid4 = QtGui.QGridLayout()
+        grid4 = QGridLayout()
         grid4.setSpacing(5)
         grid4.setColumnMinimumWidth(0, 1)
         grid4.setColumnMinimumWidth(2, 1)

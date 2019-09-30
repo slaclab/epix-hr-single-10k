@@ -2,7 +2,7 @@
 -- File       : HrAdcReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-09-05
+-- Last update: 2019-05-08
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -34,6 +34,7 @@ use work.HrAdcPkg.all;
 entity HrAdcReadoutGroup is
    generic (
       TPD_G             : time                 := 1 ns;
+      SIMULATION_G      : boolean              := false;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
       DATA_TYPE_G       : string               := "12b14b";
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
@@ -65,12 +66,16 @@ entity HrAdcReadoutGroup is
       idelayCtrlRdy : sl := '1';
 
       -- Serial Data from ADC
-      adcSerial : in HrAdcSerialGroupType;
+      adcSerial         : in  HrAdcSerialGroupType;
+      adcSerialOutP     : out sl;
+      adcSerialOutN     : out sl;
 
       -- Deserialized ADC Data
-      adcStreamClk : in  sl;
-      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
-      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
+      adcStreamClk    : in  sl;
+      adcStreams      : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
+      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C)));
+      adcStreamsEn_n  : out slv(NUM_CHANNELS_G-1 downto 0) := (others => '0');
+      monitoringSig   : out slv(NUM_CHANNELS_G-1 downto 0));
 end HrAdcReadoutGroup;
 
 -- Define architecture
@@ -79,9 +84,10 @@ architecture rtl of HrAdcReadoutGroup is
 begin
 
  GEN_ULTRASCALE_HRADC : if ((XIL_DEVICE_G = "ULTRASCALE") and (DATA_TYPE_G = "12b14b")) generate
-    U_HrADC_0 : entity work.Hr12bAdcReadoutGroupUS
+    U_HrADC_0 : entity work.Hr12bAdcReadoutGroupVsA
       generic map (
         TPD_G             => TPD_G,
+        SIMULATION_G      => SIMULATION_G,
         NUM_CHANNELS_G    => NUM_CHANNELS_G,
         IODELAY_GROUP_G   => IODELAY_GROUP_G,
         IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G,
@@ -95,11 +101,18 @@ begin
         axilReadSlave     => axilReadSlave,
         axilWriteMaster   => axilWriteMaster,
         axilWriteSlave    => axilWriteSlave,
+        bitClk            => bitClk,
+        byteClk           => byteClk,
+        deserClk          => deserClk,
         adcClkRst         => adcClkRst,
         adcSerial         => adcSerial,
         adcStreamClk      => adcStreamClk,
-        adcStreams        => adcStreams
+        adcStreams        => adcStreams,
+        adcStreamsEn_n    => adcStreamsEn_n,
+        monitoringSig     => monitoringSig
         );
+      adcSerialOutP     <= '1';
+      adcSerialOutN     <= '0';
   end generate GEN_ULTRASCALE_HRADC;
 
     GEN_ULTRASCALE_HRADC16 : if ((XIL_DEVICE_G = "ULTRASCALE") and (DATA_TYPE_G = "16b20b")) generate
@@ -125,9 +138,13 @@ begin
         adcClkRst         => adcClkRst,
         idelayCtrlRdy     => idelayCtrlRdy,
         adcSerial         => adcSerial,
+        adcSerialOutP     => adcSerialOutP,
+        adcSerialOutN     => adcSerialOutN,
         adcStreamClk      => adcStreamClk,
-        adcStreams        => adcStreams
+        adcStreams        => adcStreams,
+        adcStreamsEn_n    => adcStreamsEn_n
         );
+    monitoringSig   <= (others=>'0');
   end generate GEN_ULTRASCALE_HRADC16;
 end rtl;
 

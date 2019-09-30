@@ -6,7 +6,7 @@
 -- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
 -- Company    : 
 -- Created    : 2017-05-22
--- Last update: 2018-08-07
+-- Last update: 2018-11-16
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -103,8 +103,10 @@ architecture arch of HR16bGroup_encoded_data_tb is
   signal dClkN : sl := '0';
   signal fClkP : sl := '0'; -- Frame clock
   signal fClkN : sl := '1';
-  signal sDataP : sl;                       
-  signal sDataN : sl;
+  signal sDataP  : sl;                       
+  signal sDataN  : sl;
+  signal sDataP1 : sl;                       
+  signal sDataN1 : sl;
   signal gearboxOffset : slv(1 downto 0) := "00";
   signal bitSlip       : slv(2 downto 0) := "101";
   -- encoder
@@ -116,6 +118,8 @@ architecture arch of HR16bGroup_encoded_data_tb is
   signal EncValidOut : sl;
   signal EncReadyOut : sl              := '1';
   signal EncDataOut  : slv(19 downto 0);
+  signal EncDataOut_1  : slv(19 downto 0);
+  signal EncDataOut_2  : slv(19 downto 0);
   signal EncDispOut  : slv(1 downto 0);
   signal EncSof      : sl := '0';
   signal EncEof      : sl := '0';
@@ -128,7 +132,8 @@ architecture arch of HR16bGroup_encoded_data_tb is
   signal DecEofe     : sl;
 
 
-  signal serialDataOut : sl;
+  signal serialDataOut0 : sl;
+  signal serialDataOut1 : sl;
 
 
   -- axilite
@@ -165,7 +170,15 @@ architecture arch of HR16bGroup_encoded_data_tb is
   signal mAxisMasters     : AxiStreamMasterArray(0 downto 0);
   signal mAxisSlaves      : AxiStreamSlaveArray(0 downto 0) := (others=>AXI_STREAM_SLAVE_FORCE_C); --
                                                                       --AXI_STREAM_SLAVE_INIT_C
+  signal adcStreamsEn_n : slv(7 downto 0) := (others => '0');
 
+  signal HSDacData : slv(15 downto 0) := (others => '0');
+  signal HSDacCh   : slv(1 downto 0)  := (others => '1');
+  signal HSDacDin  : sl;
+  signal HSDacSclk : sl;
+  signal HSDacCsL  : sl;
+  signal HSDacLdacL: sl;
+  signal HSDacClrL : sl;
 
 begin  --
 
@@ -190,7 +203,7 @@ begin  --
       readyOut => EncReadyOut,
       dataOut  => EncDataOut);
 
-  U_serializer :  entity work.serializerSim 
+  U_serializer0 :  entity work.serializerSim 
     generic map(
         g_dwidth => 20 
     )
@@ -198,14 +211,28 @@ begin  --
         clk_i     => dClkP,
         reset_n_i => sysClkRst_n,
         data_i    => EncDataOut,        -- "00"&EncDataIn, --
-        data_o    => serialDataOut
+        data_o    => serialDataOut0
+    );
+
+    U_serializer1 :  entity work.serializerSim 
+    generic map(
+        g_dwidth => 20 
+    )
+    port map(
+        clk_i     => dClkP,
+        reset_n_i => sysClkRst_n,
+        data_i    => EncDataOut_2,        -- "00"&EncDataIn, --
+        data_o    => serialDataOut1
     );
 
   -- DUT is the deserializer using iserdes3 for ultrascale devices
   -- DUT enables data synchronization based on a channel data pattern or on frame clock.
 
-  sDataP <=     serialDataOut;
-  sDataN <= not serialDataOut;
+  sDataP <=     serialDataOut0;
+  sDataN <= not serialDataOut0;
+
+  sDataP1 <=     serialDataOut1;
+  sDataN1 <= not serialDataOut1;
 
   adcSerial.fClkP <= fClkP;
   adcSerial.fClkN <= fClkN;
@@ -214,8 +241,8 @@ begin  --
 
   adcSerial.chP(0) <= sDataP;
   adcSerial.chN(0) <= sDataN;
-  adcSerial.chP(1) <= sDataP;
-  adcSerial.chN(1) <= sDataN;
+  adcSerial.chP(1) <= sDataP1;
+  adcSerial.chN(1) <= sDataN1;
   adcSerial.chP(2) <= sDataP;
   adcSerial.chN(2) <= sDataN;
   adcSerial.chP(3) <= sDataP;
@@ -262,7 +289,8 @@ begin  --
 
         -- Deserialized ADC Data
         adcStreamClk => byteClk,--fClkP,--sysClk,
-        adcStreams   => adcStreams      
+        adcStreams   => adcStreams,
+        adcStreamsEn_n => adcStreamsEn_n
         );
 -------------------------------------------------------------------------------
 -- decodes a single stream
@@ -324,7 +352,8 @@ begin  --
       -- Deserialized data port
       rxClk             => byteClk,--fClkP,
       rxRst             => sysClkRst,
-      adcStreams        => adcStreams(1 downto 0),
+      adcStreams        => adcStreams(STREAMS_PER_ASIC_C-1 downto 0),
+      adcStreamsEn_n    => adcStreamsEn_n(STREAMS_PER_ASIC_C-1 downto 0),
       
       -- AXI lite slave port for register access
       axilClk           => sysClk,
@@ -375,6 +404,14 @@ begin  --
     end if;
   end process;
 
+  EncDataOut_Proc: process
+
+  begin
+    wait until fClkP = '1';
+      EncDataOut_1 <= EncDataOut;
+      EncDataOut_2 <= EncDataOut_1;
+  end process;
+
   AutomaticTestCheck_Proc: process
     variable dataIndex : integer := 0;
   begin
@@ -392,6 +429,19 @@ begin  --
     end if;
   end process;
 
+  DAC8812_0: entity work.Dac8812Cntrl
+    generic map (
+      TPD_G => TPD_G)
+    port map (
+      sysClk    => sysClk,
+      sysClkRst => sysClkRst,
+      dacData   => HSDacData,
+      dacCh     => HSDacCh,
+      dacDin    => HSDacDin,
+      dacSclk   => HSDacSclk,
+      dacCsL    => HSDacCsL,
+      dacLdacL  => HSDacLdacL,
+      dacClrL   => HSDacClrL);
   
   -- waveform generation
   WaveGen_Proc: process
@@ -409,7 +459,15 @@ begin  --
     wait for 1 us;
     sysClkRst <= '0';
     idelayCtrlRdy <= '1';               -- simulates control ready signal
-            
+
+    wait for 4 us;
+    HSDacData <= x"0001";
+    HSDacCh   <= "01";
+
+    wait for 4 us;
+    HSDacData <= x"8001";
+    HSDacCh   <= "10";
+      
     wait for 10 us;
     EncValidIn <= '1';                  -- starts sending realData
 
@@ -422,6 +480,34 @@ begin  --
     wait for 200 us;
     EncValidIn <= '0';                  -- starts sending realData
 
+    
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(READOUT_GROUP_ID), sAxilWriteSlave(READOUT_GROUP_ID), x"00000000", x"00000001", true);
+    wait for 1 us;
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(READOUT_GROUP_ID), sAxilWriteSlave(READOUT_GROUP_ID), x"00000010", x"000000f1", true);
+    wait for 1 us;
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(READOUT_GROUP_ID), sAxilWriteSlave(READOUT_GROUP_ID), x"00000010", x"000000f1", true);
+
+    wait for 1 us;
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(READOUT_GROUP_ID), sAxilReadSlave(READOUT_GROUP_ID), x"00000100", registerData, true);
+
+    wait for 1 us;
+    wait until sysClk = '1';
+    -- change to axil register command
+    wait until sysClk = '0';
+    axiLiteBusSimRead (sysClk, sAxilReadMaster(READOUT_GROUP_ID), sAxilReadSlave(READOUT_GROUP_ID), x"00000200", registerData, true);
+    
     wait for 10 us;
     EncValidIn <= '1';                  -- starts sending realData
 
@@ -434,6 +520,9 @@ begin  --
     wait until sysClk = '1';
     -- change to axil register command
     wait until sysClk = '0';
+
+    axiLiteBusSimWrite (sysClk, sAxilWriteMaster(READOUT_GROUP_ID), sAxilWriteSlave(READOUT_GROUP_ID), x"00000000", x"00000001", true);
+    wait for 1 us;        
 
     axiLiteBusSimRead (sysClk, sAxilReadMaster(READOUT_GROUP_ID), sAxilReadSlave(READOUT_GROUP_ID), x"00000020", registerData, true);
     registerValue <= registerData;

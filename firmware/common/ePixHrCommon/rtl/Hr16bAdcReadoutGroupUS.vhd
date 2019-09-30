@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-03-19
+-- Last update: 2019-07-22
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -34,41 +34,43 @@ use work.HrAdcPkg.all;
 
 entity Hr16bAdcReadoutGroupUS is
    generic (
-      TPD_G             : time                 := 1 ns;
-      NUM_CHANNELS_G    : natural range 1 to 8 := 8;
-      IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
-      IDELAYCTRL_FREQ_G : real                 := 200.0;
-      DELAY_VALUE_G     : natural              := 1250;
-      DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
-      ADC_INVERT_CH_G   : slv(7 downto 0)      := "00000000");
+      TPD_G               : time                 := 1 ns;
+      NUM_CHANNELS_G      : natural range 1 to 8 := 8;
+      IODELAY_GROUP_G     : string               := "DEFAULT_GROUP";
+      IDELAYCTRL_FREQ_G   : real                 := 200.0;
+      DELAY_VALUE_G       : natural              := 1250;
+      DEFAULT_DELAY_G     : slv(8 downto 0)      := (others => '0');
+      ADC_INVERT_CH_G     : slv(7 downto 0)      := "00000000");
    port (
       -- axilite system clock, 100Mhz
       axilClk : in sl;
       axilRst : in sl;
 
       -- Axi Interface
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster   : in  AxiLiteWriteMasterType;
+      axilWriteSlave    : out AxiLiteWriteSlaveType;
+      axilReadMaster    : in  AxiLiteReadMasterType;
+      axilReadSlave     : out AxiLiteReadSlaveType;
 
       -- common clocks to all deserializers
-      bitClk          : in sl;
-      byteClk         : in sl;          -- bit clk divided by 5
-      deserClk        : in sl;          -- deserializer clk DDR, 8 bits => bit
+      bitClk            : in sl;
+      byteClk           : in sl;          -- bit clk divided by 5
+      deserClk          : in sl;          -- deserializer clk DDR, 8 bits => bit
                                         -- clk divided by 4    
       -- Reset for adc deserializer
-      adcClkRst : in sl;
+      adcClkRst         : in sl;
       --
-      idelayCtrlRdy  : in sl := '1'; 
+      idelayCtrlRdy     : in sl := '1'; 
 
       -- Serial Data from ADC
-      adcSerial : in HrAdcSerialGroupType;
-
+      adcSerial         : in HrAdcSerialGroupType;
+      adcSerialOutP     : out sl;
+      adcSerialOutN     : out sl;
       -- Deserialized ADC Data
-      adcStreamClk : in  sl;
-      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
-      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
+      adcStreamClk      : in  sl;
+      adcStreams        : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
+      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C)));
+      adcStreamsEn_n    : out slv(NUM_CHANNELS_G-1 downto 0));
 end Hr16bAdcReadoutGroupUS;
 
 -- Define architecture
@@ -79,6 +81,8 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
   constant NUM_BITS_C       : natural          := 20;
   constant IDLE_PATTERN_1_C : slv((NUM_BITS_C-1) downto 0) := "1010101010" & "0101111100";
   constant IDLE_PATTERN_2_C : slv((NUM_BITS_C-1) downto 0) := "1010101010" & "1010000011";
+  constant IDLE_PATTERN_3_C : slv((NUM_BITS_C-1) downto 0) := "0101010101" & "1010000011";
+  constant IDLE_PATTERN_4_C : slv((NUM_BITS_C-1) downto 0) := "0101010101" & "0101111100";
   constant FRAME_PATTERN_C  : slv((NUM_BITS_C-1) downto 0) := "1111111111" & "0000000000";
   constant LOCKED_COUNTER_VALUE_C : slv(15 downto 0) := x"0100";
   constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
@@ -90,26 +94,40 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       resync         : sl;
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
-      delay          : slv(8 downto 0);
+      delay          : slv9Array(NUM_CHANNELS_G-1 downto 0);
       dataDelaySet   : slv(NUM_CHANNELS_G-1 downto 0);
       idelayCtrlRdy  : sl;     
       freezeDebug    : sl;
       readoutDebug0  : slv20Array(NUM_CHANNELS_G-1 downto 0);
       readoutDebug1  : slv20Array(NUM_CHANNELS_G-1 downto 0);
+      adcStreamsEn_n : slv(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
+      idelayRst      : slv(NUM_CHANNELS_G-1 downto 0);  
+      iserdesRst     : slv(NUM_CHANNELS_G-1 downto 0);
+      sDataOutControl: slv(2 downto 0);
+      curDelayData   : slv9Array(NUM_CHANNELS_G-1 downto 0);
+      restartBERT    : sl;
+      counterBERT    : Slv44Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
       resync         => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      delay          => DEFAULT_DELAY_G,
+      delay          => (others => DEFAULT_DELAY_G),
       dataDelaySet   => (others => '1'),
       idelayCtrlRdy  => '0',
       freezeDebug    => '0',
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
-      lockedCountRst => '0');
+      adcStreamsEn_n => (others => '0'),
+      lockedCountRst => '0',
+      idelayRst      => (others => '1'),
+      iserdesRst     => (others => '1'),
+      sDataOutControl=> (others => '0'),
+      curDelayData   => (others => (others => '0')),
+      restartBERT    => '0',
+      counterBERT    => (others => (others => '0')));
 
    signal lockedSync      : slv(NUM_CHANNELS_G-1 downto 0);
    signal lockedFallCount : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -121,16 +139,16 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
-      slip           : Slv3Array(NUM_CHANNELS_G-1 downto 0); 
+      slip           : Slv5Array(NUM_CHANNELS_G-1 downto 0); 
       count          : Slv6Array(NUM_CHANNELS_G-1 downto 0);
       lockedCounter  : Slv16Array(NUM_CHANNELS_G-1 downto 0);
       gearBoxOffset  : Slv2Array(NUM_CHANNELS_G-1 downto 0); 
-      --loadDelay      : sl;
-      --delayValue     : slv(8 downto 0);
       idleWord       : slv(NUM_CHANNELS_G-1 downto 0);
       locked         : slv(NUM_CHANNELS_G-1 downto 0);
       dataValidAll   : sl;
       fifoWrData     : Slv20Array(NUM_CHANNELS_G-1 downto 0);
+      countBertEn    : slv(NUM_CHANNELS_G-1 downto 0);
+      counterBERT    : Slv44Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant ADC_REG_INIT_C : AdcRegType := (
@@ -138,30 +156,40 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
       count          => (others => (others => '0')),
       lockedCounter  => (others => (others => '0')),
       gearBoxOffset  => (others => (others => '0')),
-      --loadDelay      => '0',
-      --delayValue     => (others => '0'),
       idleWord       => (others => '0'),
       locked         => (others => '0'),
       dataValidAll   => '0',
-      fifoWrData     => (others => (others => '0')));
+      fifoWrData     => (others => (others => '0')),
+      countBertEn    => (others => '0'),
+      counterBERT    => (others => (others => '0')));
 
    signal adcR   : AdcRegType := ADC_REG_INIT_C;
    signal adcRin : AdcRegType;
 
 
    -- Local Signals
-   signal adcBitRst     : sl;
-   signal adcDataPadOut : slv(NUM_CHANNELS_G-1 downto 0);
-   signal adcDataPad    : slv(NUM_CHANNELS_G-1 downto 0);
-   signal adcData       : Slv20Array(NUM_CHANNELS_G-1 downto 0);
-   signal dataValid     : slv(NUM_CHANNELS_G-1 downto 0);
-   signal curDelayData  : slv9Array(NUM_CHANNELS_G-1 downto 0);
-   signal resync        : sl;
+   signal adcBitRst        : sl;
+   signal idelayRst        : slv(NUM_CHANNELS_G-1 downto 0);  
+   signal iserdesRst       : slv(NUM_CHANNELS_G-1 downto 0); 
+   signal adcDataPadOut    : slv(NUM_CHANNELS_G-1 downto 0);
+   signal adcDataPad       : slv(NUM_CHANNELS_G-1 downto 0);
+   signal adcData          : Slv20Array(NUM_CHANNELS_G-1 downto 0);
+   signal dataValid        : slv(NUM_CHANNELS_G-1 downto 0);
+   signal curDelayData     : slv10Array(NUM_CHANNELS_G-1 downto 0);
+   signal curDelayDatasync : slv9Array(NUM_CHANNELS_G-1 downto 0);
+   signal resync           : sl;
+   signal adcSEnSync       : slv(NUM_CHANNELS_G-1 downto 0);
+   signal restartBERTsync  : sl;
+   signal counterBERTsync  : Slv44Array(NUM_CHANNELS_G-1 downto 0);
+   signal sDataOutP        : slv(NUM_CHANNELS_G-1 downto 0);
+   signal sDataOutN        : slv(NUM_CHANNELS_G-1 downto 0);
+   type Slv10bData is array (natural range<>) of slv10Array(7 downto 0);
+   signal tenbData       : Slv10bData(NUM_CHANNELS_G-1 downto 0);
 
-   signal fifoDataValid : sl;
-   signal fifoDataOut   : slv(NUM_CHANNELS_G*NUM_BITS_C-1 downto 0);
-   signal fifoDataIn    : slv(NUM_CHANNELS_G*NUM_BITS_C-1 downto 0);
-   signal fifoDataTmp   : slv20Array(NUM_CHANNELS_G-1 downto 0);
+   signal fifoDataValid  : sl;
+   signal fifoDataOut    : slv(NUM_CHANNELS_G*NUM_BITS_C-1 downto 0);
+   signal fifoDataIn     : slv(NUM_CHANNELS_G*NUM_BITS_C-1 downto 0);
+   signal fifoDataTmp    : slv20Array(NUM_CHANNELS_G-1 downto 0);
 
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*NUM_BITS_C-1 downto 0);
@@ -171,9 +199,31 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
   attribute keep of byteClk       : signal is "true";  
   attribute keep of adcData       : signal is "true";
   attribute keep of dataValid     : signal is "true";
+  attribute keep of adcR          : signal is "true";
+  attribute keep of tenbData      : signal is "true";
+  
 
 begin
 
+
+  adcSerialOutN <=
+    sDataOutN(0) when axilR.sDataOutControl ="000" else
+    sDataOutN(1) when axilR.sDataOutControl ="001" else
+    sDataOutN(2) when axilR.sDataOutControl ="010" else
+    sDataOutN(3) when axilR.sDataOutControl ="011" else
+    sDataOutN(4) when axilR.sDataOutControl ="100" else
+    sDataOutN(5) when axilR.sDataOutControl ="101" else
+    '0';
+
+  adcSerialOutP <=
+    sDataOutP(0) when axilR.sDataOutControl ="000" else
+    sDataOutP(1) when axilR.sDataOutControl ="001" else
+    sDataOutP(2) when axilR.sDataOutControl ="010" else
+    sDataOutP(3) when axilR.sDataOutControl ="011" else
+    sDataOutP(4) when axilR.sDataOutControl ="100" else
+    sDataOutP(5) when axilR.sDataOutControl ="101" else
+    '0';
+  
    -- Regional clock reset
    ADC_BITCLK_RST_SYNC : entity work.RstSync
       generic map (
@@ -215,6 +265,58 @@ begin
          rst     => axilRst,
          dataIn  => adcR.locked(i),
          dataOut => lockedSync(i));
+
+     SynchronizerStrmEn : entity work.Synchronizer
+       generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2)
+       port map (
+         clk     => byteClk,
+         rst     => adcBitRst,
+         dataIn  => axilR.adcStreamsEn_n(i),
+         dataOut => adcSEnSync(i));
+
+     SynchronizerCounterBERT : entity work.SynchronizerVector 
+       generic map(
+         TPD_G          => TPD_G,
+         STAGES_G       => 2,
+         WIDTH_G        => 44)
+       port map(
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => adcR.counterBERT(i),
+         dataOut => counterBERTsync(i));
+
+     SynchronizerCurDelayData : entity work.SynchronizerVector 
+       generic map(
+         TPD_G          => TPD_G,
+         STAGES_G       => 2,
+         WIDTH_G        => 9)
+       port map(
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => curDelayData(i)(9 downto 1),
+         dataOut => curDelayDatasync(i)); 
+
+     Synchronizer_idelay_i : entity work.Synchronizer
+       generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2)
+       port map (
+         clk     => bitClk,
+         rst     => adcBitRst,
+         dataIn  => axilR.idelayRst(i),
+         dataOut => idelayRst(i));
+
+     Synchronizer_iserdes_i : entity work.Synchronizer
+       generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2)
+       port map (
+         clk     => bitClk,
+         rst     => adcBitRst,
+         dataIn  => axilR.iserdesRst(i),
+         dataOut => iserdesRst(i));     
    end generate;
 
    Synchronizer_Resync : entity work.Synchronizer
@@ -222,17 +324,29 @@ begin
          TPD_G    => TPD_G,
          STAGES_G => 2)
        port map (
-         clk     => axilClk,
-         rst     => axilRst,
+         clk     => byteClk,
+         rst     => adcBitRst,
          dataIn  => axilR.resync,
          dataOut => resync);
+  Synchronizer_restartBertSync : entity work.Synchronizer
+     generic map (
+       TPD_G    => TPD_G,
+       STAGES_G => 2)
+     port map (
+       clk     => byteClk,
+       rst     => adcBitRst,
+       dataIn  => axilR.restartBERT,
+       dataOut => restartBERTsync);
+
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy) is
-      variable v      : AxilRegType;
-      variable axilEp : AxiLiteEndpointType;
+   axilComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayDatasync,
+                       debugDataTmp, debugDataValid, lockedFallCount, lockedSync, idelayCtrlRdy, tenbData,
+                       counterBERTsync) is
+      variable v        : AxilRegType;
+      variable axilEp   : AxiLiteEndpointType;
+      variable local10b : slv10Array(7 downto 0);
    begin
       v := axilR;
 
@@ -240,28 +354,37 @@ begin
       v.axilReadSlave.rdata := (others => '0');
 
       --updates ctrl signal status
-      v.idelayCtrlRdy := idelayCtrlRdy;
+      v.idelayCtrlRdy   := idelayCtrlRdy;
+      v.counterBERT     := counterBERTsync;
+      v.curDelayData    := curDelayDatasync;
 
       -- Store last two samples read from ADC
-      if (debugDataValid = '1' and axilR.freezeDebug = '0') then
-         v.readoutDebug0 := debugDataTmp;
-         v.readoutDebug1 := axilR.readoutDebug0;
-      end if;
+      for i in 0 to NUM_CHANNELS_G-1 loop
+        if (debugDataValid = '1' and axilR.freezeDebug = '0') then
+          v.readoutDebug0(i) := debugDataTmp(i);
+        end if;
+      end loop;
+      v.readoutDebug1 := axilR.readoutDebug0;
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
+      axiSlaveRegister (axilEp, X"00", 0, v.adcStreamsEn_n);
       axiSlaveRegister (axilEp, X"04", 0, v.resync);
+      axiSlaveRegister (axilEp, X"04", 1, v.sDataOutControl);
+      axiSlaveRegister (axilEp, X"08", 0, v.idelayRst);
+      axiSlaveRegister (axilEp, X"0C", 0, v.iserdesRst);
+      
       -- Up to 8 delay registers
       -- Write delay values to IDELAY primatives
       -- All writes go to same r.delay register,
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegister(axilEp, X"10"+toSlv((i*4), 8), 0, v.delay);
+         axiSlaveRegister(axilEp, X"10"+toSlv((i*4), 8), 0, v.delay(i));
          axiSlaveRegister(axilEp, X"10"+toSlv((i*4), 8), 9, v.dataDelaySet(i), '1');
       end loop;
 
       -- Override read from r.delay and use curDealy output from delay primative instead
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"10"+toSlv((i*4), 8), 0, curDelayData(i));
+         axiSlaveRegisterR(axilEp, X"10"+toSlv((i*4), 8), 0, axilR.curDelayData(i));
       end loop;
 
 
@@ -274,11 +397,23 @@ begin
 
       -- Debug registers. Output the last 2 words received
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 0, axilR.readoutDebug0(i));
-         axiSlaveRegisterR(axilEp, X"80"+toSlv((i*4), 8), 16, axilR.readoutDebug1(i));
+        axiSlaveRegisterR(axilEp, X"80"+toSlv((2*i*4), 8),   0, axilR.readoutDebug0(i));
+        axiSlaveRegisterR(axilEp, X"80"+toSlv((2*i*4)+4, 8), 0, axilR.readoutDebug1(i));
       end loop;
+      
 
-      axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
+      axiSlaveRegister(axilEp, X"100", 0, v.freezeDebug);
+      axiSlaveRegister(axilEp, X"100", 1, v.restartBERT);
+      for i in 0 to NUM_CHANNELS_G-1 loop
+        axiSlaveRegisterR(axilEp, X"104"+toSlv((i*8),8), 0,  axilR.counterBERT(i));
+      end loop;
+      
+      for i in 0 to NUM_CHANNELS_G-1 loop
+        local10b := tenbData(i);
+        for j in 0 to 1 loop
+          axiSlaveRegisterR(axilEp, X"200"+toSlv((i*64*4+j*4),12), 0,  local10b(j));
+        end loop;  -- j
+      end loop;
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
@@ -289,6 +424,7 @@ begin
       axilRin        <= v;
       axilWriteSlave <= axilR.axilWriteSlave;
       axilReadSlave  <= axilR.axilReadSlave;
+      adcStreamsEn_n <= axilR.adcStreamsEn_n;
 
    end process;
 
@@ -303,41 +439,64 @@ begin
    -- Data Input, 8 channels
    --------------------------------
    GenData : for i in NUM_CHANNELS_G-1 downto 0 generate
-     
-
+      signal dataDelaySet : slv(NUM_CHANNELS_G-1 downto 0);
+      signal dataDelay    : slv9Array(NUM_CHANNELS_G-1 downto 0);     
+   begin
       U_DATA_DESERIALIZER : entity work.Hr16bAdcDeserializer
       generic map (
         TPD_G             => TPD_G,
         NUM_CHANNELS_G    => NUM_CHANNELS_G,
         IODELAY_GROUP_G   => "DEFAULT_GROUP",
-        IDELAYCTRL_FREQ_G => 300.0,
+        IDELAYCTRL_FREQ_G => 200.0,
         DEFAULT_DELAY_G   => (others => '0'),
         FRAME_PATTERN_G   => "00000000001111111111",
         ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
         BIT_REV_G         => '0',
-        MSB_LSB_G         => '1')
+        MSB_LSB_G         => '0')
       port map (
         adcClkRst     => adcBitRst,
-        idelayCtrlRdy => axilR.idelayCtrlRdy,
+        idelayRst     => idelayRst(i),
+        iserdesRst    => iserdesRst(i),
         dClk          => bitClk,                         -- Data clock
         dClkDiv4      => deserClk,
         dClkDiv5      => byteClk,
         sDataP        => adcSerial.chP(i),                       
         sDataN        => adcSerial.chN(i),
-        loadDelay     => axilR.dataDelaySet(i),
-        delay         => axilR.delay,
+        sDataOutP     => sDataOutP(i),
+        sDataOutN     => sDataOutN(i),
+        loadDelay     => dataDelaySet(i),
+        delay         => dataDelay(i),
         delayValueOut => curDelayData(i),
         bitSlip       => adcR.slip(i),
         gearboxOffset => adcR.gearboxOffset(i),
         dataValid     => dataValid(i),
+        tenbData      => tenbData(i),
         pixData       => adcData(i)
         );
+
+      U_DataDlyFifo : entity work.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            BRAM_EN_G    => false,
+            DATA_WIDTH_G => 9,
+            ADDR_WIDTH_G => 4,
+            INIT_G       => "0")
+         port map (
+            rst    => axilRst,
+            wr_clk => axilClk,
+            wr_en  => axilR.dataDelaySet(i),
+            din    => axilR.delay(i),
+            rd_clk => deserClk,
+            rd_en  => '1',
+            valid  => dataDelaySet(i),
+            dout   => dataDelay(i)
+         );         
    end generate;
 
    -------------------------------------------------------------------------------------------------
    -- ADC Bit Clocked Logic
    -------------------------------------------------------------------------------------------------
-   adcComb : process (adcData, dataValid, adcR, resync) is
+   adcComb : process (adcData, dataValid, adcR, resync, adcSEnSync, restartBERTsync) is
       variable v : AdcRegType;
    begin
       v := adcR;
@@ -347,10 +506,26 @@ begin
       -------------------------------------------------------------------------
       for i in NUM_CHANNELS_G-1 downto 0 loop
         if dataValid(i) = '1' then
-          if adcData(i) = IDLE_PATTERN_1_C or adcData(i) = IDLE_PATTERN_2_C or adcData(i) = FRAME_PATTERN_C then
+          if adcData(i) = IDLE_PATTERN_1_C or adcData(i) = IDLE_PATTERN_2_C or adcData(i) = IDLE_PATTERN_3_C or adcData(i) = IDLE_PATTERN_4_C or adcData(i) = FRAME_PATTERN_C then
             v.idleWord(i) := '1';
           else
             v.idleWord(i) := '0';
+          end if;
+        end if;
+      end loop;
+
+      -------------------------------------------------------------------------
+      -- PSEUDO BERT counter based on idleWord
+      -------------------------------------------------------------------------
+      for i in NUM_CHANNELS_G-1 downto 0 loop
+        if restartBERTsync = '1' then
+          --v.countBertEn(i) := '1';
+          v.counterBERT(i) := (others => '0');
+        else
+          if adcR.idleWord(i) = '0' then -- and adcR.countBertEn(i) = '1' then
+            v.counterBERT(i) := adcR.counterBERT(i) + 1;            
+          else
+            --v.countBertEn(i) := '0';
           end if;
         end if;
       end loop;
@@ -380,7 +555,11 @@ begin
         if adcR.locked(i) = '1' then
           v.count(i) := (others => '1');
         else
-          v.count(i) := adcR.count(i) + 1;  
+          if (adcR.count(i) = 29) then
+            v.count(i) := (others => '0');
+          else
+            v.count(i) := adcR.count(i) + 1;
+          end if;
         end if;
       end loop;
       
@@ -388,7 +567,7 @@ begin
       -- Write data to fifos
       ----------------------------------------------------------------------------------------------
       for i in NUM_CHANNELS_G-1 downto 0 loop
-         if (adcR.locked(i) = '1') then
+         if (adcR.locked(i) = '1' and adcSEnSync(i) = '0') then
             -- Locked, output adc data
             v.fifoWrData(i) := adcData(i);
          else

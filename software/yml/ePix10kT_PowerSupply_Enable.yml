@@ -1,0 +1,9 @@
+ePixHr10kT:
+  enable: True
+  ForceWrite: False
+  EpixHR:
+    enable: True
+    PowerSupply:
+      enable: True
+      DigitalEn: True
+      AnalogEn: True

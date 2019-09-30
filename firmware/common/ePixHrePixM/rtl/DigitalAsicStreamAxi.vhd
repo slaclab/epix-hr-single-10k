@@ -47,6 +47,7 @@ entity DigitalAsicStreamAxi is
       rxClk             : in  sl;
       rxRst             : in  sl;
       adcStreams        : in AxiStreamMasterArray(STREAMS_PER_ASIC_G-1 downto 0);
+      adcStreamsEn_n    : in slv(STREAMS_PER_ASIC_G-1 downto 0) := (others => '0');
       
       -- AXI lite slave port for register access
       axilClk           : in  sl;
@@ -86,7 +87,7 @@ architecture RTL of DigitalAsicStreamAxi is
    constant VECTOR_OF_ZEROS_C : slv(15 downto 0) := (others => '0');
    -- PGP3 protocol is using 128bit (check for global constant for this configuration)
    
-   type StateType is (IDLE_S, HDR_S, DATA_S);
+   type StateType is (IDLE_S, HDR_S, WAIT_SOF_S, DATA_S);
    
    type StrType is record
       state          : StateType;
@@ -109,7 +110,7 @@ architecture RTL of DigitalAsicStreamAxi is
       asicDataReq    : slv(15 downto 0);
       rstCnt         : sl;
       errInhibit     : sl;
-      dFifoRd        : sl;
+      dFifoRd        : slv(STREAMS_PER_ASIC_G-1 downto 0);
       tReady         : sl;
       axisMaster     : AxiStreamMasterType;
    end record;
@@ -135,7 +136,7 @@ architecture RTL of DigitalAsicStreamAxi is
       asicDataReq    => (others=>'0'),
       rstCnt         => '0',
       errInhibit     => '0',
-      dFifoRd        => '0',
+      dFifoRd        => (others=>'0'),
       tReady         => '0',
       axisMaster     => AXI_STREAM_MASTER_INIT_C
    );
@@ -153,6 +154,7 @@ architecture RTL of DigitalAsicStreamAxi is
       ovError           : slv(15 downto 0);
       asicDataReq       : slv(15 downto 0);
       rstCnt            : slv(2 downto 0);
+      rstSt             : sl;
       sAxilWriteSlave   : AxiLiteWriteSlaveType;
       sAxilReadSlave    : AxiLiteReadSlaveType;
    end record RegType;
@@ -170,6 +172,7 @@ architecture RTL of DigitalAsicStreamAxi is
       ovError           => (others=>'0'),
       asicDataReq       => toSlv(ASIC_DATA_G, 16),
       rstCnt            => (others=>'0'),
+      rstSt             => '0',
       sAxilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C
    );
@@ -181,7 +184,7 @@ architecture RTL of DigitalAsicStreamAxi is
 
    signal rxValid       : slv(STREAMS_PER_ASIC_G-1 downto 0);
    
-   signal decDataOut    : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
+   signal decDataOut    : slv16Array(STREAMS_PER_ASIC_G-1 downto 0);
    signal decValidOut   : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decSof        : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decEof        : slv(STREAMS_PER_ASIC_G-1 downto 0);
@@ -189,12 +192,12 @@ architecture RTL of DigitalAsicStreamAxi is
    signal decCodeError  : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal decDispError  : slv(STREAMS_PER_ASIC_G-1 downto 0);
    
-   signal dFifoRd       : sl;
+   signal dFifoRd       : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoEofe     : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoEof      : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoSof      : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoValid    : slv(STREAMS_PER_ASIC_G-1 downto 0);
-   signal dFifoOut      : slv12Array(STREAMS_PER_ASIC_G-1 downto 0);
+   signal dFifoOut      : slv16Array(STREAMS_PER_ASIC_G-1 downto 0);
    signal dFifoExtData  : slv(16*STREAMS_PER_ASIC_G-1 downto 0) := (others => '0');
    
    signal sAxisMaster  : AxiStreamMasterType;
@@ -206,7 +209,7 @@ architecture RTL of DigitalAsicStreamAxi is
    signal iRxValid      : slv(STREAMS_PER_ASIC_G-1 downto 0);
    signal acqNoSync     : slv(31 downto 0);
    
-   signal rxDataCs   : slv(13 downto 0);                 -- for chipscope
+   signal rxDataCs   : slv(19 downto 0);                 -- for chipscope
    signal rxValidCs  : sl;                               -- for chipscope
    attribute keep : string;                              -- for chipscope
    attribute keep of s            : signal is "true";    -- for chipscope
@@ -217,14 +220,17 @@ architecture RTL of DigitalAsicStreamAxi is
    attribute keep of dFifoValid   : signal is "true";    -- for chipscope
    attribute keep of rxDataCs     : signal is "true";    -- for chipscope
    attribute keep of rxValidCs    : signal is "true";    -- for chipscope
-   attribute keep of sAxisMaster  : signal is "true";    -- for chipscope
-   attribute keep of imAxisMaster : signal is "true";    -- for chipscope 
-   attribute keep of imAxisSlave  : signal is "true";    -- for chipscope 
+--   attribute keep of sAxisMaster  : signal is "true";    -- for chipscope
+--   attribute keep of imAxisMaster : signal is "true";    -- for chipscope 
+--   attribute keep of imAxisSlave  : signal is "true";    -- for chipscope
+   attribute keep of decDataOut   : signal is "true";    -- for chipscope
+   attribute keep of decSof       : signal is "true";    -- for chipscope 
+   attribute keep of decValidOut  : signal is "true";    -- for chipscope
 
 
 begin
    
-   rxDataCs <= adcStreams(0).tData(13 downto 0);     -- for chipscope
+   rxDataCs <= adcStreams(0).tData(19 downto 0);     -- for chipscope
    rxValidCs <= adcStreams(0).tValid;   -- for chipscope
 
    mAxisMaster <= imAxisMaster;
@@ -233,11 +239,7 @@ begin
    fifoExtData_GEN : for i in 0 to STREAMS_PER_ASIC_G-1 generate
      dataExt : process(dFifoOut)
        begin
-         if ASIC_DATA_PADDING_G = "LSB" then
-           dFifoExtData(16*i+15 downto 16*i) <= dFifoOut(i)&"0000";
-         else
-           dFifoExtData(16*i+15 downto 16*i) <= "0000"&dFifoOut(i);
-         end if;
+         dFifoExtData(16*i+15 downto 16*i) <= dFifoOut(i);         
        end process;
    end generate;
    
@@ -266,28 +268,43 @@ begin
    -- Instatiate one decoder per data stream.
    ----------------------------------------------------------------------------
    U_DECODERS : for i in 0 to STREAMS_PER_ASIC_G-1 generate
-     --------------------------------------------------------------------------
-     -- 12b14b decoder with SSP output
-     --------------------------------------------------------------------------
-     Dec12b14b_U : entity work.SspDecoder12b14b 
-       generic map (
+     Dec8b10b_U : entity work.SspDecoder8b10b 
+       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
          RST_ASYNC_G    => false)
-       port map (
-         clk         => rxClk,
-         rst         => rxRst,
-         dataIn      => adcStreams(i).tData(13 downto 0),
-         validIn     => iRxValid(i),
-         dataOut     => decDataOut(i),
-         validOut    => decValidOut(i),
-         valid       => open,
-         sof         => decSof(i),
-         eof         => decEof(i),
-         eofe        => decEofe(i),
-         codeError   => decCodeError(i),
-         dispError   => decDispError(i)
-         );
+       port map(
+         clk       => rxClk,--fClkP,
+         rst       => rxRst,
+         validIn   => iRxValid(i),
+         dataIn    => adcStreams(i).tData(19 downto 0),
+         validOut  => decValidOut(i),
+         dataOut   => decDataOut(i),
+         sof       => decSof(i),
+         eof       => decEof(i),
+         eofe      => decEofe(i));
+     --------------------------------------------------------------------------
+     -- 12b14b decoder with SSP output
+     --------------------------------------------------------------------------
+--     Dec12b14b_U : entity work.SspDecoder12b14b 
+--       generic map (
+--         TPD_G          => TPD_G,
+--         RST_POLARITY_G => '1',
+--         RST_ASYNC_G    => false)
+--       port map (
+--         clk         => rxClk,
+--         rst         => rxRst,
+--         dataIn      => adcStreams(i).tData(13 downto 0),
+--         validIn     => iRxValid(i),
+--         dataOut     => decDataOut(i),
+--         validOut    => decValidOut(i),
+--         valid       => open,
+--         sof         => decSof(i),
+--         eof         => decEof(i),
+--         eofe        => decEofe(i),
+--         codeError   => decCodeError(i),
+--         dispError   => decDispError(i)
+--         );
 
    
      -- disable decoder in test mode (fake ASIC data)
@@ -301,24 +318,24 @@ begin
          GEN_SYNC_FIFO_G   => false,
          FWFT_EN_G         => true,
          ADDR_WIDTH_G      => 4,
-         DATA_WIDTH_G      => 15
+         DATA_WIDTH_G      => 19
          )
        port map (
          -- Resets
          rst               => rxRst,
          wr_clk            => rxClk,
          wr_en             => decValidOut(i),
-         din(11 downto 0)  => decDataOut(i),
-         din(12)           => decEofe(i),
-         din(13)           => decEof(i),
-         din(14)           => decSof(i),
+         din(15 downto 0)  => decDataOut(i),
+         din(16)           => decEofe(i),
+         din(17)           => decEof(i),
+         din(18)           => decSof(i),
          --Read Ports (rd_clk domain)
          rd_clk            => axisClk,
-         rd_en             => dFifoRd,
-         dout(11 downto 0) => dFifoOut(i),
-         dout(12)          => dFifoEofe(i),
-         dout(13)          => dFifoEof(i),
-         dout(14)          => dFifoSof(i),
+         rd_en             => dFifoRd(i),
+         dout(15 downto 0) => dFifoOut(i),
+         dout(16)          => dFifoEofe(i),
+         dout(17)          => dFifoEof(i),
+         dout(18)          => dFifoSof(i),
          valid             => dFifoValid(i)
          );
    end generate;
@@ -350,14 +367,14 @@ begin
 
 
    comb : process (axilRst, axisRst, sAxilReadMaster, sAxilWriteMaster, sAxisSlave, r, s, 
-      acqNoSync, dFifoOut, dFifoExtData, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, testTrig, errInhibit) is
+      acqNoSync, dFifoOut, dFifoExtData, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, testTrig, errInhibit, adcStreamsEn_n) is
       variable sv       : StrType;
       variable rv       : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
       rv := r;    -- r is in AXI lite clock domain
       sv := s;    -- s is in AXI stream clock domain
-      sv.dFifoRd := '0';
+      sv.dFifoRd := (others=>'0');
       sv.axisMaster := AXI_STREAM_MASTER_INIT_C;
       sv.testTrig(0) := testTrig;
       sv.testTrig(1) := s.testTrig(0);
@@ -400,12 +417,13 @@ begin
       axiSlaveRegister (regCon, x"20",  0, rv.streamDataMode);
       axiSlaveRegister (regCon, x"20",  1, rv.stopDataTx);   
       axiSlaveRegister (regCon, x"24",  0, rv.rstCnt);
+      axiSlaveRegister (regCon, x"24",  3, rv.rstSt);
       axiSlaveRegister (regCon, x"28",  0, rv.asicDataReq);
       
       axiSlaveDefault(regCon, rv.sAxilWriteSlave, rv.sAxilReadSlave, AXIL_ERR_RESP_G);
       
       -- axi stream logic
-      
+
       -- sync acquisition number
       sv.acqNo(0) := acqNoSync;
       
@@ -420,7 +438,7 @@ begin
            --------------------------------------------------------------------
            -- FIRST frame mode trigger option
            --------------------------------------------------------------------
-           -- starts data tx when all streams have DV and SOF, different data
+           -- starts data tx when at least one stream have DV and SOF, different data
            -- delays should be acommodate by the fifo
            --------------------------------------------------------------------
            -- SECOND frame mode trigger option
@@ -436,18 +454,23 @@ begin
            -- if module is desabled data is not set ever as indicated by
            -- stopDataTx signal
             if (
-                ((dFifoValid(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) and dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0))
-                 or (s.testMode(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and s.testTrig(1) = '1' and s.testTrig(2) = '0')
-                 or (s.streamDataMode='1'))
+                ((dFifoValid(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0))
+                 or (s.testMode(STREAMS_PER_ASIC_G-1 downto 0) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and s.testTrig(1) = '1' and s.testTrig(2) = '0'))
                 and (s.stopDataTx='0'))  then
                -- start sending the header
                -- do not read the fifo yet
                sv.acqNo(1) := s.acqNo(0);
-               sv.state := HDR_S;
+               sv.state := WAIT_SOF_S;
                sv.testBitFlip := '0';
                sv.testColCnt := 0;
                sv.testRowCnt := 0;
-            elsif dFifoValid = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0) then
+            elsif s.streamDataMode='1' then
+               sv.acqNo(1) := s.acqNo(0);
+               sv.state := HDR_S;
+               sv.testBitFlip := '0';
+               sv.testColCnt := 0;
+               sv.testRowCnt := 0;                 
+            elsif dFifoValid /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) then
                -- should only happen if we are in stream mode, else in frame
                -- mode it should not happen
                -- ADD logic for stream mode
@@ -456,9 +479,23 @@ begin
                if s.errInhibit = '0' then
                   sv.sofError := s.sofError + 1;
                end if;
-               sv.dFifoRd := '1';
+               sv.dFifoRd := (others=>'1');
+            else
+               sv.dFifoRd := (others=>'1');
             end if;
-         
+           
+
+         when WAIT_SOF_S =>
+           if ((dFifoSof(STREAMS_PER_ASIC_G-1 downto 0) or adcStreamsEn_n) = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0)) then
+             sv.state := HDR_S;
+           end if;
+           --keeps flushing data until all SOF show up
+           for i in 0 to (STREAMS_PER_ASIC_G-1) loop
+             if dFifoSof(i) = '0' then
+               sv.dFifoRd(i) := '1';
+             end if;             
+           end loop;  -- i
+           
          -- header is 6 x 16 bit words
          when HDR_S =>
            --------------------------------------------------------------------
@@ -536,7 +573,7 @@ begin
            end if;
              
          when DATA_S =>
-            if dFifoValid /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or (s.testMode /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and (sAxisSlave.tReady='1')) then
+            if ((dFifoValid or adcStreamsEn_n) = VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0))  or (s.testMode /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) and (sAxisSlave.tReady='1')) then
                
                -- test mode row and col counters
                if s.testColCnt < (ASIC_WIDTH_G/STREAMS_PER_ASIC_G)-1 then  -- why -1 here??
@@ -561,31 +598,30 @@ begin
                  end if;
                end if;
                
-               sv.dFifoRd := '1';
+               sv.dFifoRd := (others=>'1');
                            
                sv.stCnt := s.stCnt + 1;
-               if ((dFifoEof /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0)) and s.testMode /= VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0)) or s.stCnt = s.asicDataReq then 
+               --if (((dFifoEof and adcStreamsEn) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or ((dFifoEofe and adcStreamsEn) /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0))) and s.testMode /= VECTOR_OF_ONES_C(STREAMS_PER_ASIC_G-1 downto 0)) or s.stCnt = s.asicDataReq then
+               if s.stCnt = s.asicDataReq then 
                   sv.frmSize := toSlv(s.stCnt, 16);
                   sv.stCnt := 0;
+                  
                   if s.frmMax <= sv.frmSize then
                      sv.frmMax := sv.frmSize;
                   end if;
+                  
                   if s.frmMin >= sv.frmSize then
                      sv.frmMin := sv.frmSize;
                   end if;
                   
-                  if dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or sv.frmSize /= s.asicDataReq then
-                     ssiSetUserEofe(AXI_STREAM_CONFIG_I_C, sv.axisMaster, '1');
+                  if dFifoEofe /= VECTOR_OF_ZEROS_C(STREAMS_PER_ASIC_G-1 downto 0) or sv.frmSize /= s.asicDataReq then              
                      sv.eofError := s.eofError + 1;
-                  else
-                     sv.frmCnt := s.frmCnt + 1;
                   end if;
+                  
+                  sv.frmCnt := s.frmCnt + 1;
+                  
                   sv.axisMaster.tLast := '1';
-                  if s.testMode(0) = '0' then
-                     sv.state := IDLE_S;
-                  else
-                    sv.state := IDLE_S;
-                  end if;
+                  sv.state := IDLE_S;
                end if;               
             end if;
          
@@ -602,7 +638,11 @@ begin
          sv.sofError := (others=>'0');
          sv.ovError  := (others=>'0');
       end if;
-      
+
+      -- reset state
+      if r.rstSt = '1' then
+        sv.state := IDLE_S;
+      end if;
       -- reset logic
       
       if (axilRst = '1') then

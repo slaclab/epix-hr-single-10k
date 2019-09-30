@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2018-09-05
+-- Last update: 2019-07-22
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -49,23 +49,26 @@ entity Hr16bAdcDeserializer is
                                                       );
    port (
       -- Reset for adc deserializer
-      adcClkRst : in sl;
-      -- Signals to/from idelayCtrl
-      idelayCtrlRdy : in  sl;
+      adcClkRst : in  sl;                -- global reset
+      idelayRst : in  sl;                -- register based reset  
+      iserdesRst: in  sl;                -- register based reset 
       -- Serial Data from ADC
-      dClk     : in sl;                       -- Data clock
-      dClkDiv4 : in sl;
-      dClkDiv5 : in sl;
-      sDataP   : in sl;                       -- Frame clock
-      sDataN   : in sl;     
+      dClk      : in  sl;                       -- Data clock
+      dClkDiv4  : in  sl;
+      dClkDiv5  : in  sl;
+      sDataP    : in  sl;                       -- Frame clock
+      sDataN    : in  sl;
+      sDataOutP : out sl;                       -- copy of the data
+      sDataOutN : out sl;     
       -- Signal to control data gearboxes
       loadDelay       : in sl;
       delay           : in slv(8 downto 0) := "000000000";
-      delayValueOut   : out slv(8 downto 0);
-      bitSlip         : in slv(2 downto 0) := "000";
+      delayValueOut   : out slv(9 downto 0);
+      bitSlip         : in slv(4 downto 0) := "00000";
       tenbOrder       : in sl := '1';
       gearboxOffset   : in slv(1 downto 0) := "00";
       dataValid       : out sl;
+      tenbData        : out Slv10Array(7 downto 0);            
       pixData         : out slv(19 downto 0)     
       );
 end Hr16bAdcDeserializer;
@@ -77,37 +80,16 @@ architecture rtl of Hr16bAdcDeserializer is
   -------------------------------------------------------------------------------------------------
   -- ADC Readout Clocked Registers
   -------------------------------------------------------------------------------------------------
-
-  type StateType is (IDLE_S, WAIT_IDELAY_CTRL_RDY_S, LOAD_VALUE_S, WAIT_LOAD_S, LOAD_PULSE_S ,WAIT_READ_S, READ_VALUE_S);
-  
-  type AdcClkRegType is record
-    state             : StateType;
-    waitStateCnt      : slv(3 downto 0);
-    -- idelay signals 
-    masterCntValueIn  : slv(8 downto 0);
-    masterCntValue    : slv(8 downto 0);
-    masterCE     : sl;
-    masterEn_Vtc : sl;
-    masterLoad   : sl;
-  end record;
-
-  constant ADC_CLK_REG_INIT_C : AdcClkRegType := (
-    state            => IDLE_S,
-    waitStateCnt     => (others => '0'),
-    masterCntValueIn => (others => '0'),
-    masterCntValue   => (others => '0'),
-    masterCE     => '1',
-    masterEn_Vtc => '0',
-    masterLoad   => '0'
-    );
-
   type AdcClkDiv4RegType is record
     masterData         : slv(7  downto 0);
     masterData_1       : slv(7  downto 0);
+    masterData_2       : slv(7  downto 0);
+    masterData_3       : slv(7  downto 0);
+    masterData_4       : slv(7  downto 0);
     longDataCounter    : slv(2  downto 0);
     longData           : slv(39 downto 0);
     longData_1         : slv(39 downto 0);
-    bitSlip            : slv(2  downto 0);
+    bitSlip            : slv(4  downto 0);
     masterDataBS       : slv(7  downto 0);
     masterDataBS_1     : slv(7  downto 0);
     longDataStable     : sl;
@@ -116,6 +98,9 @@ architecture rtl of Hr16bAdcDeserializer is
   constant ADC_CLK_DV4_REG_INIT_C : AdcClkDiv4RegType := (
     masterData         => (others => '0'),
     masterData_1       => (others => '0'),
+    masterData_2       => (others => '0'),
+    masterData_3       => (others => '0'),
+    masterData_4       => (others => '0'),
     longDataCounter    => (others => '0'),
     longData           => (others => '0'),
     longData_1         => (others => '0'),
@@ -128,7 +113,7 @@ architecture rtl of Hr16bAdcDeserializer is
   type AdcClkDiv5RegType is record
     gearboxCounter      : slv(1 downto 0);
     gearboxSeq          : slv(1 downto 0);
-    tenbData            : Slv10Array(63 downto 0);
+    tenbData            : Slv10Array(7 downto 0);
     masterPixData       : slv(19 downto 0);
     tenbOrder           : sl;
     dataAligned         : sl;
@@ -152,9 +137,6 @@ architecture rtl of Hr16bAdcDeserializer is
 
   
   
-  signal adcR   : AdcClkRegType := ADC_CLK_REG_INIT_C;
-  signal adcRin : AdcClkRegType;
-
   signal adcDV4R   : AdcClkDiv4RegType := ADC_CLK_DV4_REG_INIT_C;
   signal adcDv4Rin : AdcClkDiv4RegType;
 
@@ -167,25 +149,25 @@ architecture rtl of Hr16bAdcDeserializer is
   signal sDataPadN  : sl;
   signal sData_i    : sl;
   signal sData_d    : sl;
-  signal loadDelaySync : sl;
+  signal cascOut    : sl;
+  signal cascRet    : sl;
+  signal delayValueOut1   : slv(8 downto 0);
+  signal delayValueOut2   : slv(8 downto 0);
 
-  -- idelay signals
-  signal idelayRdy_n : sl;
-  signal masterCntValue : slv(8 downto 0);
   -- iserdes signal
   signal masterData      : slv(7 downto 0);
 
   attribute keep of adcDV4R          : signal is "true";
   attribute keep of adcDV5R          : signal is "true";
-  attribute keep of loadDelaySync    : signal is "true";
   attribute keep of sData_i          : signal is "true";
 
 begin
 
-  idelayRdy_n <= not idelayCtrlRdy;
   PixData <= adcDv5R.masterPixData(10)&adcDv5R.masterPixData(11)&adcDv5R.masterPixData(12)&adcDv5R.masterPixData(13)&adcDv5R.masterPixData(14)&adcDv5R.masterPixData(15)&adcDv5R.masterPixData(16)&adcDv5R.masterPixData(17)&adcDv5R.masterPixData(18)&adcDv5R.masterPixData(19)&adcDv5R.masterPixData(0)&adcDv5R.masterPixData(1)&adcDv5R.masterPixData(2)&adcDv5R.masterPixData(3)&adcDv5R.masterPixData(4)&adcDv5R.masterPixData(5)&adcDv5R.masterPixData(6)&adcDv5R.masterPixData(7)&adcDv5R.masterPixData(8)&adcDv5R.masterPixData(9)                       when BIT_REV_G = '1'
              else adcDv5R.masterPixData;
 
+  sDataOutP <= '1';--sData_d;-- sending sData_d is not routable
+  sDataOutN <= '0';
   -------------------------------------------------------------------------------------------------
   -- Create Clocks
   -------------------------------------------------------------------------------------------------
@@ -223,22 +205,48 @@ begin
                                   -- SYNC)
       )
     port map (
-      CASC_OUT => OPEN,       -- 1-bit output: Cascade delay output to ODELAY input cascade
-      CNTVALUEOUT => masterCntValue, -- 9-bit output: Counter value output
-      DATAOUT => sData_d,         -- 1-bit output: Delayed data output
-      CASC_IN => '1',         -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
-      CASC_RETURN => '1', -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
-      CE => adcR.masterCE,                   -- 1-bit input: Active high enable increment/decrement input
-      CLK => dClkDiv4,                 -- 1-bit input: Clock input
-      CNTVALUEIN => adcR.masterCntValueIn,   -- 9-bit input: Counter value input
-      DATAIN => '1',           -- 1-bit input: Data input from the logic
-      EN_VTC => adcR.masterEn_Vtc,           -- 1-bit input: Keep delay constant over VT
-      IDATAIN => sData_i,         -- 1-bit input: Data input from the IOBUF
-      INC => '0',                 -- 1-bit input: Increment / Decrement tap delay input
-      LOAD => adcR.masterLoad,               -- 1-bit input: Load DELAY_VALUE input
-      RST => adcClkRst                  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+      CASC_OUT => cascOut,           -- 1-bit output: Cascade delay output to ODELAY input cascade
+      CNTVALUEOUT => delayValueOut1, -- 9-bit output: Counter value output
+      DATAOUT => sData_d,            -- 1-bit output: Delayed data output
+      CASC_IN => '0',                -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+      CASC_RETURN => cascRet,        -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+      CE => '0',                     -- 1-bit input: Active high enable increment/decrement input
+      CLK => dClkDiv4,               -- 1-bit input: Clock input
+      CNTVALUEIN => delay,           -- 9-bit input: Counter value input
+      DATAIN => '1',                 -- 1-bit input: Data input from the logic
+      EN_VTC => '0',                 -- 1-bit input: Keep delay constant over VT
+      IDATAIN => sData_i,            -- 1-bit input: Data input from the IOBUF
+      INC => '0',                    -- 1-bit input: Increment / Decrement tap delay input
+      LOAD => loadDelay,             -- 1-bit input: Load DELAY_VALUE input
+      RST => idelayRst               -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       );    
-   
+
+  ODELAYE3_inst : ODELAYE3
+    generic map (
+      CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+      DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
+      DELAY_TYPE => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+      DELAY_VALUE => conv_integer(DEFAULT_DELAY_G), -- Input delay value setting
+      IS_CLK_INVERTED => '0',    -- Optional inversion for CLK
+      IS_RST_INVERTED => '0',    -- Optional inversion for RST
+      REFCLK_FREQUENCY => 300.0, -- IDELAYCTRL clock input frequency in MHz (200.0-2400.0)
+      UPDATE_MODE => "ASYNC")    -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+    port map (
+      CASC_IN     => cascOut,          -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
+      CASC_OUT    => open,             -- 1-bit output: Cascade delay output to IDELAY input cascade 
+      CASC_RETURN => '0',              -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT 
+      ODATAIN     => '0',              -- 1-bit input: Data input
+      DATAOUT     => cascRet,          -- 1-bit output: Delayed data from ODATAIN input port 
+      CLK         => dClkDiv4,         -- 1-bit input: Clock input 
+      EN_VTC      => '0',              -- 1-bit input: Keep delay constant over VT 
+      INC         => '0',              -- 1-bit input: Increment / Decrement tap delay input
+      CE          => '0',              -- 1-bit input: Active high enable increment/decrement input 
+      LOAD        => loadDelay,        -- 1-bit input: Load DELAY_VALUE input 
+      RST         => idelayRst,        -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+      CNTVALUEIN  => delay,            -- 9-bit input: Counter value input
+      CNTVALUEOUT => delayValueOut2);  -- 9-bit output: Counter value output
+
+  delayValueOut <= resize(delayValueOut1, 10, '0') + delayValueOut2;-- 
   ----------------------------------------------------------------------------
   -- iserdes3
   ----------------------------------------------------------------------------
@@ -265,97 +273,12 @@ begin
       D => sData_d,               -- 1-bit input: Serial Data Input
       FIFO_RD_CLK => '1',         -- 1-bit input: FIFO read clock
       FIFO_RD_EN => '1',          -- 1-bit input: Enables reading the FIFO when asserted
-      RST => adcClkRst              -- 1-bit input: Asynchronous Reset
+      RST => iserdesRst           -- 1-bit input: Asynchronous Reset
       );
 
-
-  -----------------------------------------------------------------------------
-  -- crossing clock domain
-  -----------------------------------------------------------------------------
-  U_sync_0: entity work.SynchronizerOneShot 
-   generic map(
-      TPD_G           => 1 ns,   -- Simulation FF output delay
-      RST_POLARITY_G  => '1',    -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     => false,  -- Reset is asynchronous
-      BYPASS_SYNC_G   => false,  -- Bypass RstSync module for synchronous data configuration
-      RELEASE_DELAY_G => 3,      -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G   => '1',    -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G  => '1',    -- 0 for active LOW, 1 for active HIGH
-      PULSE_WIDTH_G   => 1)      -- one-shot pulse width duration (units of clk cycles)
-   port map(
-      clk     => dClkDiv4,
-      rst     => adcClkRst,
-      dataIn  => loadDelay,
-      dataOut => loadDelaySync); -- synced one-shot pulse
-  
   -----------------------------------------------------------------------------
   -- custom logic 
   -----------------------------------------------------------------------------
-  adcComb : process (adcR, loadDelaySync, masterCntValue, idelayCtrlRdy, idelayRdy_n, delay) is
-    variable v : AdcClkRegType;
-  begin
-    v := adcR;
-
-    case (adcR.state) is
-      when WAIT_IDELAY_CTRL_RDY_S =>
-        if idelayCtrlRdy = '1' then
-          v.state := LOAD_VALUE_S;
-        else
-          v.state := IDLE_S;            -- can't program the delay if control is
-                                        -- not ready yet.
-        end if;
-      when LOAD_VALUE_S =>
-        v.masterEn_Vtc := '0'; -- needed to readback the tapdelay value
-        v.masterLoad := '0';
-        v.waitStateCnt := (others => '0');
-        v.state := WAIT_LOAD_S;
-      when WAIT_LOAD_S =>
-        v.waitStateCnt := adcR.waitStateCnt + '1';
-        if adcR.waitStateCnt = X"1" then
-          v.state := LOAD_PULSE_S;
-        end if;
-      when LOAD_PULSE_S =>
-        v.masterLoad := '1';
-        v.waitStateCnt := (others => '0');
-        v.state := WAIT_READ_S;
-      when WAIT_READ_S =>
-        v.masterLoad := '0';
-        v.waitStateCnt := adcR.waitStateCnt + '1';
-        if adcR.waitStateCnt = X"9" then
-          v.state := READ_VALUE_S;
-        end if;
-      when READ_VALUE_S =>
-        v.masterCntValue := masterCntValue;
-        v.state          := IDLE_S;
-      when IDLE_S =>
-        v.masterLoad       := '0';
-        v.masterCE         := '0';
-        v.masterEn_Vtc     := idelayRdy_n; 
-        v.masterCntValueIn := delay;  -- save new delay value
-        if loadDelaySync = '1' then       
-          v.state := WAIT_IDELAY_CTRL_RDY_S; --loopthrough load delay routine
-        end if;
-      when others =>
-        v.state := IDLE_S;
-    end case;
-    
-    adcRin <= v;
-         
-    --outputs
-    delayValueOut <= adcR.masterCntValue;
-   
-  end process adcComb;
-
-
-   adcSeq : process (dClkDiv4, adcClkRst) is
-   begin
-      if (adcClkRst = '1') then
-         adcR <= ADC_CLK_REG_INIT_C after TPD_G;
-      elsif (rising_edge(dClkDiv4)) then
-         adcR <= adcRin after TPD_G;
-      end if;
-   end process adcSeq;
-   
 
   -----------------------------------------------------------------------------
   -- 8 to 16, 56 gearbox and bitSlip control logic
@@ -373,6 +296,9 @@ begin
 
      -- creates pipeline
      v.masterData_1 := adcDv4R.masterData;
+     v.masterData_2 := adcDv4R.masterData_1;
+     v.masterData_3 := adcDv4R.masterData_2;
+     v.masterData_4 := adcDv4R.masterData_3;
      v.longData_1   := adcDv4R.longData;
      v.masterDataBS_1 := adcDv4R.masterDataBS;
      
@@ -409,22 +335,70 @@ begin
    
      --bit slip logic
      case (adcDv4R.bitSlip) is
-       when "000" =>
+       when "00000" =>
          v.masterDataBS := adcDv4R.masterData(7 downto 0);
-       when "001" =>
+       when "00001" =>
          v.masterDataBS := adcDv4R.masterData(6 downto 0) & adcDv4R.masterData_1(7);
-       when "010" =>
+       when "00010" =>
          v.masterDataBS := adcDv4R.masterData(5 downto 0) & adcDv4R.masterData_1(7 downto 6);
-       when "011" =>
+       when "00011" =>
          v.masterDataBS := adcDv4R.masterData(4 downto 0) & adcDv4R.masterData_1(7 downto 5);
-       when "100" =>
+       when "00100" =>
          v.masterDataBS := adcDv4R.masterData(3 downto 0) & adcDv4R.masterData_1(7 downto 4);
-       when "101" =>
+       when "00101" =>
          v.masterDataBS := adcDv4R.masterData(2 downto 0) & adcDv4R.masterData_1(7 downto 3);
-       when "110" =>
+       when "00110" =>
          v.masterDataBS := adcDv4R.masterData(1 downto 0) & adcDv4R.masterData_1(7 downto 2);
-       when "111" =>
-         v.masterDataBS := adcDv4R.masterData(0)          & adcDv4R.masterData_1(7 downto  1);
+       when "00111" =>
+         v.masterDataBS := adcDv4R.masterData(0)          & adcDv4R.masterData_1(7 downto 1);
+       when "01000" =>
+         v.masterDataBS := adcDv4R.masterData_1(7 downto 0);
+       when "01001" =>
+         v.masterDataBS := adcDv4R.masterData_1(6 downto 0) & adcDv4R.masterData_2(7);
+       when "01010" =>
+         v.masterDataBS := adcDv4R.masterData_1(5 downto 0) & adcDv4R.masterData_2(7 downto 6);
+       when "01011" =>
+         v.masterDataBS := adcDv4R.masterData_1(4 downto 0) & adcDv4R.masterData_2(7 downto 5);
+       when "01100" =>
+         v.masterDataBS := adcDv4R.masterData_1(3 downto 0) & adcDv4R.masterData_2(7 downto 4);
+       when "01101" =>
+         v.masterDataBS := adcDv4R.masterData_1(2 downto 0) & adcDv4R.masterData_2(7 downto 3);
+       when "01110" =>
+         v.masterDataBS := adcDv4R.masterData_1(1 downto 0) & adcDv4R.masterData_2(7 downto 2);
+       when "01111" =>
+         v.masterDataBS := adcDv4R.masterData_1(0)          & adcDv4R.masterData_2(7 downto 1);
+       when "10000" =>
+         v.masterDataBS := adcDv4R.masterData_2(7 downto 0);
+       when "10001" =>
+         v.masterDataBS := adcDv4R.masterData_2(6 downto 0) & adcDv4R.masterData_3(7);
+       when "10010" =>
+         v.masterDataBS := adcDv4R.masterData_2(5 downto 0) & adcDv4R.masterData_3(7 downto 6);
+       when "10011" =>
+         v.masterDataBS := adcDv4R.masterData_2(4 downto 0) & adcDv4R.masterData_3(7 downto 5);
+       when "10100" =>
+         v.masterDataBS := adcDv4R.masterData_2(3 downto 0) & adcDv4R.masterData_3(7 downto 4);
+       when "10101" =>
+         v.masterDataBS := adcDv4R.masterData_2(2 downto 0) & adcDv4R.masterData_3(7 downto 3);
+       when "10110" =>
+         v.masterDataBS := adcDv4R.masterData_2(1 downto 0) & adcDv4R.masterData_3(7 downto 2);
+       when "10111" =>
+         v.masterDataBS := adcDv4R.masterData_2(0)          & adcDv4R.masterData_3(7 downto 1);
+       when "11000" =>
+         v.masterDataBS := adcDv4R.masterData_3(7 downto 0);
+       when "11001" =>
+         v.masterDataBS := adcDv4R.masterData_4(6 downto 0) & adcDv4R.masterData_3(7);
+       when "11010" =>
+         v.masterDataBS := adcDv4R.masterData_4(5 downto 0) & adcDv4R.masterData_3(7 downto 6);
+       when "11011" =>
+         v.masterDataBS := adcDv4R.masterData_4(4 downto 0) & adcDv4R.masterData_3(7 downto 5);
+       when "11100" =>
+         v.masterDataBS := adcDv4R.masterData_4(3 downto 0) & adcDv4R.masterData_3(7 downto 4);
+       when "11101" =>
+         v.masterDataBS := adcDv4R.masterData_4(2 downto 0) & adcDv4R.masterData_3(7 downto 3);
+       when "11110" =>
+         v.masterDataBS := adcDv4R.masterData_4(1 downto 0) & adcDv4R.masterData_3(7 downto 2);
+       when "11111" =>
+         v.masterDataBS := adcDv4R.masterData_4(0)          & adcDv4R.masterData_3(7 downto 1);
        when others =>
          v.masterDataBS := (others => '0');
      end case;
@@ -484,16 +458,16 @@ begin
       end case;
     else
       case (adcDv5R.gearboxSeq) is
-        when "00" =>
+        when "11" =>
           v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 1 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 0);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
-        when "01" =>
+        when "00" =>
           v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 3 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 2);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
-        when "10" =>
+        when "01" =>
           v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 5 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 4);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
-        when "11" =>
+        when "10" =>
           v.tenbData(0)   := adcDv5R.pixDataGearboxIn( 7 downto 0) & adcDv5R.pixDataGearboxIn_1( 7 downto 6);
           v.gearboxCounter  := adcDv5R.gearboxCounter + 1;
         when others =>
@@ -513,7 +487,7 @@ begin
     end if;
     
     -- 10 bit words pipeline
-    for i in 1 to 63 loop
+    for i in 1 to 7 loop
          v.tenbData(i) := adcDv5R.tenbData(i-1);
     end loop;
 
@@ -521,6 +495,7 @@ begin
          
     --outputs
     dataValid <= adcDv5R.valid;
+    tenbData  <= adcDv5R.tenbData;
     
   end process;
    

@@ -29,10 +29,15 @@ import rogue.utilities.fileio
 import rogue.interfaces.stream
 import pyrogue    
 import time
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtGui import *
-from PyQt4.QtCore import QObject, pyqtSignal
 import numpy as np
+
+try:
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore    import *
+    from PyQt5.QtGui     import *
+except ImportError:
+    from PyQt4.QtCore    import *
+    from PyQt4.QtGui     import *
 
 PRINT_VERBOSE = 0
 
@@ -97,7 +102,10 @@ class ImageProcessing():
         self.imgDark_isSet = False
 
     def getDarkSubtractedImg(self, rawImg):
-        return rawImg - self.imgDark
+        if (rawImg.shape == self.imgDark.shape):
+            return rawImg - self.imgDark
+        print("Warning: Could not perform dark image subtraction.")
+        return rawImg
 
     def reScaleImgTo8bit(self, rawImage, scaleMax=20000, scaleMin=-200):
         #init

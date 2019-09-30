@@ -10,11 +10,8 @@
 ##############################################################################
 
 import pyrogue as pr
-import pyrogue.interfaces.simulation
-
-
-from DataLib.DataDev import *
-from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3Lane import *
+import axipcie as pcie
+import surf.protocols.pgp as pgp
 
 class XilinxKcu1500Pgp3(pr.Device):
     def __init__(   self,       
@@ -24,30 +21,17 @@ class XilinxKcu1500Pgp3(pr.Device):
         super().__init__(name=name, description=description, **kwargs)
         
         # Add axi-pcie-core 
-        self.add(DataDev(            
-            offset       = 0x00000000, 
-            useBpi       = True,
-            expand       = False,
+        self.add(pcie.AxiPcieCore(          
+            offset = 0x00000000, 
+            expand = False,
         ))  
         
         # Add PGP Core 
         for i in range(8):
-            self.add(XilinxKcu1500Pgp3Lane(            
-                name   = ('Lane[%i]' % i), 
-                offset = (0x00800000 + i*0x00010000), 
-                expand = False,
-            ))  
-            
-        self.add(AxiStreamMonitoring(            
-            name        = 'RxLaneMon', 
-            offset      = 0x00880000, 
-            numberLanes = 8,
-            expand      = False,
-        )) 
-        
-        self.add(AxiStreamMonitoring(            
-            name        = 'TxLaneMon', 
-            offset      = 0x00890000, 
-            numberLanes = 8,
-            expand      = False,
-        ))
+            self.add(pgp.Pgp3AxiL(            
+                name    = ('Lane[%i]' % i), 
+                offset  = (0x00800000 + i*0x00010000), 
+                numVc   = 4, # 4 VC per lane
+                writeEn = True,
+                expand  = False,
+            ))             

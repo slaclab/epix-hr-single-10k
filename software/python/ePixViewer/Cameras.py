@@ -28,11 +28,16 @@ import os
 #import rogue.interfaces.stream
 #import pyrogue    
 import time
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtGui import *
-from PyQt4.QtCore import QObject, pyqtSignal
 import numpy as np
 import ePixViewer.imgProcessing as imgPr
+
+try:
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore    import *
+    from PyQt5.QtGui     import *
+except ImportError:
+    from PyQt4.QtCore    import *
+    from PyQt4.QtGui     import *
 
 PRINT_VERBOSE = 0
 
@@ -47,6 +52,7 @@ EPIXM32    = 6
 HRADC32x32 = 7
 CRYO64XN   = 8
 EPIXMNX64  = 9
+EPIXHR10kT = 10
 
 
 ################################################################################
@@ -65,7 +71,7 @@ class Camera():
     sensorWidth = 0
     sensorHeight = 0
     pixelDepth = 0
-    availableCameras = {  'ePix100a':  EPIX100A, 'ePix100p' : EPIX100P, 'Tixel48x48' : TIXEL48X48, 'ePix10ka' : EPIX10KA,  'Cpix2' : CPIX2, 'ePixM32Array' : EPIXM32, 'HrAdc32x32': HRADC32x32, 'cryo64xN':  CRYO64XN, 'ePixHrePixM' : EPIXMNX64 }
+    availableCameras = {  'ePix100a':  EPIX100A, 'ePix100p' : EPIX100P, 'Tixel48x48' : TIXEL48X48, 'ePix10ka' : EPIX10KA,  'Cpix2' : CPIX2, 'ePixM32Array' : EPIXM32, 'HrAdc32x32': HRADC32x32, 'cryo64xN':  CRYO64XN, 'ePixHrePixM' : EPIXMNX64, 'ePixHr10kT': EPIXHR10kT }
     
 
     def __init__(self, cameraType = 'ePix100a') :
@@ -98,6 +104,8 @@ class Camera():
             self._initCRYO64XN()
         if (camID == EPIXMNX64):
             self._initEPIXMNX64()
+        if (camID == EPIXHR10kT):
+            self._initEPIXHR10kT()
 
         #creates a image processing tool for local use
         self.imgTool = imgPr.ImageProcessing(self)
@@ -136,6 +144,10 @@ class Camera():
         if (camID == EPIXMNX64):
             descImg = self._descrambleEPIXMNX64Image(rawData)
             return self.imgTool.applyBitMask(descImg, mask = self.bitMask)
+        if (camID == EPIXHR10kT):
+            descImg = self._descrambleEpixHR10kTImage(rawData)
+            return self.imgTool.applyBitMask(descImg, mask = self.bitMask)
+
         if (camID == NOCAMERA):
             return Null
 
@@ -186,6 +198,11 @@ class Camera():
             # The flags are always true since each frame holds an entire image
             frameComplete = 1
             readyForDisplay = 1
+            return [frameComplete, readyForDisplay, newRawData]
+        if (camID == EPIXHR10kT):
+            frameComplete = 1
+            readyForDisplay = 1
+            #[frameComplete, readyForDisplay, newRawData]  = self._buildFrameEpix10kTImage(currentRawData, newRawData)
             return [frameComplete, readyForDisplay, newRawData]
         if (camID == NOCAMERA):
             return Null
@@ -285,6 +302,17 @@ class Camera():
         self._Header_Length = 6
         self.pixelDepth = 16
         self.cameraModule = "Single ASIC CRYO"
+        self.bitMask = np.uint16(0xFFFF)
+
+    def _initEPIXHR10kT(self):
+        #self._superRowSize = 384
+        self._NumAsicsPerSide = 1
+        #self._NumAdcChPerAsic = 4
+        #self._NumColPerAdcCh = 96
+        #self._superRowSizeInBytes = self._superRowSize * 4
+        self.sensorWidth  = 192 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
+        self.sensorHeight = 146 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
+        self.pixelDepth = 16
         self.bitMask = np.uint16(0xFFFF)
 
     ##########################################################
@@ -536,7 +564,7 @@ class Camera():
             ##if (PRINT_VERBOSE): print('Return data 3:', returnedRawData[3,0:10])
         return returnedRawData
 
-    
+
     def _buildFrameEpixM32Image(self, currentRawData, newRawData):
         """ Performs the epixM32 frame building.
             For this sensor the image takes two frames
@@ -751,7 +779,112 @@ class Camera():
         #return parameters
         return [frameComplete, readyForDisplay, returnedRawData]
 
-    
+
+    def _buildFrameEpix10kTImage(self, currentRawData, newRawData):
+        """ Performs the epixM32 frame building.
+            For this sensor the image takes two frames
+            There is no guarantee both frames will always arrive nor on their order."""
+        #init local variables
+        frameComplete = 0
+        readyForDisplay = 0
+        returnedRawData = []
+        acqNum_currentRawData  = 0
+        asicNum_currentRawData = 0
+        acqNum_newRawData  = 0
+        asicNum_newRawData = 0
+
+        
+        #if (PRINT_VERBOSE): print('\nlen current Raw data', len(currentRawData), 'len new raw data', len(newRawData))
+        #converts data to 32 bit 
+        newRawData_DW = np.frombuffer(newRawData,dtype='uint32')
+        #if (PRINT_VERBOSE): print('\nlen current Raw data', len(currentRawData), 'len new raw data DW', len(newRawData_DW))
+
+        #retrieves header info
+                                                                  # header dword 0 (VC info)
+        acqNum_newRawData  =  newRawData_DW[1]                    # header dword 1
+        asicNum_newRawData =  newRawData_DW[2] & 0xF              # header dword 2
+        if (PRINT_VERBOSE): print('\nacqNum_newRawData: ', acqNum_newRawData, '\nasicNum_newRawData:', asicNum_newRawData)
+        
+        #for i in range(3, 10):
+        #    print('New %x %x' %(newRawData_DW[i]&0xFFFF, newRawData_DW[i]>>16))
+        
+
+        #interpret headers
+        #case 1: new image (which means currentRawData is empty)
+        if (len(currentRawData) == 0):
+            frameComplete = 0
+            readyForDisplay = 0
+            z = np.zeros((14029,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
+            returnedRawData = np.array([z,z])
+            #makes the current raw data info the same as new so the logic later on this function will add the new data to the memory
+            acqNum_currentRawData  = acqNum_newRawData
+            asicNum_currentRawData = asicNum_newRawData
+        #case where the currentRawData is a byte array
+        elif(len(currentRawData) == 56112):
+            for i in range(3, 10):
+                print('Curr %x %x' %(currentRawData[i]&0xFFFF, currentRawData[i]>>16))
+            frameComplete = 0
+            readyForDisplay = 0
+            z = np.zeros((14029,),dtype='uint32')# 2054 for the package plus 1 (first byte for the valid flag 
+            returnedRawData = np.array([z,z])
+            
+            #makes the current raw data info the same as new so the logic later on this function will add the new data to the memory
+            acqNum_currentRawData  = acqNum_newRawData
+            asicNum_currentRawData = asicNum_newRawData
+        
+        elif(len(currentRawData)==2):
+            #for i in range(3, 10):
+            #    print('Cur0 %x %x' %(currentRawData[0,i]&0xFFFF, currentRawData[0,i]>>16))
+            #for i in range(3, 10):
+            #    print('Cur1 %x %x' %(currentRawData[1,i]&0xFFFF, currentRawData[1,i]>>16))
+            
+            #recovers currentRawData header info
+            #loop traverses the four traces to find the info
+            for j in range(0,2):
+                #print(len(currentRawData))
+                if(currentRawData[j,0]==1):
+                                                                                # extended header dword 0 (valid trace)
+                                                                                # extended header dword 1 (VC info)
+                    acqNum_currentRawData  =  currentRawData[j,2]               # extended header dword 2 (acq num)
+                    asicNum_currentRawData =  currentRawData[j,3] & 0xf         # extended header dword 1 (VC info)
+            #saves current data on returned data before adding new data
+            returnedRawData = currentRawData
+        else:
+            #packet size error
+            if (PRINT_VERBOSE): print('\n packet size error, packet len: ', len(currentRawData))
+
+        ##if (PRINT_VERBOSE): print('\nacqNum_currentRawData: ', acqNum_currentRawData, '\nisTOA_currentRawData: ', isTOA_currentRawData, '\nasicNum_currentRawData: ', asicNum_currentRawData)
+        ##if (PRINT_VERBOSE): print('\nacqNum_newRawData: ',     acqNum_newRawData,     '\nisTOA_newRawData: ',     isTOA_newRawData, '\nasicNum_newRawData: ', asicNum_newRawData)
+        #case 2: acqNumber are different
+        if(acqNum_newRawData != acqNum_currentRawData):
+            frameComplete = 0
+            readyForDisplay = 1
+            return [frameComplete, readyForDisplay, currentRawData]
+        
+        #fill the memory with the new data (when acqNums matches)
+        if (len(newRawData_DW)==1027):
+            if(asicNum_newRawData==0):
+                returnedRawData[0,0]  = 1
+                returnedRawData[0,1:] = newRawData_DW
+            if(asicNum_newRawData==1):
+                returnedRawData[1,0]  = 1
+                returnedRawData[1,1:] = newRawData_DW
+        
+        #checks if the image is complete
+        isValidTrace0 =  returnedRawData[0,0]
+        ##if (PRINT_VERBOSE): print('\nisValidTrace0', isValidTrace0)
+        isValidTrace1 =  returnedRawData[1,0]
+        ##if (PRINT_VERBOSE): print('\nisValidTrace1', isValidTrace1)
+        if((isValidTrace0 == 1) and (isValidTrace1 == 1)):
+            frameComplete = 1
+            readyForDisplay = 1
+        else:
+            frameComplete = 0
+            readyForDisplay = 0
+        
+        #if (PRINT_VERBOSE): print('frameComplete: ', frameComplete, 'readyForDisplay: ', readyForDisplay, 'returned raw data len', len(returnedRawData))
+        #return parameters
+        return [frameComplete, readyForDisplay, returnedRawData]    
 
     ##########################################################
     # define all camera specific descrabler functions
@@ -962,7 +1095,39 @@ class Camera():
         # returns final image
         return np.transpose(imgDesc)
 
+    def _descrambleEpixHR10kTImage(self, rawData):
+        """performs the Epix10kT image descrambling """
+        if (PRINT_VERBOSE):print("Length raw data: %d" % (len(rawData)))
+        if (len(rawData)==56076):
+            #if (PRINT_VERBOSE): print('raw data 0:', rawData[0,0:10])
+            #if (PRINT_VERBOSE): print('raw data 1:', rawData[1,0:10])
+             if (type(rawData != 'numpy.ndarray')):
+                img = np.frombuffer(rawData,dtype='uint16')
+             if (PRINT_VERBOSE):print("shape", img.shape)
+             quadrant0 = np.frombuffer(img[6:28038],dtype='uint16')
+             adcImg = quadrant0.reshape(-1,6)
+             for i in range(0,6):
+                 adcImg2 = adcImg[:,i].reshape(-1,32)
+                 if i == 0:
+                     quadrant0sq = adcImg2
+                 else:
+                     quadrant0sq = np.concatenate((quadrant0sq,adcImg2),1)
+             #quadrant0sq = quadrant0.reshape(-1,192)
+        #    quadrant1 = np.frombuffer(rawData[1,24:],dtype='uint16')
+        #    quadrant1sq = quadrant1.reshape(-1,192)
+        
+        #    imgTop = quadrant0sq
+        #    imgBot = quadrant1sq
+
+        #    imgDesc = np.concatenate((imgTop, imgBot),1)
+             imgDesc = quadrant0sq
+        else:
+            print("descramble error")
+            imgDesc = np.zeros((144,384), dtype='uint16')
+            
+        # returns final image
+        return imgDesc
+
     # helper functions
     def _calcImgWidth(self):
         return self._NumAsicsPerSide * self._NumAdcChPerAsic * self._NumColPerAdcCh
-

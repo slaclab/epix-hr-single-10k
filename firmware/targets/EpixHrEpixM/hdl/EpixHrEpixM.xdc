@@ -12,8 +12,8 @@
 #######################
 # EVAL BOARD ONLY
 
-set_property -dict {PACKAGE_PIN H27 IOSTANDARD LVCMOS18} [get_ports userSmaP]
-set_property -dict {PACKAGE_PIN G27 IOSTANDARD LVCMOS18} [get_ports userSmaN]
+#set_property -dict {PACKAGE_PIN H27 IOSTANDARD LVCMOS18} [get_ports userSmaP]
+#set_property -dict {PACKAGE_PIN G27 IOSTANDARD LVCMOS18} [get_ports userSmaN]
 
 
 
@@ -24,22 +24,30 @@ set_property -dict {PACKAGE_PIN G27 IOSTANDARD LVCMOS18} [get_ports userSmaN]
 ##########################
 ## Misc. Configurations ##
 ##########################
-
 create_generated_clock -name appClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
-create_generated_clock -name asicClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]
+create_generated_clock -name bitClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT0]
+create_generated_clock -name deserClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT1]
+create_generated_clock -name byteClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT2]
+create_generated_clock -name asicRdClk [get_pins U_App/U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT3]
 
 set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks appClk]
-set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks asicClk]
+set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks bitClk]
+set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks byteClk]
+set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks asicRdClk]
+set_clock_groups -asynchronous -group [get_clocks sysClk] -group [get_clocks adcBitClkR]
 set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks byteClk]
 set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks deserClk]
+set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks adcBitClkR]
+set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks adcBitClkRD4]
+set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks adcMonDoClkP]
+set_clock_groups -asynchronous -group [get_clocks appClk] -group [get_clocks bitClk]
+set_clock_groups -asynchronous -group [get_clocks dnaClk] -group [get_clocks byteClk]
 set_clock_groups -asynchronous -group [get_clocks byteClk] -group [get_clocks deserClk]
+set_clock_groups -asynchronous -group [get_clocks byteClk] -group [get_clocks adcBitClkR]
+set_clock_groups -asynchronous -group [get_clocks byteClk] -group [get_clocks adcBitClkRD4]
 
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_Core/U_Mmcm/PllGen.U_Pll/CLKOUT0]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]]
-set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_Core/U_Mmcm/PllGen.U_Pll/CLKOUT0]] -group [get_clocks -of_objects [get_pins U_App/U_BUFGCE_DIV_0/O]]
 set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT3]]
-set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins {U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC16.U_HrADC_0/GenData[0].U_DATA_DESERIALIZER/U_ISERDESE3_master/INTERNAL_DIVCLK}]] -group [get_clocks -of_objects [get_pins U_App/U_BUFGCE_DIV_1/O]]
-set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]] -group [get_clocks -of_objects [get_pins U_App/U_BUFGCE_DIV_0/O]]
-set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]]
 
 #requierd becase we repurpose the IO lines to get the clock from the cryo ADC debug lines
 #set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets U_App/G_ASICS[0].U_AXI_ASIC/GEN_ULTRASCALE_HRADC.U_HrADC_0/AdcClk_I_Ibufds/O] 
@@ -48,12 +56,12 @@ set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_
 
 set_property -dict {PACKAGE_PIN V20 IOSTANDARD LVDS}     [get_ports {asicDataP[0]}]
 set_property -dict {PACKAGE_PIN V21 IOSTANDARD LVDS}     [get_ports {asicDataN[0]}]
-set_property -dict {DIFF_TERM TRUE} [get_ports adcMonDoutP[1]]
+set_property -dict {DIFF_TERM_ADV TERM_100} [get_ports asicDataP[0]]
 set_property -dict {PACKAGE_PIN U20 IOSTANDARD LVCMOS18} [get_ports {asicDataP[1]}]
 set_property -dict {PACKAGE_PIN T20 IOSTANDARD LVCMOS18} [get_ports {asicDataN[1]}]
 set_property -dict {PACKAGE_PIN R21 IOSTANDARD LVDS}     [get_ports {asicDataP[2]}]
 set_property -dict {PACKAGE_PIN R22 IOSTANDARD LVDS}     [get_ports {asicDataN[2]}]
-set_property -dict {DIFF_TERM TRUE} [get_ports adcMonDoutP[1]]
+set_property -dict {DIFF_TERM_ADV TERM_100} [get_ports asicDataP[2]]
 set_property -dict {PACKAGE_PIN U25 IOSTANDARD LVCMOS18} [get_ports {asicDataP[3]}]
 set_property -dict {PACKAGE_PIN U26 IOSTANDARD LVCMOS18} [get_ports {asicDataN[3]}]
 set_property -dict {PACKAGE_PIN R27 IOSTANDARD LVCMOS18} [get_ports {asicDataP[4]}]

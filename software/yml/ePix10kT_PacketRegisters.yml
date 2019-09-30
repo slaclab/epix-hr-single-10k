@@ -1,0 +1,53 @@
+ePixHr10kT:
+  enable: True
+  ForceWrite: False
+  EpixHR:
+    enable: True
+    PacketRegisters0:
+      enable: True
+      TestModeCh0: False
+      TestModeCh1: False
+      forceAdcData: False
+      decDataBitOrder: False
+      decBypass: False
+      StreamDataMode: False
+      StopDataTx: False
+      ResetCounters: False
+      asicDataReq: 4671
+    PacketRegisters1:
+      enable: True
+      TestModeCh0: False
+      TestModeCh1: False
+      forceAdcData: False
+      decDataBitOrder: False
+      decBypass: False
+      StreamDataMode: False
+      StopDataTx: False
+      ResetCounters: False
+      asicDataReq: 4671
+    PacketRegisters2:
+      enable: True
+      TestModeCh0: False
+      TestModeCh1: False
+      forceAdcData: False
+      decDataBitOrder: False
+      decBypass: False
+      StreamDataMode: False
+      StopDataTx: False
+      ResetCounters: False
+      asicDataReq: 4671
+    PacketRegisters3:
+      enable: True
+      TestModeCh0: False
+      TestModeCh1: False
+      forceAdcData: False
+      decDataBitOrder: False
+      decBypass: False
+      StreamDataMode: False
+      StopDataTx: False
+      ResetCounters: False
+      asicDataReq: 4671
+  runControl:
+    enable: True
+    runState: Stopped
+    runRate: 1 Hz
