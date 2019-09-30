@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2018-10-12
+-- Last update: 2019-04-09
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
@@ -187,9 +188,9 @@ architecture mapping of Application is
    signal sAxiWriteSlave  : AxiLiteWriteSlaveArray(HR_FD_NUM_AXI_SLAVE_SLOTS_C-1 downto 0);
    -- AXI-Lite Signals
    signal mAxiWriteMasters : AxiLiteWriteMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
-   signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_INIT_C); 
+   signal mAxiWriteSlaves  : AxiLiteWriteSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadMasters  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
-   signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0) := (others => AXI_LITE_READ_SLAVE_INIT_C); 
+   signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
 
    --constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
@@ -201,6 +202,8 @@ architecture mapping of Application is
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
    signal iRunTrigger        : sl := '0';
+   signal connTgMux          : sl;
+   signal connMpsMux         : sl;
    signal opCode             : slv(7 downto 0);
    signal pgpOpCodeOneShot   : sl;
    signal acqStart           : sl;
@@ -300,14 +303,14 @@ architecture mapping of Application is
    signal dacCsbProgSupplyOut : slv(4 downto 0);
    signal dacClrbProgSupplyOut: sl;
    -- CJC
-   signal cjcRst            : sl;
-   signal cjcDec            : sl;
-   signal cjcInc            : sl;
-   signal cjcFrqtbl         : sl;
-   signal cjcRate           : slv(1 downto 0);
-   signal cjcBwSel          : slv(1 downto 0);
-   signal cjcFrqSel         : slv(3 downto 0);
-   signal cjcSfout          : slv(1 downto 0);
+   signal cjcRst            : slv(1 downto 0);
+   signal cjcDec            : slv(1 downto 0);
+   signal cjcInc            : slv(1 downto 0);
+   signal cjcFrqtbl         : slv(1 downto 0);
+   signal cjcRate           : slv(3 downto 0);
+   signal cjcBwSel          : slv(3 downto 0);
+   signal cjcFrqSel         : slv(7 downto 0);
+   signal cjcSfout          : slv(3 downto 0);
    signal cjcLos            : sl;
    signal cjcLol            : sl;
 
@@ -315,7 +318,8 @@ architecture mapping of Application is
    constant STREAMS_PER_ASIC_C : natural := 2;
    --
    signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
-   signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);   
+   signal asicStreams       : AxiStreamMasterArray(STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+   signal adcStreamsEn_n    : slv(STREAMS_PER_ASIC_C-1 downto 0);
 
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
@@ -355,22 +359,22 @@ begin
   -----------------------------------------------------------------------------
   -- Clock Jitter Cleaner IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  IOBUF_DATAP_5 : IOBUF port map (O => open,   I => cjcFrqtbl,    IO => asicDataP(5),  T => '0');
-  IOBUF_DATAP_6 : IOBUF port map (O => open,   I => cjcDec,       IO => asicDataP(6),  T => '0');
-  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcInc,       IO => asicDataP(7),  T => '0');
-  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(8),  T => '0');
-  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(9),  T => '0');
-  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(10), T => '0');
-  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(11), T => '0');
+  IOBUF_DATAP_5 : IOBUF port map (O => open,   I => cjcFrqtbl(0), IO => asicDataP(5),  T => cjcFrqtbl(1));
+  IOBUF_DATAP_6 : IOBUF port map (O => open,   I => cjcDec(0),    IO => asicDataP(6),  T => cjcDec(1));
+  IOBUF_DATAP_7 : IOBUF port map (O => open,   I => cjcInc(0),    IO => asicDataP(7),  T => cjcInc(1));
+  IOBUF_DATAP_8 : IOBUF port map (O => open,   I => cjcFrqSel(0), IO => asicDataP(8),  T => cjcFrqSel(4));
+  IOBUF_DATAP_9 : IOBUF port map (O => open,   I => cjcFrqSel(1), IO => asicDataP(9),  T => cjcFrqSel(5));
+  IOBUF_DATAP_10: IOBUF port map (O => open,   I => cjcFrqSel(2), IO => asicDataP(10), T => cjcFrqSel(6));
+  IOBUF_DATAP_11: IOBUF port map (O => open,   I => cjcFrqSel(3), IO => asicDataP(11), T => cjcFrqSel(7));
   IOBUF_DATAP_12: IOBUF port map (O => cjcLos, I => '0',          IO => asicDataP(12), T => '1');
   --
-  IOBUF_DATAN_5 : IOBUF port map (O => open,   I => cjcRst,       IO => asicDataN(5),  T => '0');
-  IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(6),  T => '0');
-  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(7),  T => '0');
-  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(8),  T => '0');
-  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(9),  T => '0');
-  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(10), T => '0');
-  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(11), T => '0');
+  IOBUF_DATAN_5 : IOBUF port map (O => open,   I => cjcRst(0),    IO => asicDataN(5),  T => cjcRst(1));
+  IOBUF_DATAN_6 : IOBUF port map (O => open,   I => cjcRate(0),   IO => asicDataN(6),  T => cjcRate(2));
+  IOBUF_DATAN_7 : IOBUF port map (O => open,   I => cjcRate(1),   IO => asicDataN(7),  T => cjcRate(3));
+  IOBUF_DATAN_8 : IOBUF port map (O => open,   I => cjcBwSel(0),  IO => asicDataN(8),  T => cjcBwSel(2));
+  IOBUF_DATAN_9 : IOBUF port map (O => open,   I => cjcBwSel(1),  IO => asicDataN(9),  T => cjcBwSel(3));
+  IOBUF_DATAN_10: IOBUF port map (O => open,   I => cjcSfout(0),  IO => asicDataN(10), T => cjcSfout(2));
+  IOBUF_DATAN_11: IOBUF port map (O => open,   I => cjcSfout(1),  IO => asicDataN(11), T => cjcSfout(3));
   IOBUF_DATAN_12: IOBUF port map (O => cjcLol, I => '0',          IO => asicDataN(12), T => '1');
   --
   -----------------------------------------------------------------------------
@@ -470,7 +474,9 @@ begin
    ----------------------------------------------------------------------------
    -- Monitoring signals
    ----------------------------------------------------------------------------
-   connTgOut <= 
+   connTgOut <= not connTgMux;          -- required because the board has a
+                                        -- inverter driver
+   connTgMux <= 
       iAsic01DM1        when boardConfig.epixhrDbgSel1 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel1 = "00001" else
       iAsicAcq          when boardConfig.epixhrDbgSel1 = "00010" else
@@ -496,8 +502,10 @@ begin
       slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else   
       '0';   
-   
-   connMps <=
+
+   connMps    <= not connMpsMux;        -- required because the board has a
+                                        -- inverter driver
+   connMpsMux <=
       iAsic01DM2        when boardConfig.epixhrDbgSel2 = "00000" else
       iAsicSync         when boardConfig.epixhrDbgSel2 = "00001" else
       iAsicAcq          when boardConfig.epixhrDbgSel2 = "00010" else
@@ -612,8 +620,8 @@ begin
       rstOut(4)       => open,
       locked          => clkLocked,
       -- AXI-Lite Interface 
-      axilClk         => sysClk,
-      axilRst         => sysRst,
+      axilClk         => appClk,
+      axilRst         => appRst,
       axilReadMaster  => mAxiReadMasters(PLLREGS_AXI_INDEX_C),
       axilReadSlave   => mAxiReadSlaves(PLLREGS_AXI_INDEX_C),
       axilWriteMaster => mAxiWriteMasters(PLLREGS_AXI_INDEX_C),
@@ -652,7 +660,8 @@ begin
 
    U_RdPwrUpRst : entity work.PwrUpRst
    generic map (
-      DURATION_G => 20000000
+     SIM_SPEEDUP_G  => SIMULATION_G,
+     DURATION_G => 20000000
    )
    port map (
       clk      => byteClk,
@@ -679,7 +688,7 @@ begin
       TPD_G            => 1 ns,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
       COMMON_CLK_G     => false,
-      NUM_ADDR_BITS_G  => 31,
+      NUM_ADDR_BITS_G  => 32,
       PIPE_STAGES_G    => 0)
    port map(
       -- Slave Port
@@ -890,9 +899,7 @@ begin
       IODELAY_GROUP_G   => IODELAY_GROUP_G,
       IDELAYCTRL_FREQ_G => 250.0,
       DEFAULT_DELAY_G   => (others => '0'),
-      ADC_INVERT_CH_G   => "00000010",
-      USE_MMCME_G       => true,
-      SIM_SPEEDUP_G     => SIMULATION_G
+      ADC_INVERT_CH_G   => "00000010"
    )
    port map (
       -- Master system clock, 100Mhz
@@ -1064,10 +1071,10 @@ begin
       externalTrigger   => acqStart,
       axilClk           => appClk,
       axilRst           => appRst,
-      sAxilWriteMaster  => mAxiWriteMasters,
-      sAxilWriteSlave   => mAxiWriteSlaves,
-      sAxilReadMaster   => mAxiReadMasters,
-      sAxilReadSlave    => mAxiReadSlaves);
+      sAxilWriteMaster  => mAxiWriteMasters(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilWriteSlave   => mAxiWriteSlaves(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilReadMaster   => mAxiReadMasters(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C),
+      sAxilReadSlave    => mAxiReadSlaves(DACWFMEM_REG_AXI_INDEX_C downto DAC8812_REG_AXI_INDEX_C));
 
   --------------------------------------------
   -- ePix HR analog board SPI DACs          --
@@ -1133,6 +1140,8 @@ begin
           TPD_G                => TPD_G,
           NUM_SLAVES_G         => 2,
           PIPE_STAGES_G        => 0,
+          MODE_G               =>"ROUTED",
+          TDEST_ROUTES_G       => (0=>x"01", 1=>x"00"),
           TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
           ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
           ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
@@ -1173,6 +1182,7 @@ begin
       generic map (
         TPD_G           => TPD_G,
         NUM_CHANNELS_G  => STREAMS_PER_ASIC_C,
+        SIMULATION_G    => SIMULATION_G,
         DATA_TYPE_G     => "16b20b",
         IODELAY_GROUP_G => "DEFAULT_GROUP",
         XIL_DEVICE_G    => "ULTRASCALE",
@@ -1191,8 +1201,9 @@ begin
         adcClkRst       => serdesReset,
         idelayCtrlRdy   => idelayRdy,
         adcSerial       => adcSerial(i),
-        adcStreamClk    => asicRdClk,
-        adcStreams      => asicStreams      
+        adcStreamClk    => byteClk,
+        adcStreams      => asicStreams,
+        adcStreamsEn_n  => adcStreamsEn_n
         );
 
      -------------------------------------------------------------------------------
@@ -1212,9 +1223,10 @@ begin
          )
        port map( 
          -- Deserialized data port
-         rxClk             => asicRdClk, --fClkP,    --use frame clock
-         rxRst             => asicRdClkRst,
+         rxClk             => byteClk, --fClkP,    --use frame clock
+         rxRst             => byteClkRst,
          adcStreams        => asicStreams(STREAMS_PER_ASIC_C-1 downto 0),
+         adcStreamsEn_n    => adcStreamsEn_n,
       
          -- AXI lite slave port for register access
          axilClk           => appClk,
@@ -1254,8 +1266,8 @@ begin
       -- AXIS Stream Interface
       axisClk         => sysClk,
       axisRst         => sysRst,
-      axisMaster      => imAxisMasters,
-      axisSlave       => mAxisSlaves,
+      axisMasters     => imAxisMasters,
+      axisSlaves      => mAxisSlaves,
       -- AXI lite slave port for register access
       axilClk         => appClk,  
       axilRst         => appRst,   
