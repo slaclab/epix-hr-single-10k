@@ -4,7 +4,7 @@
 -- File       : RegControlEpixHR.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 04/26/2016
--- Last update: 2019-05-08
+-- Last update: 2019-11-05
 -- Platform   : Vivado 2014.4
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -139,6 +139,8 @@ architecture rtl of RegisterControl is
       ssrDatab          : sl;
       ssrData           : slv(SSR_PARALLEL_OUT-1 downto 0);
       ssrDataSel        : integer;
+      ePixAdcSHT        : slv(15 downto 0);
+      ePixAdcSHCnt      : slv(15 downto 0);
       
    end record AsicAcqType;
    
@@ -197,7 +199,9 @@ architecture rtl of RegisterControl is
       ssrClkCounter     => 0,
       ssrDatab          => '1',
       ssrData           => x"FFFF_FFFF_FE",
-      ssrDataSel        => 0
+      ssrDataSel        => 0,
+      ePixAdcSHT        => X"00FF",
+      ePixAdcSHCnt      => (others=>'0')
    );
    
    type RegType is record
@@ -236,6 +240,7 @@ architecture rtl of RegisterControl is
    
    signal idValues : Slv64Array(2 downto 0);
    signal idValids : slv(2 downto 0);
+   signal dummyIdValues : slv(63 downto 0);
    
    signal adcCardStartUp     : sl;
    signal adcCardStartUpEdge : sl;
@@ -272,68 +277,70 @@ begin
       axiSlaveWaitTxn(regCon, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
       
       -- Map out standard registers
-      axiSlaveRegister (regCon, x"000000",  0, v.usrRst );
-      axiSlaveRegisterR(regCon, x"000000",  0, BUILD_INFO_C.fwVersion );
-      axiSlaveRegisterR(regCon, x"000004",  0, ite(idValids(0) = '1',idValues(0)(31 downto  0), x"00000000")); --Digital card ID low
-      axiSlaveRegisterR(regCon, x"000008",  0, ite(idValids(0) = '1',idValues(0)(63 downto 32), x"00000000")); --Digital card ID high
-      axiSlaveRegisterR(regCon, x"00000C",  0, ite(idValids(1) = '1',idValues(1)(31 downto  0), x"00000000")); --Analog card ID low
-      axiSlaveRegisterR(regCon, x"000010",  0, ite(idValids(1) = '1',idValues(1)(63 downto 32), x"00000000")); --Analog card ID high
-      axiSlaveRegisterR(regCon, x"000014",  0, ite(idValids(2) = '1',idValues(2)(31 downto  0), x"00000000")); --Carrier card ID low
-      axiSlaveRegisterR(regCon, x"000018",  0, ite(idValids(2) = '1',idValues(2)(63 downto 32), x"00000000")); --Carrier card ID high
+      axiSlaveRegister (regCon, x"0000",  0, v.usrRst );
+      axiSlaveRegisterR(regCon, x"0000",  0, BUILD_INFO_C.fwVersion );
+      axiSlaveRegisterR(regCon, x"0004",  0, ite(idValids(0) = '1',idValues(0)(31 downto  0), x"00000000")); --Digital card ID low
+      axiSlaveRegisterR(regCon, x"0008",  0, ite(idValids(0) = '1',idValues(0)(63 downto 32), x"00000000")); --Digital card ID high
+      axiSlaveRegisterR(regCon, x"000C",  0, ite(idValids(1) = '1',idValues(1)(31 downto  0), x"00000000")); --Analog card ID low
+      axiSlaveRegisterR(regCon, x"0010",  0, ite(idValids(1) = '1',idValues(1)(63 downto 32), x"00000000")); --Analog card ID high
+      axiSlaveRegisterR(regCon, x"0014",  0, ite(idValids(2) = '1',idValues(2)(31 downto  0), x"00000000")); --Carrier card ID low
+      axiSlaveRegisterR(regCon, x"0018",  0, ite(idValids(2) = '1',idValues(2)(63 downto 32), x"00000000")); --Carrier card ID high
       
-      axiSlaveRegister(regCon,  x"00010C",  0, v.asicAcqReg.GlblRstPolarity);
-      axiSlaveRegister(regCon,  x"000110",  0, v.asicAcqReg.GlblRstDelay);
-      axiSlaveRegister(regCon,  x"000114",  0, v.asicAcqReg.GlblRstWidth);
-      axiSlaveRegister(regCon,  x"000118",  0, v.asicAcqReg.AcqPolarity);
-      axiSlaveRegister(regCon,  x"00011C",  0, v.asicAcqReg.AcqDelay1);
-      axiSlaveRegister(regCon,  x"000120",  0, v.asicAcqReg.AcqWidth1);
-      axiSlaveRegister(regCon,  x"000124",  0, v.asicAcqReg.AcqDelay2);
-      axiSlaveRegister(regCon,  x"000128",  0, v.asicAcqReg.AcqWidth2);
-      axiSlaveRegister(regCon,  x"00012C",  0, v.asicAcqReg.TpulsePolarity);
-      axiSlaveRegister(regCon,  x"000130",  0, v.asicAcqReg.TpulseDelay);
-      axiSlaveRegister(regCon,  x"000134",  0, v.asicAcqReg.TpulseWidth);
-      axiSlaveRegister(regCon,  x"000138",  0, v.asicAcqReg.StartPolarity);
-      axiSlaveRegister(regCon,  x"00013C",  0, v.asicAcqReg.StartDelay);
-      axiSlaveRegister(regCon,  x"000140",  0, v.asicAcqReg.StartWidth);
-      axiSlaveRegister(regCon,  x"000144",  0, v.asicAcqReg.PPbePolarity);
-      axiSlaveRegister(regCon,  x"000148",  0, v.asicAcqReg.PPbeDelay);
-      axiSlaveRegister(regCon,  x"00014C",  0, v.asicAcqReg.PPbeWidth);
-      axiSlaveRegister(regCon,  x"000150",  0, v.asicAcqReg.PpmatPolarity);
-      axiSlaveRegister(regCon,  x"000154",  0, v.asicAcqReg.PpmatDelay);
-      axiSlaveRegister(regCon,  x"000158",  0, v.asicAcqReg.PpmatWidth);
-      axiSlaveRegister(regCon,  x"00015C",  0, v.asicAcqReg.SyncPolarity);
-      axiSlaveRegister(regCon,  x"000160",  0, v.asicAcqReg.SyncDelay);
-      axiSlaveRegister(regCon,  x"000164",  0, v.asicAcqReg.SyncWidth);
-      axiSlaveRegister(regCon,  x"000168",  0, v.asicAcqReg.saciSyncPolarity);
-      axiSlaveRegister(regCon,  x"00016C",  0, v.asicAcqReg.saciSyncDelay);
-      axiSlaveRegister(regCon,  x"000170",  0, v.asicAcqReg.saciSyncWidth);
-      axiSlaveRegister(regCon,  x"000174",  0, v.asicAcqReg.SR0Polarity);
-      axiSlaveRegister(regCon,  x"000178",  0, v.asicAcqReg.SR0Delay);
-      axiSlaveRegister(regCon,  x"00017C",  0, v.asicAcqReg.SR0Width);
-      axiSlaveRegister(regCon,  x"000180",  0, v.asicAcqReg.Vid);
-      axiSlaveRegister(regCon,  x"000184",  0, v.asicAcqReg.ssrRstPolarity);
-      axiSlaveRegister(regCon,  x"000188",  0, v.asicAcqReg.ssrRstDelay);
-      axiSlaveRegister(regCon,  x"00018C",  0, v.asicAcqReg.ssrRstWidth);
-      axiSlaveRegister(regCon,  x"000190",  0, v.asicAcqReg.ssrSerialClrb);
-      axiSlaveRegister(regCon,  x"000190",  1, v.asicAcqReg.ssrStorageClrb);
-      axiSlaveRegister(regCon,  x"000194",  0, v.asicAcqReg.ssrClkHalfT);
-      axiSlaveRegister(regCon,  x"000198",  0, v.asicAcqReg.ssrClkDelay);
-      axiSlaveRegister(regCon,  x"00019C",  0, v.asicAcqReg.ssrClkNumPeriods);
-      axiSlaveRegister(regCon,  x"0001A0",  0, v.asicAcqReg.ssrData);
+      axiSlaveRegister(regCon,  x"010C",  0, v.asicAcqReg.GlblRstPolarity);
+      axiSlaveRegister(regCon,  x"0110",  0, v.asicAcqReg.GlblRstDelay);
+      axiSlaveRegister(regCon,  x"0114",  0, v.asicAcqReg.GlblRstWidth);
+      axiSlaveRegister(regCon,  x"0118",  0, v.asicAcqReg.AcqPolarity);
+      axiSlaveRegister(regCon,  x"011C",  0, v.asicAcqReg.AcqDelay1);
+      axiSlaveRegister(regCon,  x"0120",  0, v.asicAcqReg.AcqWidth1);
+      axiSlaveRegister(regCon,  x"0124",  0, v.asicAcqReg.AcqDelay2);
+      axiSlaveRegister(regCon,  x"0128",  0, v.asicAcqReg.AcqWidth2);
+      axiSlaveRegister(regCon,  x"012C",  0, v.asicAcqReg.TpulsePolarity);
+      axiSlaveRegister(regCon,  x"0130",  0, v.asicAcqReg.TpulseDelay);
+      axiSlaveRegister(regCon,  x"0134",  0, v.asicAcqReg.TpulseWidth);
+      axiSlaveRegister(regCon,  x"0138",  0, v.asicAcqReg.StartPolarity);
+      axiSlaveRegister(regCon,  x"013C",  0, v.asicAcqReg.StartDelay);
+      axiSlaveRegister(regCon,  x"0140",  0, v.asicAcqReg.StartWidth);
+      axiSlaveRegister(regCon,  x"0144",  0, v.asicAcqReg.PPbePolarity);
+      axiSlaveRegister(regCon,  x"0148",  0, v.asicAcqReg.PPbeDelay);
+      axiSlaveRegister(regCon,  x"014C",  0, v.asicAcqReg.PPbeWidth);
+      axiSlaveRegister(regCon,  x"0150",  0, v.asicAcqReg.PpmatPolarity);
+      axiSlaveRegister(regCon,  x"0154",  0, v.asicAcqReg.PpmatDelay);
+      axiSlaveRegister(regCon,  x"0158",  0, v.asicAcqReg.PpmatWidth);
+      axiSlaveRegister(regCon,  x"015C",  0, v.asicAcqReg.SyncPolarity);
+      axiSlaveRegister(regCon,  x"0160",  0, v.asicAcqReg.SyncDelay);
+      axiSlaveRegister(regCon,  x"0164",  0, v.asicAcqReg.SyncWidth);
+      axiSlaveRegister(regCon,  x"0168",  0, v.asicAcqReg.saciSyncPolarity);
+      axiSlaveRegister(regCon,  x"016C",  0, v.asicAcqReg.saciSyncDelay);
+      axiSlaveRegister(regCon,  x"0170",  0, v.asicAcqReg.saciSyncWidth);
+      axiSlaveRegister(regCon,  x"0174",  0, v.asicAcqReg.SR0Polarity);
+      axiSlaveRegister(regCon,  x"0178",  0, v.asicAcqReg.SR0Delay);
+      axiSlaveRegister(regCon,  x"017C",  0, v.asicAcqReg.SR0Width);
+      axiSlaveRegister(regCon,  x"0180",  0, v.asicAcqReg.Vid);
+      axiSlaveRegister(regCon,  x"0184",  0, v.asicAcqReg.ssrRstPolarity);
+      axiSlaveRegister(regCon,  x"0188",  0, v.asicAcqReg.ssrRstDelay);
+      axiSlaveRegister(regCon,  x"018C",  0, v.asicAcqReg.ssrRstWidth);
+      axiSlaveRegister(regCon,  x"0190",  0, v.asicAcqReg.ssrSerialClrb);
+      axiSlaveRegister(regCon,  x"0190",  1, v.asicAcqReg.ssrStorageClrb);
+      axiSlaveRegister(regCon,  x"0194",  0, v.asicAcqReg.ssrClkHalfT);
+      axiSlaveRegister(regCon,  x"0198",  0, v.asicAcqReg.ssrClkDelay);
+      axiSlaveRegister(regCon,  x"019C",  0, v.asicAcqReg.ssrClkNumPeriods);
+      axiSlaveRegister(regCon,  x"01A0",  0, v.asicAcqReg.ssrData);
+      axiSlaveRegister(regCon,  x"01A4",  0, v.asicAcqReg.ePixAdcSHT);
+      
      
-      axiSlaveRegisterR(regCon, x"000200",  0, r.boardRegOut.acqCnt);
-      axiSlaveRegisterR(regCon, x"000204",  0, r.saciPrepRdoutCnt);
-      axiSlaveRegister(regCon,  x"000208",  0, v.resetCounters);
-      axiSlaveRegister(regCon,  x"00020C",  0, v.boardRegOut.powerEnable);
-      axiSlaveRegister(regCon,  x"000210",  0, v.boardRegOut.asicMask);
-      axiSlaveRegister(regCon,  x"000228",  0, v.boardRegOut.epixhrDbgSel1);
-      axiSlaveRegister(regCon,  x"00022C",  0, v.boardRegOut.epixhrDbgSel2);
-      axiSlaveRegister(regCon,  x"000230",  0, v.boardRegOut.epixhrDbgSel3);
+      axiSlaveRegisterR(regCon, x"0200",  0, r.boardRegOut.acqCnt);
+      axiSlaveRegisterR(regCon, x"0204",  0, r.saciPrepRdoutCnt);
+      axiSlaveRegister(regCon,  x"0208",  0, v.resetCounters);
+      axiSlaveRegister(regCon,  x"020C",  0, v.boardRegOut.powerEnable);
+      axiSlaveRegister(regCon,  x"0210",  0, v.boardRegOut.asicMask);
+      axiSlaveRegister(regCon,  x"0228",  0, v.boardRegOut.epixhrDbgSel1);
+      axiSlaveRegister(regCon,  x"022C",  0, v.boardRegOut.epixhrDbgSel2);
+      axiSlaveRegister(regCon,  x"0230",  0, v.boardRegOut.epixhrDbgSel3);
       
-      axiSlaveRegister(regCon,  x"000300",  0, v.adcClkHalfT);
-      axiSlaveRegister(regCon,  x"000304",  0, v.boardRegOut.requestStartupCal);
-      axiSlaveRegister(regCon,  x"000304",  1, v.boardRegOut.startupAck);          -- set by Microblaze
-      axiSlaveRegister(regCon,  x"000304",  2, v.boardRegOut.startupFail);         -- set by Microblaze
+      axiSlaveRegister(regCon,  x"0300",  0, v.adcClkHalfT);
+      axiSlaveRegister(regCon,  x"0304",  0, v.boardRegOut.requestStartupCal);
+      axiSlaveRegister(regCon,  x"0304",  1, v.boardRegOut.startupAck);          -- set by Microblaze
+      axiSlaveRegister(regCon,  x"0304",  2, v.boardRegOut.startupFail);         -- set by Microblaze
 
       
       -- Special reset for write to address 00
@@ -349,6 +356,16 @@ begin
          v.adcCnt := (others => '0');
       else
          v.adcCnt := r.adcCnt + 1;
+      end if;
+
+      -- ePixHrADC clock counter to mimic the SHClk and SDrst periods in the asic
+      -- sync SR0 start to this period to avoid the background bounce per bank
+      -- at 250MHz this should be 1.28us
+      -- at 125 this should be 2.56us
+      if r.asicAcqReg.ePixAdcSHCnt >= r.asicAcqReg.ePixAdcSHT - 1 then
+         v.asicAcqReg.ePixAdcSHCnt := (others => '0');
+      else
+         v.asicAcqReg.ePixAdcSHCnt := r.asicAcqReg.ePixAdcSHCnt + 1;
       end if;
 
       -- Serial Shift Register clock counter
@@ -404,9 +421,9 @@ begin
          end if;
          
          -- single pulse. zero value corresponds to infinite delay/width
-         if r.asicAcqReg.SR0Delay /= 0 and r.asicAcqReg.SR0Delay <= r.asicAcqTimeCnt then
+         if r.asicAcqReg.SR0Delay /= 0 and r.asicAcqReg.SR0Delay <= r.asicAcqTimeCnt and r.asicAcqReg.ePixAdcSHCnt = 0 then
             v.asicAcqReg.SR0 := not r.asicAcqReg.SR0Polarity;
-            if r.asicAcqReg.SR0Width /= 0 and (r.asicAcqReg.SR0Width + r.asicAcqReg.SR0Delay) <= r.asicAcqTimeCnt then
+            if r.asicAcqReg.SR0Width /= 0 and (r.asicAcqReg.SR0Width + r.asicAcqReg.SR0Delay) <= r.asicAcqTimeCnt and r.asicAcqReg.ePixAdcSHCnt = 0 then
                v.asicAcqReg.SR0 := r.asicAcqReg.SR0Polarity;
             end if;
          end if;
@@ -573,7 +590,7 @@ begin
          port map (
             clk      => axiClk,
             rst      => axiReset,
-            dnaValue(127 downto 64) => open,
+            dnaValue(127 downto 64) => dummyIdValues,
             dnaValue( 63 downto  0) => idValues(0),
             dnaValid => idValids(0)
          );

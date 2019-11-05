@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-09-27
+-- Last update: 2019-11-04
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -181,6 +181,7 @@ architecture mapping of Application is
    signal idelayCtrlRst  : sl;
    signal idelayCtrlRst_i: sl;
    signal clkLocked      : sl;
+   signal dummyRst       : slv(1 downto 0);
      
 
    -- AXI-Lite Signals
@@ -632,8 +633,8 @@ begin
       rstOut(0)       => appRst,
       rstOut(1)       => asicRst,
       rstOut(2)       => asicRdClkRst,
-      rstOut(3)       => open,
-      rstOut(4)       => open,
+      rstOut(3)       => dummyRst(0),
+      rstOut(4)       => dummyRst(1),
       locked          => clkLocked,
       -- AXI-Lite Interface 
       axilClk         => appClk,
