@@ -200,7 +200,7 @@ architecture rtl of RegisterControl is
       ssrDatab          => '1',
       ssrData           => x"FFFF_FFFF_FE",
       ssrDataSel        => 0,
-      ePixAdcSHT        => X"00FF",
+      ePixAdcSHT        => X"0100",
       ePixAdcSHCnt      => (others=>'0')
    );
    
