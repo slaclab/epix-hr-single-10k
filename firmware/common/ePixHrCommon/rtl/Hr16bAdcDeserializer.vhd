@@ -2,7 +2,7 @@
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-07-22
+-- Last update: 2019-11-05
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
@@ -386,19 +386,19 @@ begin
        when "11000" =>
          v.masterDataBS := adcDv4R.masterData_3(7 downto 0);
        when "11001" =>
-         v.masterDataBS := adcDv4R.masterData_4(6 downto 0) & adcDv4R.masterData_3(7);
+         v.masterDataBS := adcDv4R.masterData_3(6 downto 0) & adcDv4R.masterData_4(7);
        when "11010" =>
-         v.masterDataBS := adcDv4R.masterData_4(5 downto 0) & adcDv4R.masterData_3(7 downto 6);
+         v.masterDataBS := adcDv4R.masterData_3(5 downto 0) & adcDv4R.masterData_4(7 downto 6);
        when "11011" =>
-         v.masterDataBS := adcDv4R.masterData_4(4 downto 0) & adcDv4R.masterData_3(7 downto 5);
+         v.masterDataBS := adcDv4R.masterData_3(4 downto 0) & adcDv4R.masterData_4(7 downto 5);
        when "11100" =>
-         v.masterDataBS := adcDv4R.masterData_4(3 downto 0) & adcDv4R.masterData_3(7 downto 4);
+         v.masterDataBS := adcDv4R.masterData_3(3 downto 0) & adcDv4R.masterData_4(7 downto 4);
        when "11101" =>
-         v.masterDataBS := adcDv4R.masterData_4(2 downto 0) & adcDv4R.masterData_3(7 downto 3);
+         v.masterDataBS := adcDv4R.masterData_3(2 downto 0) & adcDv4R.masterData_4(7 downto 3);
        when "11110" =>
-         v.masterDataBS := adcDv4R.masterData_4(1 downto 0) & adcDv4R.masterData_3(7 downto 2);
+         v.masterDataBS := adcDv4R.masterData_3(1 downto 0) & adcDv4R.masterData_4(7 downto 2);
        when "11111" =>
-         v.masterDataBS := adcDv4R.masterData_4(0)          & adcDv4R.masterData_3(7 downto 1);
+         v.masterDataBS := adcDv4R.masterData_3(0)          & adcDv4R.masterData_4(7 downto 1);
        when others =>
          v.masterDataBS := (others => '0');
      end case;
