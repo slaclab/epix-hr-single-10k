@@ -2,7 +2,7 @@
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2016-05-26
--- Last update: 2019-07-22
+-- Last update: 2019-11-05
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
@@ -368,37 +368,37 @@ begin
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      axiSlaveRegister (axilEp, X"00", 0, v.adcStreamsEn_n);
-      axiSlaveRegister (axilEp, X"04", 0, v.resync);
-      axiSlaveRegister (axilEp, X"04", 1, v.sDataOutControl);
-      axiSlaveRegister (axilEp, X"08", 0, v.idelayRst);
-      axiSlaveRegister (axilEp, X"0C", 0, v.iserdesRst);
+      axiSlaveRegister (axilEp, X"000", 0, v.adcStreamsEn_n);
+      axiSlaveRegister (axilEp, X"004", 0, v.resync);
+      axiSlaveRegister (axilEp, X"004", 1, v.sDataOutControl);
+      axiSlaveRegister (axilEp, X"008", 0, v.idelayRst);
+      axiSlaveRegister (axilEp, X"00C", 0, v.iserdesRst);
       
       -- Up to 8 delay registers
       -- Write delay values to IDELAY primatives
       -- All writes go to same r.delay register,
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegister(axilEp, X"10"+toSlv((i*4), 8), 0, v.delay(i));
-         axiSlaveRegister(axilEp, X"10"+toSlv((i*4), 8), 9, v.dataDelaySet(i), '1');
+         axiSlaveRegister(axilEp, X"010"+toSlv((i*4), 8), 0, v.delay(i));
+         axiSlaveRegister(axilEp, X"010"+toSlv((i*4), 8), 9, v.dataDelaySet(i), '1');
       end loop;
 
       -- Override read from r.delay and use curDealy output from delay primative instead
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"10"+toSlv((i*4), 8), 0, axilR.curDelayData(i));
+         axiSlaveRegisterR(axilEp, X"010"+toSlv((i*4), 8), 0, axilR.curDelayData(i));
       end loop;
 
 
       -- Debug output to see how many times the shift has needed a relock
       for i in 0 to NUM_CHANNELS_G-1 loop
-        axiSlaveRegisterR(axilEp, X"30"+toSlv((i*4), 8), 0, lockedFallCount(i));
-        axiSlaveRegisterR(axilEp, X"30"+toSlv((i*4), 8), 16, lockedSync(i));     
+        axiSlaveRegisterR(axilEp, X"030"+toSlv((i*4), 8), 0, lockedFallCount(i));
+        axiSlaveRegisterR(axilEp, X"030"+toSlv((i*4), 8), 16, lockedSync(i));     
       end loop;
-      axiSlaveRegister(axilEp, X"50", 0, v.lockedCountRst);
+      axiSlaveRegister(axilEp, X"050", 0, v.lockedCountRst);
 
       -- Debug registers. Output the last 2 words received
       for i in 0 to NUM_CHANNELS_G-1 loop
-        axiSlaveRegisterR(axilEp, X"80"+toSlv((2*i*4), 8),   0, axilR.readoutDebug0(i));
-        axiSlaveRegisterR(axilEp, X"80"+toSlv((2*i*4)+4, 8), 0, axilR.readoutDebug1(i));
+        axiSlaveRegisterR(axilEp, X"080"+toSlv((2*i*4), 8),   0, axilR.readoutDebug0(i));
+        axiSlaveRegisterR(axilEp, X"080"+toSlv((2*i*4)+4, 8), 0, axilR.readoutDebug1(i));
       end loop;
       
 
