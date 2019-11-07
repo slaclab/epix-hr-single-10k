@@ -2719,7 +2719,7 @@ class AsicDeser10bDataRegisters(pr.Device):
       
       
       #Setup registers & variables  
-      for i in range(0, 8):
+      for i in range(0, 2):
          self.add(pr.RemoteVariable(name='tenbData_'+str(i),   description='Sample N_'+str(i),  offset=0x00000000+i*4, bitSize=10, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
 
 class AsicDeser14bDataRegisters(pr.Device):
