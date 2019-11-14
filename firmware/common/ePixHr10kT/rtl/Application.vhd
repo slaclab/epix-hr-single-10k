@@ -576,12 +576,12 @@ begin
    -- Generate clocks from 156.25 MHz PGP  --
    ------------------------------------------
    -- clkIn     : 156.25 MHz PGP
-   -- base clk is 1200 MHz
+   -- base clk is 640 MHz
    -- clkOut(0) : 100.00 MHz app clock
-   -- clkOut(1) : 300.00 MHz asic clock
-   -- clkOut(2) : 300.00 MHz asic clock (because HR pll bypass)
-   -- clkOut(3) : 300.00 MHz idelay control clock (valid 200MHz to 800MHz)
-   -- clkOut(4) :  50.00 MHz monitoring adc
+   -- clkOut(1) : 320.00 MHz asic clock
+   -- clkOut(2) : 320.00 MHz asic clock (because HR pll bypass)
+   -- clkOut(3) : 320.00 MHz idelay control clock (valid 200MHz to 800MHz)
+   -- clkOut(4) : 45.00 MHz monitoring adc
    U_CoreClockGen : entity work.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
@@ -594,14 +594,14 @@ begin
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
       DIVCLK_DIVIDE_G        => 5,
-      CLKFBOUT_MULT_F_G      => 38.4,
+      CLKFBOUT_MULT_F_G      => 20.5,
       CLKFBOUT_MULT_G        => 5,
-      CLKOUT0_DIVIDE_F_G     => 1.0,
-      CLKOUT0_DIVIDE_G       => 12,
+      CLKOUT0_DIVIDE_F_G     => 6.4,
+      CLKOUT0_DIVIDE_G       => 1,
       CLKOUT1_DIVIDE_G       => 4,
       CLKOUT2_DIVIDE_G       => 4,
       CLKOUT3_DIVIDE_G       => 4,
-      CLKOUT4_DIVIDE_G       => 24,
+      CLKOUT4_DIVIDE_G       => 14,
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
