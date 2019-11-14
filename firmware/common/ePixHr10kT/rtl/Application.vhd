@@ -2,7 +2,7 @@
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-04-21
--- Last update: 2019-11-04
+-- Last update: 2019-11-13
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -576,11 +576,11 @@ begin
    -- Generate clocks from 156.25 MHz PGP  --
    ------------------------------------------
    -- clkIn     : 156.25 MHz PGP
-   -- base clk is 1000 MHz
+   -- base clk is 1400 MHz
    -- clkOut(0) : 100.00 MHz app clock
-   -- clkOut(1) : 250.00 MHz asic clock
-   -- clkOut(2) : 250.00 MHz asic clock (because HR pll bypass)
-   -- clkOut(3) : 250.00 MHz idelay control clock (valid 200MHz to 800MHz)
+   -- clkOut(1) : 350.00 MHz asic clock
+   -- clkOut(2) : 350.00 MHz asic clock (because HR pll bypass)
+   -- clkOut(3) : 233.00 MHz idelay control clock (valid 200MHz to 800MHz)
    -- clkOut(4) :  50.00 MHz monitoring adc
    U_CoreClockGen : entity work.ClockManagerUltraScale 
    generic map(
@@ -593,15 +593,15 @@ begin
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
-      DIVCLK_DIVIDE_G        => 6,
-      CLKFBOUT_MULT_F_G      => 38.4,
+      DIVCLK_DIVIDE_G        => 5,
+      CLKFBOUT_MULT_F_G      => 44.8,
       CLKFBOUT_MULT_G        => 5,
       CLKOUT0_DIVIDE_F_G     => 1.0,
-      CLKOUT0_DIVIDE_G       => 10,
+      CLKOUT0_DIVIDE_G       => 14,
       CLKOUT1_DIVIDE_G       => 4,
       CLKOUT2_DIVIDE_G       => 4,
-      CLKOUT3_DIVIDE_G       => 4,
-      CLKOUT4_DIVIDE_G       => 20,
+      CLKOUT3_DIVIDE_G       => 6,
+      CLKOUT4_DIVIDE_G       => 28,
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
