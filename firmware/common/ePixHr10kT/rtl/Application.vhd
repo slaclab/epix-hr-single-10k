@@ -581,7 +581,7 @@ begin
    -- clkOut(1) : 320.00 MHz asic clock
    -- clkOut(2) : 320.00 MHz asic clock (because HR pll bypass)
    -- clkOut(3) : 320.00 MHz idelay control clock (valid 200MHz to 800MHz)
-   -- clkOut(4) : 45.00 MHz monitoring adc
+   -- clkOut(4) :  45.71 MHz monitoring adc
    U_CoreClockGen : entity work.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
