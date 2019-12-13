@@ -15,8 +15,8 @@ ePixHr10kT:
       Pll_filter1MSB: 0x1
       Pulser: 0x200
       pbit: False
-      atest: True
-      test: True
+      atest: False
+      test: False
       sab_test: False
       hrtest: False
       PulserR: False
@@ -71,7 +71,7 @@ ePixHr10kT:
       SecondOrder: False
       DHg: False
       RefGenC: 0x2
-      dbus_del_sel: True
+      dbus_del_sel: False
       SDclk_b: 0x0
       SDrst_b: 0x8
       Filter_DAC: 0x26

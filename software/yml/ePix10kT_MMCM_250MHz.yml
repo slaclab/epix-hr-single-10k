@@ -5,14 +5,6 @@ ePixHr10kT:
     enable: True
     MMCMRegisters:
       enable: True
-      CLKOUT0PhaseMux: 0
-      CLKOUT0HighTime: 5
-      CLKOUT0LowTime: 5
-      CLKOUT0Frac: 0
-      CLKOUT0FracEn: 0
-      CLKOUT0Edge: 0
-      CLKOUT0NoCount: 0
-      CLKOUT0DelayTime: 0
       CLKOUT1PhaseMux: 0
       CLKOUT1HighTime: 2
       CLKOUT1LowTime: 2
