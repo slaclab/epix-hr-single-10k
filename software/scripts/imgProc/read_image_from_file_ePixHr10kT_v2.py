@@ -135,7 +135,7 @@ else:
 
 f = open(filename, mode = 'rb')
 imgDesc = []
-for i in range(100):
+for i in range(200):
     print("Starting to get data set %d" % (i))
     allFrames = getData(f)
     imgDesc2 = getDescImaData(allFrames)
@@ -145,6 +145,8 @@ for i in range(100):
     else:
         headers = np.concatenate((headers, allFrames[:,0:6]),0)
         imgDesc = np.concatenate((imgDesc, imgDesc2),0)
+    if allFrames.shape[0] != MAX_NUMBER_OF_FRAMES_PER_BATCH:
+        break
 
 
 numberOfFrames = allFrames.shape[0]
