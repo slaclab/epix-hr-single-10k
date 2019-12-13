@@ -437,6 +437,16 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass_OSR128.yml"
             self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
+        if arguments[0] == 7:
+            self.filenameMMCM = "./yml/ePix10kT_MMCM_320MHz.yml"
+            self.filenamePowerSupply = "./yml/ePix10kT_PowerSupply_Enable.yml"
+            self.filenameWaveForms = "./yml/ePix10kT_waveforms_24us_320MHz.yml"
+            self.filenameASIC0 = "./yml/ePixHr10kT_ASIC_u0_PLLBypass.yml"
+            self.filenameASIC1 = "./yml/ePixHr10kT_ASIC_u1_PLLBypass.yml"
+            self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
+            self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass.yml"
+            self.filenameDESER = ""
+            self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
         if arguments[0] != 0:
             self.fnInitAsicScript(dev,cmd,arg)
 
