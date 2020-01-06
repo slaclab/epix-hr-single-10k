@@ -189,7 +189,7 @@ begin
   ----------------------------------------------------------------------------
   -- idelay3 
   ----------------------------------------------------------------------------
-  U_IDELAYE3_0 : IDELAYE3
+  U_IDELAYE3_0 : entity surf.Idelaye3Wrapper 
     generic map (
       CASCADE => "NONE",          -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
       DELAY_FORMAT => "COUNT",     -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -221,7 +221,7 @@ begin
       RST => idelayRst               -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       );    
 
-  ODELAYE3_inst : ODELAYE3
+  ODELAYE3_inst : entity surf.Odelaye3Wrapper 
     generic map (
       CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
       DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
