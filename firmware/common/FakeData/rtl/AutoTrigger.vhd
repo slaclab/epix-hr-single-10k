@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : AutoTrigger
--- Project       : EPIX Readout
+-- File       : AutoTrigger.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- File          : AutoTrigger.vhd
--- Author        : Kurtis Nishimura, kurtisn@slac.stanford.edu
--- Created       : 04/08/2014
--------------------------------------------------------------------------------
--- Description:
--- Generates automatic triggers
+-- Description: Generates automatic triggers
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -17,15 +12,14 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 04/08/2014: created.
--------------------------------------------------------------------------------
 
 LIBRARY ieee;
-use work.all;
-use work.StdRtlPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
 library UNISIM;
 use UNISIM.vcomponents.all;
 

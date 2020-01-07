@@ -1,46 +1,46 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "ePixHr10kT"
--- Project    : 
--------------------------------------------------------------------------------
 -- File       : ePixHr10kT_full_tb.vhd
--- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
--- Company    : 
--- Created    : 2017-05-22
--- Last update: 2019-05-30
--- Platform   : 
--- Standard   : VHDL'87
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Testbench for design "ePixHr10kT"
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 
--------------------------------------------------------------------------------
--- Revisions  :
--- Date        Version  Author  Description
+-- This file is part of 'EPIX HR Firmware'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'EPIX HR Firmware', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_textio.all;
-
-library STD;
-use STD.textio.all;      
 use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 
-use work.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EpixHrCorePkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.Pgp2bPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
+library STD;
+use STD.textio.all;      
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
+use surf.Code8b10bPkg.all;
+
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
+
+library ruckus;
+use ruckus.BuildInfoPkg.all;
+
 use work.HrAdcPkg.all;
-use work.Code8b10bPkg.all;
 use work.AppPkg.all;
-use work.BuildInfoPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -304,7 +304,7 @@ begin  --
   -- clkOut(2) : 64.00 MHz  -- 448 clock div 7
   -- clkOut(3) : 56.00 MHz  -- cryo input clock default is 56MHz
 
-  U_TB_ClockGen : entity work.ClockManagerUltraScale 
+  U_TB_ClockGen : entity surf.ClockManagerUltraScale 
     generic map(
       TPD_G                  => 1 ns,
       TYPE_G                 => "MMCM",  -- or "PLL"
@@ -640,7 +640,7 @@ begin  --
          smaTxP           => smaTxP,
          smaTxN           => smaTxN);
 
-  U_Core : entity work.EpixHrCore
+  U_Core : entity epix_hr_core.EpixHrCore
       generic map (
          TPD_G        => TPD_G,
          BUILD_INFO_G => BUILD_INFO_G,

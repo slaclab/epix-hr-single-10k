@@ -1,17 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
--- File       : Programable Power supply
+-- File       : ProgrammablePowerSupply.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 04/26/2016
--- Last update: 2018-10-19
--- Platform   : Vivado 2014.4
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Change log:
--- 
--------------------------------------------------------------------------------
--- Description: cryo ASIC adapter board registers for the Programable Power
+-- Description: cryo ASIC adapter board registers for the Programmable Power
 -- Supply.
 -------------------------------------------------------------------------------
 -- This file is part of 'EpixHR Development Firmware'.
@@ -28,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
 use work.AppPkg.all;
 
 library unisim;

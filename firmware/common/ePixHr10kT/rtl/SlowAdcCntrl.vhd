@@ -1,10 +1,9 @@
 -------------------------------------------------------------------------------
--- Title         : ADS1217 ADC Controller
--- Project       : EPIX Detector
+-- Title      : ADS1217 ADC Controller
+-- Project    : EPIX Detector
 -------------------------------------------------------------------------------
--- File          : SlowAdcCntrl.vhd
--- Author        : Maciej Kwiatkowski, mkwiatko@slac.stanford.edu
--- Created       : 10/29/2015
+-- File       : SlowAdcCntrl.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- This block is responsible for reading the voltages, currents and strongback  
@@ -19,17 +18,15 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 10/29/2015: created.
--------------------------------------------------------------------------------
 
 LIBRARY ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use ieee.math_real.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SlowAdcCntrl is 
    generic (
@@ -182,7 +179,7 @@ begin
    adcStartEn <= adcStartD1 and not adcStartD2;
 
    -- Instance of the SPI Master controller
-   SPI_Master_i: entity work.SpiMaster
+   SPI_Master_i: entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => 1,

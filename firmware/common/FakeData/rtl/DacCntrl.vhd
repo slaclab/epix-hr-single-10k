@@ -1,13 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : DAC Controller
--- Project       : CSPAD Detector
+-- File       : DacCntrl.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- File          : DacCntrl.vhd
--- Author        : Ryan Herbst, rherbst@slac.stanford.edu
--- Created       : 08/09/2011
--------------------------------------------------------------------------------
--- Description:
--- DAC Controller.
+-- Description: DAC Controller
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -17,12 +12,8 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 08/09/2011: created.
--------------------------------------------------------------------------------
 
 LIBRARY ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;

@@ -1,11 +1,8 @@
-------------------------------------------------------------------------------
--- Title         : DAC 8812 Axi Module 
--- Project       : ePix HR Detector
 -------------------------------------------------------------------------------
--- File          : Dac8812Axi.vhd
+-- File       : Dac8812Axi.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:
--- DAC Controller.
+-- Description: DAC Controller
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -15,22 +12,20 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 08/09/2011: created as DacCntrl.vhd by Ryan
--- 05/19/2017: modifed to Dac8812Cntrl.vhd by Dionisio
--------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
-use work.Dac8812Pkg.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.AppPkg.all;
 
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+
+use work.Dac8812Pkg.all;
+use work.AppPkg.all;
 
 entity DacWaveformGenAxi is
    generic (
@@ -222,19 +217,16 @@ begin
             dacClrL   => dacClrL);
 
 
-    WAVEFORM_MEM_0: entity work.AxiDualPortRam 
+    WAVEFORM_MEM_0: entity surf.AxiDualPortRam 
         generic map(
             TPD_G            => 1 ns,
-            BRAM_EN_G        => true,
-            REG_EN_G         => true,
-            MODE_G           => "read-first",
+            MEMORY_TYPE_G    => "block",
             AXI_WR_EN_G      => true,
             SYS_WR_EN_G      => false,
             SYS_BYTE_WR_EN_G => false,
             COMMON_CLK_G     => false,
             ADDR_WIDTH_G     => ADDR_WIDTH_G,
-            DATA_WIDTH_G     => DATA_WIDTH_G,
-            INIT_G           => "0")
+            DATA_WIDTH_G     => DATA_WIDTH_G)
         port map (
             -- Axi Port
             axiClk         => sysClk,

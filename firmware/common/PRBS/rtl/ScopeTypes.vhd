@@ -1,10 +1,9 @@
 -------------------------------------------------------------------------------
--- Title         : Virtual Oscilloscope Types
--- Project       : EPIX Readout
+-- Title      : Virtual Oscilloscope Types
+-- Project    : EPIX Readout
 -------------------------------------------------------------------------------
--- File          : ScopeTypes.vhd
--- Author        : Kurtis Nishimura, kurtisn@slac.stanford.edu
--- Created       : 03/10/2014
+-- File       : ScopeTypes.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Types for EPIX virtual oscilloscope
@@ -17,9 +16,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 03/10/2014: created.
--------------------------------------------------------------------------------
+
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 

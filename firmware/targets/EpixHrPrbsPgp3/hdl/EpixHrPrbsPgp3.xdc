@@ -165,3 +165,7 @@ set_property -dict {PACKAGE_PIN Y11 IOSTANDARD LVCMOS25} [get_ports {spareHrN[5]
 
 # set_property PACKAGE_PIN V6  [get_ports {gtRefP}]
 # set_property PACKAGE_PIN V5  [get_ports {gtRefN}]
+
+set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_MonAdcReadout/U_AdcBitClkR/O]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]]
+set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_MonAdcReadout/U_AdcBitClkRD4/O]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]]
+set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]] -group [get_clocks adcMonDoClkP]

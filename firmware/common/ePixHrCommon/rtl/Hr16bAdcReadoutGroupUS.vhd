@@ -1,19 +1,17 @@
 -------------------------------------------------------------------------------
 -- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-26
--- Last update: 2019-11-18
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC Readout Controller
 -- Receives ADC Data from an AD9592 chip.
 -- Designed specifically for Xilinx Ultrascale series FPGAs
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC Firmware Standard Library'.
+-- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
+-- No part of 'EPIX HR Firmware', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -23,14 +21,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
 use work.HrAdcPkg.all;
 
+library UNISIM;
+use UNISIM.vcomponents.all;
 
 entity Hr16bAdcReadoutGroupUS is
    generic (
@@ -205,27 +204,39 @@ architecture rtl of Hr16bAdcReadoutGroupUS is
 
 begin
 
+   process(axilR,sDataOutP,sDataOutN)
+      variable index : natural;
+   begin
+      index := conv_integer(axilR.sDataOutControl);
+      if (index >= NUM_CHANNELS_G) or (index > 5) then
+         adcSerialOutP <= '0';
+         adcSerialOutN <= '0';
+      else
+         adcSerialOutP <= sDataOutP(index);
+         adcSerialOutN <= sDataOutN(index);         
+      end if;
+   end process;
 
-  adcSerialOutN <=
-    sDataOutN(0) when axilR.sDataOutControl ="000" else
-    sDataOutN(1) when axilR.sDataOutControl ="001" else
-    sDataOutN(2) when axilR.sDataOutControl ="010" else
-    sDataOutN(3) when axilR.sDataOutControl ="011" else
-    sDataOutN(4) when axilR.sDataOutControl ="100" else
-    sDataOutN(5) when axilR.sDataOutControl ="101" else
-    '0';
+--  adcSerialOutN <=
+--    sDataOutN(0) when axilR.sDataOutControl ="000" else
+--    sDataOutN(1) when axilR.sDataOutControl ="001" else
+--    sDataOutN(2) when axilR.sDataOutControl ="010" else
+--    sDataOutN(3) when axilR.sDataOutControl ="011" else
+--    sDataOutN(4) when axilR.sDataOutControl ="100" else
+--    sDataOutN(5) when axilR.sDataOutControl ="101" else
+--    '0';
 
-  adcSerialOutP <=
-    sDataOutP(0) when axilR.sDataOutControl ="000" else
-    sDataOutP(1) when axilR.sDataOutControl ="001" else
-    sDataOutP(2) when axilR.sDataOutControl ="010" else
-    sDataOutP(3) when axilR.sDataOutControl ="011" else
-    sDataOutP(4) when axilR.sDataOutControl ="100" else
-    sDataOutP(5) when axilR.sDataOutControl ="101" else
-    '0';
+--  adcSerialOutP <=
+--    sDataOutP(0) when axilR.sDataOutControl ="000" else
+--    sDataOutP(1) when axilR.sDataOutControl ="001" else
+--    sDataOutP(2) when axilR.sDataOutControl ="010" else
+--    sDataOutP(3) when axilR.sDataOutControl ="011" else
+--    sDataOutP(4) when axilR.sDataOutControl ="100" else
+--    sDataOutP(5) when axilR.sDataOutControl ="101" else
+--    '0';
   
    -- Regional clock reset
-   ADC_BITCLK_RST_SYNC : entity work.RstSync
+   ADC_BITCLK_RST_SYNC : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 5)
@@ -238,7 +249,7 @@ begin
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
    -------------------------------------------------------------------------------------------------
    GenLockCounters : for i in NUM_CHANNELS_G-1 downto 0 generate
-     SynchronizerOneShotCnt_1 : entity work.SynchronizerOneShotCnt
+     SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
        generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -256,7 +267,7 @@ begin
          rdClk      => axilClk,
          rdRst      => axilRst);
 
-     Synchronizer_1 : entity work.Synchronizer
+     Synchronizer_1 : entity surf.Synchronizer
        generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
@@ -266,7 +277,7 @@ begin
          dataIn  => adcR.locked(i),
          dataOut => lockedSync(i));
 
-     SynchronizerStrmEn : entity work.Synchronizer
+     SynchronizerStrmEn : entity surf.Synchronizer
        generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
@@ -276,7 +287,7 @@ begin
          dataIn  => axilR.adcStreamsEn_n(i),
          dataOut => adcSEnSync(i));
 
-     SynchronizerCounterBERT : entity work.SynchronizerVector 
+     SynchronizerCounterBERT : entity surf.SynchronizerVector 
        generic map(
          TPD_G          => TPD_G,
          STAGES_G       => 2,
@@ -287,7 +298,7 @@ begin
          dataIn  => adcR.counterBERT(i),
          dataOut => counterBERTsync(i));
 
-     SynchronizerCurDelayData : entity work.SynchronizerVector 
+     SynchronizerCurDelayData : entity surf.SynchronizerVector 
        generic map(
          TPD_G          => TPD_G,
          STAGES_G       => 2,
@@ -298,7 +309,7 @@ begin
          dataIn  => curDelayData(i)(9 downto 1),
          dataOut => curDelayDatasync(i)); 
 
-     Synchronizer_idelay_i : entity work.Synchronizer
+     Synchronizer_idelay_i : entity surf.Synchronizer
        generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
@@ -308,7 +319,7 @@ begin
          dataIn  => axilR.idelayRst(i),
          dataOut => idelayRst(i));
 
-     Synchronizer_iserdes_i : entity work.Synchronizer
+     Synchronizer_iserdes_i : entity surf.Synchronizer
        generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
@@ -319,7 +330,7 @@ begin
          dataOut => iserdesRst(i));     
    end generate;
 
-   Synchronizer_Resync : entity work.Synchronizer
+   Synchronizer_Resync : entity surf.Synchronizer
        generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
@@ -328,7 +339,7 @@ begin
          rst     => adcBitRst,
          dataIn  => axilR.resync,
          dataOut => resync);
-  Synchronizer_restartBertSync : entity work.Synchronizer
+  Synchronizer_restartBertSync : entity surf.Synchronizer
      generic map (
        TPD_G    => TPD_G,
        STAGES_G => 2)
@@ -474,10 +485,10 @@ begin
         pixData       => adcData(i)
         );
 
-      U_DataDlyFifo : entity work.SynchronizerFifo
+      U_DataDlyFifo : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
-            BRAM_EN_G    => false,
+            MEMORY_TYPE_G=> "distributed",
             DATA_WIDTH_G => 9,
             ADDR_WIDTH_G => 4,
             INIT_G       => "0")
@@ -618,10 +629,10 @@ begin
    end generate;
 
    -- Single fifo to synchronize adc data to the Stream clock
-   U_DataFifo : entity work.SynchronizerFifo
+   U_DataFifo : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         MEMORY_TYPE_G=> "distributed",
          DATA_WIDTH_G => NUM_CHANNELS_G*NUM_BITS_C,
          ADDR_WIDTH_G => 4,
          INIT_G       => "0")
@@ -635,10 +646,10 @@ begin
          valid  => fifoDataValid,
          dout   => fifoDataOut);
 
-   U_DataFifoDebug : entity work.SynchronizerFifo
+   U_DataFifoDebug : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
+         MEMORY_TYPE_G=> "distributed",
          DATA_WIDTH_G => NUM_CHANNELS_G*NUM_BITS_C,
          ADDR_WIDTH_G => 4,
          INIT_G       => "0")
