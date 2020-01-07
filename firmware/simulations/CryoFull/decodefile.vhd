@@ -2,19 +2,17 @@
 -- Title      : 14b to 12b filestream decoder
 -------------------------------------------------------------------------------
 -- File       : decodefile.vhd
--- Author     : Faisal Abu-Nimeh
--- Created    : 20171106
--- Platform   : Generic
--- Standard   : VHDL'93/02
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:
--- Reads a bit stream from a text file then 14b12bdecodes it.
---
+-- Description: Reads a bit stream from a text file then 14b12bdecodes it.
 -------------------------------------------------------------------------------
--- License:
--- Copyright (c) 2017 SLAC
--- See LICENSE or
--- https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html
+-- This file is part of 'EPIX HR Firmware'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'EPIX HR Firmware', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;

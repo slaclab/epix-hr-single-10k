@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -20,10 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -43,12 +42,16 @@ entity Application is
       -- AXI-Lite Register Interface (sysClk domain)
       -- Register Address Range = [0x80000000:0xFFFFFFFF]
       sAxilReadMaster  : in    AxiLiteReadMasterType;
-      sAxilReadSlave   : out   AxiLiteReadSlaveType;
+      sAxilReadSlave   : out   AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
       sAxilWriteMaster : in    AxiLiteWriteMasterType;
-      sAxilWriteSlave  : out   AxiLiteWriteSlaveType;
+      sAxilWriteSlave  : out   AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
       -- AXI Stream, one per QSFP lane (sysClk domain)
       mAxisMasters     : out   AxiStreamMasterArray(3 downto 0);
       mAxisSlaves      : in    AxiStreamSlaveArray(3 downto 0);
+      -- Auxiliary AXI Stream, (sysClk domain)
+      -- 0 is pseudo scope, 1 is slow adc monitoring
+      sAuxAxisMasters  : out   AxiStreamMasterArray(1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+      sAuxAxisSlaves   : in    AxiStreamSlaveArray(1 downto 0)  := (others=>AXI_STREAM_SLAVE_FORCE_C);
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       mAxiReadMaster   : out   AxiReadMasterType;
@@ -149,27 +152,12 @@ begin
    ---------------------
    -- Heart beat LED  --
    ---------------------
-   U_Heartbeat : entity work.Heartbeat
+   U_Heartbeat : entity surf.Heartbeat
       generic map(
-         PERIOD_IN_G => 10.0E-9
-      )   
+         PERIOD_IN_G => 10.0E-9)   
       port map (
          clk => sysClk,
-         o   => heartBeat
-      );
-
-
-   U_AxiLiteEmpty : entity work.AxiLiteEmpty
-      generic map (
-         TPD_G            => TPD_G,
-         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
-      port map (
-         axiClk         => sysClk,
-         axiClkRst      => sysRst,
-         axiReadMaster  => sAxilReadMaster,
-         axiReadSlave   => sAxilReadSlave,
-         axiWriteMaster => sAxilWriteMaster,
-         axiWriteSlave  => sAxilWriteSlave);
+         o   => heartBeat);
 
    mAxisMasters    <= (others => AXI_STREAM_MASTER_INIT_C);
    mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
@@ -186,8 +174,11 @@ begin
    adcSpiClk       <= '1';
    adcSpiCsL       <= '1';
    adcPdwn         <= '1';
-   adcClkP         <= '0';
-   adcClkM         <= '1';
+   U_adcClk : OBUFDS
+      port map (
+         I  => '0',
+         O  => adcClkP,
+         OB => adcClkM);   
    slowAdcSclk     <= '1';
    slowAdcDin      <= '1';
    slowAdcCsL      <= '1';

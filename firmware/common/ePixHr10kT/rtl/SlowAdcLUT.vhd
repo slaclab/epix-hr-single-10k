@@ -1,10 +1,9 @@
 -------------------------------------------------------------------------------
--- Title         : Slow ADC Look-up-tables for the enviromental data conversion
--- Project       : EPIX Detector
+-- Title      : Slow ADC Look-up-tables for the environmental data conversion
+-- Project    : EPIX Detector
 -------------------------------------------------------------------------------
--- File          : SlowAdcLUT.vhd
--- Author        : Maciej Kwiatkowski, mkwiatko@slac.stanford.edu
--- Created       : 11/09/2015
+-- File       : SlowAdcLUT.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- This block is responsible for the conversion of the voltages, currents  
@@ -18,16 +17,15 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 11/09/2015: created.
--------------------------------------------------------------------------------
 
 LIBRARY ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
 use work.SlowAdcPkg.all;
-use work.StdRtlPkg.all;
 
 --
 -- The Unisim Library is used to define Xilinx primitives. It is also used during
@@ -35,7 +33,6 @@ use work.StdRtlPkg.all;
 --  
 library unisim;
 use unisim.vcomponents.all;
-
 
 entity SlowAdcLUT is 
    port ( 

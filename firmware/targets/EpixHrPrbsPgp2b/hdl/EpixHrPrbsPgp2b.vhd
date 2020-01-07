@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : EpixHrPrbsPgp2b.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: Firmware Target's Top Level
 -------------------------------------------------------------------------------
@@ -18,11 +16,15 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.EpixHrCorePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
+
 use work.AppPkg.all;
 
 entity EpixHrPrbsPgp2b is
@@ -65,7 +67,8 @@ entity EpixHrPrbsPgp2b is
       slowAdcDrdy   : in    sl;
       slowAdcSync   : out   sl;
       -- Slow DACs Port
-      sDacCsL       : out   slv(3 downto 0);
+      sDacCsL       : out   slv(4 downto 0);
+--      sDacCsL       : out   slv(3 downto 0);
       hsDacCsL      : out   sl;
       hsDacEn       : out   sl;
       hsDacLoad     : out   sl;
@@ -161,6 +164,9 @@ architecture top_level of EpixHrPrbsPgp2b is
    -- AXI Stream, one per QSFP lane (sysClk domain)
    signal axisMasters     : AxiStreamMasterArray(3 downto 0);
    signal axisSlaves      : AxiStreamSlaveArray(3 downto 0);
+   -- Auxiliary AXI Stream, (sysClk domain)
+   signal sAuxAxisMasters : AxiStreamMasterArray(1 downto 0);
+   signal sAuxAxisSlaves  : AxiStreamSlaveArray(1 downto 0);  
    -- DDR's AXI Memory Interface (sysClk domain)
    signal axiReadMaster   : AxiReadMasterType;
    signal axiReadSlave    : AxiReadSlaveType;
@@ -192,6 +198,9 @@ begin
          -- AXI Stream, one per QSFP lane (sysClk domain)
          mAxisMasters     => axisMasters,
          mAxisSlaves      => axisSlaves,
+         -- Auxiliary AXI Stream, (sysClk domain)
+         sAuxAxisMasters  => sAuxAxisMasters,
+         sAuxAxisSlaves   => sAuxAxisSlaves,    
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          mAxiReadMaster   => axiReadMaster,
@@ -276,7 +285,7 @@ begin
          smaTxP           => smaTxP,
          smaTxN           => smaTxN);
 
-   U_Core : entity work.EpixHrCore
+   U_Core : entity epix_hr_core.EpixHrCore
       generic map (
          TPD_G        => TPD_G,
          BUILD_INFO_G => BUILD_INFO_G)
@@ -296,6 +305,9 @@ begin
          -- AXI Stream, one per QSFP lane (sysClk domain)
          sAxisMasters     => axisMasters,
          sAxisSlaves      => axisSlaves,
+         -- Auxiliary AXI Stream, (sysClk domain)
+         sAuxAxisMasters  => sAuxAxisMasters,
+         sAuxAxisSlaves   => sAuxAxisSlaves, 
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          sAxiReadMaster   => axiReadMaster,
@@ -309,7 +321,7 @@ begin
          ----------------   
          -- Board IDs Ports
          snIoAdcCard      => snIoAdcCard,
-         snIoCarrier      => snIoCarrier,
+--         snIoCarrier      => snIoCarrier,
          -- QSFP Ports
          qsfpRxP          => qsfpRxP,
          qsfpRxN          => qsfpRxN,

@@ -24,13 +24,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
-use work.Dac8812Pkg.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.AppPkg.all;
 
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+
+use work.AppPkg.all;
+use work.Dac8812Pkg.all;
 
 entity DacWaveformGenAxi is
    generic (
@@ -244,7 +246,7 @@ begin
             dacClrL   => dacClrL);
 
 
-    WAVEFORM_MEM_0: entity work.AxiDualPortRam 
+    WAVEFORM_MEM_0: entity surf.AxiDualPortRam 
         generic map(
             TPD_G            => 1 ns,
             AXI_WR_EN_G      => true,

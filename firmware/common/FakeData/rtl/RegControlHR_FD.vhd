@@ -1,24 +1,14 @@
 -------------------------------------------------------------------------------
--- Title      : 
--------------------------------------------------------------------------------
 -- File       : RegControlhr.vhd
--- Author     : Maciej Kwiatkowski  <mkwiatko@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 04/26/2016
--- Last update: 04/26/2016
--- Platform   : Vivado 2014.4
--- Standard   : VHDL'93/02
--------------------------------------------------------------------------------
--- Change log:
--- [MK] 04/26/2016 - Created
 -------------------------------------------------------------------------------
 -- Description: hr register controller
 -------------------------------------------------------------------------------
--- This file is part of 'CPIX Development Firmware'.
+-- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'CPIX Development Firmware', including this file, 
+-- No part of 'EPIX HR Firmware', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -28,8 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
 use work.AppPkg.all;
 
 library unisim;
@@ -605,7 +597,7 @@ begin
    -- Serial IDs: FPGA Device DNA + DS2411's
    -----------------------------------------------  
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G = true) generate
-      G_DEVICE_DNA : entity work.DeviceDna
+      G_DEVICE_DNA : entity surf.DeviceDna
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -616,7 +608,7 @@ begin
             dnaValid => idValids(0)
          );
       G_DS2411 : for i in 0 to 1 generate
-         U_DS2411_N : entity work.DS2411Core
+         U_DS2411_N : entity surf.DS2411Core
          generic map (
             TPD_G        => TPD_G,
             CLK_PERIOD_G => CLK_PERIOD_G
@@ -643,7 +635,7 @@ begin
    -- Special reset to the DS2411 to re-read in the event of a start up request event
    -- Start up (picoblaze) is disabling the ASIC digital monitors to ensure proper carrier ID readout
    adcCardStartUp <= r.hrRegOut.startupAck or r.hrRegOut.startupFail;
-   U_adcCardStartUpRisingEdge : entity work.SynchronizerEdge
+   U_adcCardStartUpRisingEdge : entity surf.SynchronizerEdge
    generic map (
       TPD_G       => TPD_G)
    port map (

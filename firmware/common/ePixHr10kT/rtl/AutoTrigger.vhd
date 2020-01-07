@@ -1,10 +1,6 @@
 -------------------------------------------------------------------------------
--- Title         : AutoTrigger
--- Project       : EPIX Readout
--------------------------------------------------------------------------------
--- File          : AutoTrigger.vhd
--- Author        : Kurtis Nishimura, kurtisn@slac.stanford.edu
--- Created       : 04/08/2014
+-- File       : AutoTrigger.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Generates automatic triggers
@@ -17,15 +13,14 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 04/08/2014: created.
--------------------------------------------------------------------------------
 
 LIBRARY ieee;
-use work.all;
-use work.StdRtlPkg.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
 library UNISIM;
 use UNISIM.vcomponents.all;
 

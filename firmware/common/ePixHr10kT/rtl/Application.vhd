@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2019-11-14
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -21,18 +19,21 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EpixHrCorePkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.Pgp2bPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
-use work.Ad9249Pkg.all;
-use work.Code8b10bPkg.all;
-use work.HrAdcPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
+use surf.Ad9249Pkg.all;
+use surf.Code8b10bPkg.all;
 
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
+
+use work.HrAdcPkg.all;
 use work.AppPkg.all;
 
 library unisim;
@@ -335,7 +336,7 @@ begin
   -----------------------------------------------------------------------------
   -- Differential asic signals IOBUF & MAPPING
   -----------------------------------------------------------------------------
-  OBUFDS_CLK0 : entity work.ClkOutBufDiff
+  OBUFDS_CLK0 : entity surf.ClkOutBufDiff
   generic map(
     TPD_G         => TPD_G,
     XIL_DEVICE_G  => "ULTRASCALE"
@@ -345,7 +346,7 @@ begin
     clkOutP => asicRoClkP(0),
     clkOutN => asicRoClkN(0));
 
-  OBUFDS_CLK1 : entity work.ClkOutBufDiff
+  OBUFDS_CLK1 : entity surf.ClkOutBufDiff
   generic map(
     TPD_G         => TPD_G,
     XIL_DEVICE_G  => "ULTRASCALE"
@@ -355,7 +356,7 @@ begin
     clkOutP => asicRoClkP(1),
     clkOutN => asicRoClkN(1));
 
-  OBUFDS_CLK2 : entity work.ClkOutBufDiff
+  OBUFDS_CLK2 : entity surf.ClkOutBufDiff
   generic map(
     TPD_G         => TPD_G,
     XIL_DEVICE_G  => "ULTRASCALE"
@@ -365,7 +366,7 @@ begin
     clkOutP => asicRoClkP(2),
     clkOutN => asicRoClkN(2));
 
-  OBUFDS_CLK3 : entity work.ClkOutBufDiff
+  OBUFDS_CLK3 : entity surf.ClkOutBufDiff
   generic map(
     TPD_G         => TPD_G,
     XIL_DEVICE_G  => "ULTRASCALE"
@@ -502,7 +503,7 @@ begin
    -----------------------------------------------------------------------------
    -- ASIC signal routing
   -----------------------------------------------------------------------------
-  AsicPpmatBuf: entity work.OutputBufferReg
+  AsicPpmatBuf: entity surf.OutputBufferReg
     generic map(
       TPD_G          => TPD_G,
       DIFF_PAIR_G    => false)
@@ -511,7 +512,7 @@ begin
       C  => asicRdClk,
       O  => asicPpmat);
 
-  AsicGlblRstBuf: entity work.OutputBufferReg
+  AsicGlblRstBuf: entity surf.OutputBufferReg
     generic map(
       TPD_G          => TPD_G,
       DIFF_PAIR_G    => false)
@@ -520,7 +521,7 @@ begin
       C  => asicRdClk,
       O  => asicGlblRst);
 
-  AsicSyncBuf: entity work.OutputBufferReg
+  AsicSyncBuf: entity surf.OutputBufferReg
     generic map(
       TPD_G          => TPD_G,
       DIFF_PAIR_G    => false)
@@ -529,7 +530,7 @@ begin
       C  => asicRdClk,
       O  => asicSync);
 
-  AsicAcqBuf: entity work.OutputBufferReg
+  AsicAcqBuf: entity surf.OutputBufferReg
     generic map(
       TPD_G          => TPD_G,
       DIFF_PAIR_G    => false)
@@ -538,7 +539,7 @@ begin
       C  => asicRdClk,
       O  => asicAcq);
 
-  AsicR0Buf: entity work.OutputBufferReg 
+  AsicR0Buf: entity surf.OutputBufferReg 
     generic map(
       TPD_G          => TPD_G,
       DIFF_PAIR_G    => false)
@@ -547,7 +548,7 @@ begin
       C  => asicRdClk,
       O  => asicR0);
    
-  AsicSR0Buf: entity work.OutputBufferReg
+  AsicSR0Buf: entity surf.OutputBufferReg
     generic map(
       TPD_G          => TPD_G,
       DIFF_PAIR_G    => false)
@@ -562,7 +563,7 @@ begin
    gtTxP           <= '0';
    gtTxN           <= '1';
 
-   Synchronizer_SR0 : entity work.Synchronizer
+   Synchronizer_SR0 : entity surf.Synchronizer
      generic map (
        TPD_G    => TPD_G,
        STAGES_G => 2)
@@ -582,7 +583,7 @@ begin
    -- clkOut(2) : 320.00 MHz asic clock (because HR pll bypass)
    -- clkOut(3) : 320.00 MHz idelay control clock (valid 200MHz to 800MHz)
    -- clkOut(4) :  45.71 MHz monitoring adc
-   U_CoreClockGen : entity work.ClockManagerUltraScale 
+   U_CoreClockGen : entity surf.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
       TYPE_G                 => "MMCM",  -- or "PLL"
@@ -675,7 +676,7 @@ begin
    );
   
 
-   U_RdPwrUpRst : entity work.PwrUpRst
+   U_RdPwrUpRst : entity surf.PwrUpRst
    generic map (
      SIM_SPEEDUP_G  => SIMULATION_G,
      DURATION_G => 20000000
@@ -700,7 +701,7 @@ begin
    ---------------------------------------------
    -- AXI Lite Async - cross clock domain     --
    ---------------------------------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync 
+   U_AxiLiteAsync : entity surf.AxiLiteAsync 
    generic map(
       TPD_G            => 1 ns,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
@@ -729,7 +730,7 @@ begin
    -- AXI Lite Crossbar for register control  --
    -- Check AppPkg.vhd for addresses          --
    ---------------------------------------------
-   U_AxiLiteCrossbar : entity work.AxiLiteCrossbar
+   U_AxiLiteCrossbar : entity surf.AxiLiteCrossbar
    generic map (
       NUM_SLAVE_SLOTS_G  => HR_FD_NUM_AXI_SLAVE_SLOTS_C,
       NUM_MASTER_SLOTS_G => HR_FD_NUM_AXI_MASTER_SLOTS_C, 
@@ -748,7 +749,7 @@ begin
       axiClkRst           => appRst
    );
 
-  U_ASIC_XBAR : entity work.AxiLiteCrossbar
+  U_ASIC_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -849,7 +850,7 @@ begin
    --------------------------------------------
    -- SACI interface controller              --
    -------------------------------------------- 
-   U_AxiLiteSaciMaster : entity work.AxiLiteSaciMaster
+   U_AxiLiteSaciMaster : entity surf.AxiLiteSaciMaster
    generic map (
       AXIL_CLK_PERIOD_G  => 10.0E-9, -- In units of seconds
       AXIL_TIMEOUT_G     => 1.0E-3,  -- In units of seconds
@@ -926,7 +927,7 @@ begin
    monAdc.chP(3 downto 0)   <= adcMonDoutP(3 downto 0);
    monAdc.chN(3 downto 0)   <= adcMonDoutN(3 downto 0);
       
-   U_MonAdcReadout : entity work.Ad9249ReadoutGroup
+   U_MonAdcReadout : entity surf.Ad9249ReadoutGroup
    generic map (
       TPD_G             => TPD_G,
       NUM_CHANNELS_G    => 4,
@@ -960,7 +961,7 @@ begin
    -- Give a special reset to the SERDES blocks when power
    -- is turned on to ADC card.
    adcCardPowerUp <= anaPwrEn_i and digPwrEn_i;
-   U_AdcCardPowerUpRisingEdge : entity work.SynchronizerEdge
+   U_AdcCardPowerUpRisingEdge : entity surf.SynchronizerEdge
    generic map (
       TPD_G       => TPD_G)
    port map (
@@ -968,7 +969,7 @@ begin
       dataIn      => adcCardPowerUp,
       risingEdge  => adcCardPowerUpEdge
    );
-   U_AdcCardPowerUpReset : entity work.RstSync
+   U_AdcCardPowerUpReset : entity surf.RstSync
    generic map (
       TPD_G           => TPD_G,
       RELEASE_DELAY_G => 50
@@ -979,7 +980,7 @@ begin
       syncRst  => serdesReset
    );
 
-   U_IdelayCtrlReset : entity work.RstSync
+   U_IdelayCtrlReset : entity surf.RstSync
    generic map (
       TPD_G           => TPD_G,
       RELEASE_DELAY_G => 250
@@ -993,7 +994,7 @@ begin
    --------------------------------------------
    --     Fast ADC Config                    --
    --------------------------------------------
-   U_AdcConf : entity work.Ad9249Config
+   U_AdcConf : entity surf.Ad9249Config
    generic map (
       TPD_G             => TPD_G,
       AXIL_CLK_PERIOD_G => 10.0e-9,
@@ -1144,7 +1145,7 @@ begin
       -------------------------------------------------------
       -- ASIC AXI stream framers
       -------------------------------------------------------
-      U_AXI_PRBS : entity work.SsiPrbsTx 
+      U_AXI_PRBS : entity surf.SsiPrbsTx 
       generic map(         
          TPD_G                      => TPD_G,
          MASTER_AXI_PIPE_STAGES_G   => 1,
@@ -1171,7 +1172,7 @@ begin
          axilWriteMaster => mAxiWriteMasters(PRBS0_AXI_INDEX_C+i),
          axilWriteSlave  => mAxiWriteSlaves(PRBS0_AXI_INDEX_C+i));
       
-      U_STREAM_MUX : entity work.AxiStreamMux 
+      U_STREAM_MUX : entity surf.AxiStreamMux 
         generic map(
           TPD_G                => TPD_G,
           NUM_SLAVES_G         => 2,
@@ -1318,7 +1319,7 @@ begin
    -------------------------------------------------------
    -- AXI stream monitoring                             --
    -------------------------------------------------------
-   U_AxiSMonitor : entity work.AxiStreamMonAxiL 
+   U_AxiSMonitor : entity surf.AxiStreamMonAxiL 
    generic map(
       TPD_G           => 1 ns,
       COMMON_CLK_G    => false,  -- true if axisClk = statusClk
@@ -1354,7 +1355,7 @@ begin
    end generate;
 
    DDR_GEN : if (DDR_GEN_G) generate
-     U_AxiMemTester : entity work.AxiMemTester
+     U_AxiMemTester : entity surf.AxiMemTester
        generic map (
          TPD_G        => TPD_G,
          START_ADDR_G => START_ADDR_C,
@@ -1380,7 +1381,7 @@ begin
          axiReadSlave    => mAxiReadSlave
          );
 
-     U_StartDdrTest : entity work.PwrUpRst
+     U_StartDdrTest : entity surf.PwrUpRst
        generic map (
          DURATION_G => 10000000
          )

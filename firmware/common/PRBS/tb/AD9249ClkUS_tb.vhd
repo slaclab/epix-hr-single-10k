@@ -1,42 +1,37 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "AD9249ClkUS"
--- Project    : 
--------------------------------------------------------------------------------
 -- File       : AD9249ClkUS_tb.vhd
--- Author     : Dionisio Doering  <ddoering@tid-pc94280.slac.stanford.edu>
--- Company    : 
--- Created    : 2017-05-22
--- Last update: 2018-03-05
--- Platform   : 
--- Standard   : VHDL'87
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Testbench for design "AD9249ClkUS"
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 
--------------------------------------------------------------------------------
--- Revisions  :
--- Date        Version  Author  Description
+-- This file is part of 'EPIX HR Firmware'.
+-- It is subject to the license terms in the LICENSE.txt file found in the 
+-- top-level directory of this distribution and at: 
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+-- No part of 'EPIX HR Firmware', including this file, 
+-- may be copied, modified, propagated, or distributed except according to 
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
-use work.all;
-use work.StdRtlPkg.all;
-
 use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EpixHrCorePkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.Pgp2bPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
-use work.Ad9249Pkg.all;
-use work.Code8b10bPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
+use surf.Ad9249Pkg.all;
+use surf.Code8b10bPkg.all;
+
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
 
 use work.AppPkg.all;
 
@@ -85,7 +80,7 @@ architecture AD9249ClkUS_arch of AD9249ClkUS_tb is
 begin  -- Dac8812Cntrl_arch
 
   -- component instantiation
-  DUT0: entity work.Ad9249ReadoutClkUS
+  DUT0: entity surf.Ad9249ReadoutClkUS
      generic map (
       TPD_G             => TPD_G,
       NUM_CHANNELS_G    => 8,
@@ -130,7 +125,7 @@ begin  -- Dac8812Cntrl_arch
       
       );
 
-    DUT1: entity work.Ad9249DeserializerUS
+    DUT1: entity surf.Ad9249DeserializerUS
      generic map (
       TPD_G             => TPD_G,
       NUM_CHANNELS_G    => 8,

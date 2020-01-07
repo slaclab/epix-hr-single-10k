@@ -1,10 +1,9 @@
 -------------------------------------------------------------------------------
--- Title         : ADS1217 ADC Controller
--- Project       : EPIX Detector
+-- Title      : ADS1217 ADC Controller
+-- Project    : EPIX Detector
 -------------------------------------------------------------------------------
--- File          : SlowAdcCntrlAxi.vhd
--- Author        : Maciej Kwiatkowski, mkwiatko@slac.stanford.edu
--- Created       : 10/29/2015
+-- File       : SlowAdcCntrlAxi.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- This block is responsible for reading the voltages, currents and strongback  
@@ -19,21 +18,18 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 10/29/2015: created.
--- 04/07/2017: added AXI lite and AXI stream busses
--------------------------------------------------------------------------------
 
 LIBRARY ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 use ieee.math_real.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SlowAdcCntrlAxi is 
    generic (
@@ -193,7 +189,7 @@ begin
    -----------------------------------------------------------------------------------------------------------------------
    
    DSync_G : for i in 0 to 8 generate 
-      DaSync_U: entity work.SynchronizerVector
+      DaSync_U: entity surf.SynchronizerVector
       generic map (         
          WIDTH_G  => 24
       )
@@ -203,7 +199,7 @@ begin
          dataIn  => adcData(i),
          dataOut => adcDataSync(i)
       );
-      DeSync_U: entity work.SynchronizerVector
+      DeSync_U: entity surf.SynchronizerVector
       generic map (         
          WIDTH_G  => 32
       )
@@ -215,7 +211,7 @@ begin
       );
    end generate;
    
-   EnSync_U: entity work.Synchronizer
+   EnSync_U: entity surf.Synchronizer
    port map (
       clk     => sysClk,
       rst     => sysClkRst,
@@ -223,7 +219,7 @@ begin
       dataOut => streamEnSync
    );
    
-   SpSync_U: entity work.SynchronizerVector
+   SpSync_U: entity surf.SynchronizerVector
    generic map (         
       WIDTH_G  => 32
    )
@@ -337,7 +333,7 @@ begin
    adcStartEn <= adcStartD1 and not adcStartD2;
 
    -- Instance of the SPI Master controller
-   SPI_Master_i: entity work.SpiMaster
+   SPI_Master_i: entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => 1,
@@ -621,7 +617,7 @@ begin
    monitorTrig <= '1' when monTrigCnt >= streamPeriodSync and streamEnSync = '1' and streamPeriodSync /= 0 else '0';
    
    -- Stream sync FIFO
-   AxiStreamFifo_U: entity work.AxiStreamFifo
+   AxiStreamFifo_U: entity surf.AxiStreamFifoV2
    generic map (
       SLAVE_AXI_CONFIG_G   => ssiAxiStreamConfig(4),
       MASTER_AXI_CONFIG_G  => ssiAxiStreamConfig(4)

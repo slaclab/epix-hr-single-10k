@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2018-03-19
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -21,16 +19,19 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EpixHrCorePkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.Pgp2bPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
-use work.Ad9249Pkg.all;
-use work.Code8b10bPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
+use surf.Ad9249Pkg.all;
+use surf.Code8b10bPkg.all;
+
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
 
 use work.AppPkg.all;
 
@@ -111,7 +112,9 @@ entity Application is
       -- Slow DACs Port
       sDacCsL          : out   slv(4 downto 0);
       hsDacCsL         : out   sl;
+      hsDacEn          : out   sl := '0';
       hsDacLoad        : out   sl;
+      hsDacClrL        : out   sl := '0';
       dacClrL          : out   sl;
       dacSck           : out   sl;
       dacDin           : out   sl;
@@ -261,6 +264,7 @@ architecture mapping of Application is
 
    -- DDR signals
    signal startDdrTest_n       : sl;
+   signal startDdrTest         : sl;
    -- DDR sconstants
    constant DDR_AXI_CONFIG_C : AxiConfigType := axiConfig(
       ADDR_WIDTH_C => 15,
@@ -290,7 +294,7 @@ begin
    ---------------------
    -- Heart beat LED  --
    ---------------------
-   U_Heartbeat : entity work.Heartbeat
+   U_Heartbeat : entity surf.Heartbeat
       generic map(
          PERIOD_IN_G => 10.0E-9
       )   
@@ -365,7 +369,7 @@ begin
    -- clkOut(2) : 100.00 MHz asic clock
    -- clkOut(3) : 300.00 MHz idelay control clock
    -- clkOut(4) :  50.00 MHz monitoring adc
-   U_CoreClockGen : entity work.ClockManagerUltraScale 
+   U_CoreClockGen : entity surf.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
       TYPE_G                 => "MMCM",  -- or "PLL"
@@ -444,7 +448,7 @@ begin
       I => asicClk      -- 1-bit input: Buffer
    );
 
-   U_RdPwrUpRst : entity work.PwrUpRst
+   U_RdPwrUpRst : entity surf.PwrUpRst
    generic map (
       DURATION_G => 20000000
    )
@@ -469,7 +473,7 @@ begin
    U_AdcClk2 : OBUFDS port map ( I => adcClk, O => adcClkP, OB => adcClkM );
 
 
-   U_AxiLiteAsync : entity work.AxiLiteAsync 
+   U_AxiLiteAsync : entity surf.AxiLiteAsync 
    generic map(
       TPD_G            => 1 ns,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
@@ -516,7 +520,7 @@ begin
    -- Master 15 : Monit. ADC                  --
    -- Master  ? : App Registers (waveform)    --
    ---------------------------------------------
-   U_AxiLiteCrossbar : entity work.AxiLiteCrossbar
+   U_AxiLiteCrossbar : entity surf.AxiLiteCrossbar
    generic map (
       NUM_SLAVE_SLOTS_G  => HR_FD_NUM_AXI_SLAVE_SLOTS_C,
       NUM_MASTER_SLOTS_G => HR_FD_NUM_AXI_MASTER_SLOTS_C, 
@@ -578,7 +582,7 @@ begin
       -------------------------------------------------------
       -- ASIC AXI stream framers
       -------------------------------------------------------
-      U_AXI_PRBS : entity work.SsiPrbsTx 
+      U_AXI_PRBS : entity surf.SsiPrbsTx 
       generic map(         
          TPD_G                      => TPD_G,
          MASTER_AXI_PIPE_STAGES_G   => 1,
@@ -607,7 +611,7 @@ begin
    end generate;
 
 
-   U_AxiSMonitor : entity work.AxiStreamMonAxiL 
+   U_AxiSMonitor : entity surf.AxiStreamMonAxiL 
    generic map(
       TPD_G           => 1 ns,
       COMMON_CLK_G    => false,  -- true if axisClk = statusClk
@@ -618,8 +622,8 @@ begin
       -- AXIS Stream Interface
       axisClk         => sysClk,
       axisRst         => axiRst,
-      axisMaster      => imAxisMasters,
-      axisSlave       => mAxisSlaves,
+      axisMasters     => imAxisMasters,
+      axisSlaves      => mAxisSlaves,
       -- AXI lite slave port for register access
       axilClk         => appClk,  
       axilRst         => axiRst,   
@@ -677,12 +681,11 @@ begin
    monAdc.chP(3 downto 0)   <= adcMonDoutP(3 downto 0);
    monAdc.chN(3 downto 0)   <= adcMonDoutN(3 downto 0);
       
-   U_MonAdcReadout : entity work.Ad9249ReadoutGroup
+   U_MonAdcReadout : entity surf.Ad9249ReadoutGroup
    generic map (
       TPD_G             => TPD_G,
       NUM_CHANNELS_G    => 4,
       IODELAY_GROUP_G   => IODELAY_GROUP_G,
-      XIL_DEVICE_G      => "ULTRASCALE",
       IDELAYCTRL_FREQ_G => 200.0,
       DEFAULT_DELAY_G   => (others => '0'),
       ADC_INVERT_CH_G   => "00000010"
@@ -712,7 +715,7 @@ begin
    -- Give a special reset to the SERDES blocks when power
    -- is turned on to ADC card.
    adcCardPowerUp <= anaPwrEn_i and digPwrEn_i;
-   U_AdcCardPowerUpRisingEdge : entity work.SynchronizerEdge
+   U_AdcCardPowerUpRisingEdge : entity surf.SynchronizerEdge
    generic map (
       TPD_G       => TPD_G)
    port map (
@@ -720,7 +723,7 @@ begin
       dataIn      => adcCardPowerUp,
       risingEdge  => adcCardPowerUpEdge
    );
-   U_AdcCardPowerUpReset : entity work.RstSync
+   U_AdcCardPowerUpReset : entity surf.RstSync
    generic map (
       TPD_G           => TPD_G,
       RELEASE_DELAY_G => 50
@@ -731,7 +734,7 @@ begin
       syncRst  => serdesReset
    );
 
-   U_IdelayCtrlReset : entity work.RstSync
+   U_IdelayCtrlReset : entity surf.RstSync
    generic map (
       TPD_G           => TPD_G,
       RELEASE_DELAY_G => 250
@@ -746,12 +749,12 @@ begin
    --     Fast ADC Config                    --
    --------------------------------------------
    
-   U_AdcConf : entity work.Ad9249Config
+   U_AdcConf : entity surf.Ad9249Config
    generic map (
       TPD_G             => TPD_G,
       AXIL_CLK_PERIOD_G => 10.0e-9,
-      NUM_CHIPS_G       => 1,
-      AXIL_ERR_RESP_G   => AXI_RESP_OK_C
+      NUM_CHIPS_G       => 1
+--      AXIL_ERR_RESP_G   => AXI_RESP_OK_C
    )
    port map (
       axilClk           => appClk,
@@ -817,7 +820,7 @@ begin
    --   mAxiReadMaster  <= AXI_READ_MASTER_INIT_C;
    --   mAxiWriteMaster <= AXI_WRITE_MASTER_INIT_C;
 
-   U_AxiMemTester : entity work.AxiMemTester
+   U_AxiMemTester : entity surf.AxiMemTester
    generic map (
       TPD_G        => TPD_G,
       START_ADDR_G => START_ADDR_C,
@@ -836,14 +839,16 @@ begin
       -- DDR Memory Interface
       axiClk          => sysClk,
       axiRst          => axiRst,
-      start           => not startDdrTest_n, -- input signal that starts the test (not possible to use axil at the current version)
+      start           => startDdrTest, -- input signal that starts the test (not possible to use axil at the current version)
       axiWriteMaster  => mAxiWriteMaster,
       axiWriteSlave   => mAxiWriteSlave,
       axiReadMaster   => mAxiReadMaster,
       axiReadSlave    => mAxiReadSlave
    );
 
-   U_StartDdrTest : entity work.PwrUpRst
+   startDdrTest <= not startDdrTest_n;
+
+   U_StartDdrTest : entity surf.PwrUpRst
    generic map (
       DURATION_G => 10000000
    )

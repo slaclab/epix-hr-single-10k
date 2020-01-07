@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : Application.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-04-21
--- Last update: 2017-04-24
 -------------------------------------------------------------------------------
 -- Description: Application Core's Top Level
 -------------------------------------------------------------------------------
@@ -21,14 +19,15 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.Pgp2bPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
-use work.Code8b10bPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
+use surf.Code8b10bPkg.all;
 
 use work.AppPkg.all;
 
@@ -58,6 +57,10 @@ entity Application is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       mAxisMasters     : out   AxiStreamMasterArray(3 downto 0);
       mAxisSlaves      : in    AxiStreamSlaveArray(3 downto 0);
+      -- Auxiliary AXI Stream, (sysClk domain)
+      -- 0 is pseudo scope, 1 is slow adc monitoring
+      sAuxAxisMasters  : out   AxiStreamMasterArray(1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
+      sAuxAxisSlaves   : in    AxiStreamSlaveArray(1 downto 0)  := (others=>AXI_STREAM_SLAVE_FORCE_C);
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       mAxiReadMaster   : out   AxiReadMasterType;
@@ -223,7 +226,7 @@ begin
    ---------------------
    -- Heart beat LED  --
    ---------------------
-   U_Heartbeat : entity work.Heartbeat
+   U_Heartbeat : entity surf.Heartbeat
       generic map(
          PERIOD_IN_G => 10.0E-9
       )   
@@ -233,7 +236,7 @@ begin
       );
 
 
---   U_AxiLiteEmpty : entity work.AxiLiteEmpty
+--   U_AxiLiteEmpty : entity surf.AxiLiteEmpty
 --      generic map (
 --         TPD_G            => TPD_G,
 --         AXI_ERROR_RESP_G => AXI_ERROR_RESP_G)
@@ -298,7 +301,7 @@ begin
    -- clkIn     : 156.25 MHz PGP
    -- clkOut(0) : 100.00 MHz app clock
    -- clkOut(1) : 100.00 MHz asic clock
-   U_CoreClockGen : entity work.ClockManagerUltraScale 
+   U_CoreClockGen : entity surf.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
       TYPE_G                 => "MMCM",  -- or "PLL"
@@ -353,7 +356,7 @@ begin
       CLR => '0'
    );
 
-   U_RdPwrUpRst : entity work.PwrUpRst
+   U_RdPwrUpRst : entity surf.PwrUpRst
    generic map (
       DURATION_G => 20000000
    )
@@ -363,7 +366,7 @@ begin
    );
 
 
-   U_AxiLiteAsync : entity work.AxiLiteAsync 
+   U_AxiLiteAsync : entity surf.AxiLiteAsync 
    generic map(
       TPD_G            => 1 ns,
       AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
@@ -396,7 +399,7 @@ begin
    -- Master 1 : App Registers               --
    -- Master 2 : Trigger Resiters            --
    --------------------------------------------
-   U_AxiLiteCrossbar : entity work.AxiLiteCrossbar
+   U_AxiLiteCrossbar : entity surf.AxiLiteCrossbar
    generic map (
       NUM_SLAVE_SLOTS_G  => HR_FD_NUM_AXI_SLAVE_SLOTS_C,
       NUM_MASTER_SLOTS_G => HR_FD_NUM_AXI_MASTER_SLOTS_C, 
@@ -528,7 +531,7 @@ begin
    end generate;
 
 
-   U_AxiSMonitor : entity work.AxiStreamMonAxiL 
+   U_AxiSMonitor : entity surf.AxiStreamMonAxiL 
    generic map(
       TPD_G             => 1 ns,
       COMMON_CLK_G      => false,  -- true if axisClk = statusClk
@@ -539,8 +542,8 @@ begin
       -- AXIS Stream Interface
       axisClk         => sysClk,
       axisRst         => axiRst,
-      axisMaster      => imAxisMasters,
-      axisSlave       => mAxisSlaves,
+      axisMasters     => imAxisMasters,
+      axisSlaves      => mAxisSlaves,
       -- AXI lite slave port for register access
       axilClk         => appClk,  
       axilRst         => axiRst,   

@@ -1,33 +1,28 @@
 -------------------------------------------------------------------------------
--- Title         : DigitalAsicStreamAxi
--- Project       : Hr Detectors
--------------------------------------------------------------------------------
--- File          : DigitalAsicStreamAxi.vhd
--- Created       : 7/12/2018
+-- File       : DigitalAsicStreamAxi.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -------------------------------------------------------------------------------
--- This file is part of 'Hr ADC Development Firmware'.
+-- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'EPIX Development Firmware', including this file, 
+-- No part of 'EPIX HR Firmware', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 4/27/2017: created.
--------------------------------------------------------------------------------
 
 LIBRARY ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity DigitalAsicStreamAxi is 
    generic (
@@ -244,7 +239,7 @@ begin
    end generate;
    
    -- synchronizers
-   Sync1_U : entity work.SynchronizerVector
+   Sync1_U : entity surf.SynchronizerVector
      generic map (
        WIDTH_G => 2)
    port map (
@@ -254,7 +249,7 @@ begin
       dataOut => testModeSync
    );
 
-  AcqNoSync_U : entity work.SynchronizerVector
+  AcqNoSync_U : entity surf.SynchronizerVector
      generic map (
        WIDTH_G => 32)
    port map (
@@ -268,7 +263,7 @@ begin
    -- Instatiate one decoder per data stream.
    ----------------------------------------------------------------------------
    U_DECODERS : for i in 0 to STREAMS_PER_ASIC_G-1 generate
-     Dec8b10b_U : entity work.SspDecoder8b10b 
+     Dec8b10b_U : entity surf.SspDecoder8b10b 
        generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -286,7 +281,7 @@ begin
      --------------------------------------------------------------------------
      -- 12b14b decoder with SSP output
      --------------------------------------------------------------------------
---     Dec12b14b_U : entity work.SspDecoder12b14b 
+--     Dec12b14b_U : entity surf.SspDecoder12b14b 
 --       generic map (
 --         TPD_G          => TPD_G,
 --         RST_POLARITY_G => '1',
@@ -313,7 +308,7 @@ begin
      -- async fifo for data
      -- for synchronization and small data pipeline
      -- not to store the whole frame
-     DataFifo_U : entity work.FifoCascade
+     DataFifo_U : entity surf.FifoCascade
        generic map (
          GEN_SYNC_FIFO_G   => false,
          FWFT_EN_G         => true,
@@ -345,11 +340,10 @@ begin
    ----------------------------------------------------------------------------
    -- must be able to store whole frame if AXIS is muxed
    ----------------------------------------------------------------------------
-   AxisFifo_U: entity work.AxiStreamFifo
+   AxisFifo_U: entity surf.AxiStreamFifoV2
    generic map(
       GEN_SYNC_FIFO_G      => false,
       FIFO_ADDR_WIDTH_G    => 13,
-      XIL_DEVICE_G         => "ULTRASCALE",
       SLAVE_AXI_CONFIG_G   => AXI_STREAM_CONFIG_I_C,
       MASTER_AXI_CONFIG_G  => AXI_STREAM_CONFIG_O_C
    )

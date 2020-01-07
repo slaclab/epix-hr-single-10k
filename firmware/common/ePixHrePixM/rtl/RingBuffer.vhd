@@ -1,10 +1,6 @@
 -------------------------------------------------------------------------------
--- Title         : Ring Buffer
--- Project       : EPIX Readout
--------------------------------------------------------------------------------
--- File          : RingBuffer.vhd
--- Author        : Kurtis Nishimura, kurtisn@slac.stanford.edu
--- Created       : 03/10/2014
+-- File       : RingBuffer.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Ring buffer, originally made for use with the pseudo oscilloscope for ePix.
@@ -17,19 +13,17 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 03/10/2014: created.
--------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity RingBuffer is
    generic (
-      BRAM_EN_G    : boolean := true;
+      MEMORY_TYPE_G: string := "block";
       DATA_WIDTH_G : integer := 16;
       ADDR_WIDTH_G : integer := 12);
    port (
@@ -86,9 +80,9 @@ architecture rtl of RingBuffer is
    
 begin
 
-   SimpleDualPortRam_Inst : entity work.SimpleDualPortRam
+   SimpleDualPortRam_Inst : entity surf.SimpleDualPortRam
       generic map(
-         BRAM_EN_G    => true,
+         MEMORY_TYPE_G=> "block",
          DATA_WIDTH_G => 16,
          ADDR_WIDTH_G => ADDR_WIDTH_G)
       port map (

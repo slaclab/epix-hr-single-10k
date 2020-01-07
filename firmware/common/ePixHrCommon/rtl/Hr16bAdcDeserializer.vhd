@@ -1,19 +1,17 @@
 -------------------------------------------------------------------------------
 -- File       : Hr16bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-26
--- Last update: 2019-11-05
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
 -- Receives serial ADC Data from an Hr12bAdc SLAC ASIC.
 -- Designed specifically for Xilinx Ultrascale series FPGAs
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC Firmware Standard Library'.
+-- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
+-- No part of 'EPIX HR Firmware', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -22,17 +20,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-
 use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
 
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+
+use work.HrAdcPkg.all;
+
 library UNISIM;
 use UNISIM.vcomponents.all;
-
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.HrAdcPkg.all;
 
 entity Hr16bAdcDeserializer is
    generic (
@@ -189,7 +188,7 @@ begin
   ----------------------------------------------------------------------------
   -- idelay3 
   ----------------------------------------------------------------------------
-  U_IDELAYE3_0 : IDELAYE3
+  U_IDELAYE3_0 : entity surf.Idelaye3Wrapper 
     generic map (
       CASCADE => "NONE",          -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
       DELAY_FORMAT => "COUNT",     -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -221,7 +220,7 @@ begin
       RST => idelayRst               -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       );    
 
-  ODELAYE3_inst : ODELAYE3
+  ODELAYE3_inst : entity surf.Odelaye3Wrapper 
     generic map (
       CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
       DELAY_FORMAT => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)

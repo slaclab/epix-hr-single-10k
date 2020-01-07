@@ -1,19 +1,17 @@
 -------------------------------------------------------------------------------
 -- File       : Hr12bAdcDeserializerUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-26
--- Last update: 2018-07-10
 -------------------------------------------------------------------------------
 -- Description:
 -- ADC data deserializer
 -- Receives serial ADC Data from an Hr12bAdc SLAC ASIC.
 -- Designed specifically for Xilinx Ultrascale series FPGAs
 -------------------------------------------------------------------------------
--- This file is part of 'SLAC Firmware Standard Library'.
+-- This file is part of 'EPIX HR Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
 -- top-level directory of this distribution and at: 
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
+-- No part of 'EPIX HR Firmware', including this file, 
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -22,17 +20,17 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-
-use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+
+use work.HrAdcPkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
-
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.HrAdcPkg.all;
 
 entity Hr12bAdcDeserializerUS is
    generic (
@@ -202,7 +200,7 @@ begin
   ----------------------------------------------------------------------------
   -- idelay3 
   ----------------------------------------------------------------------------
-  U_IDELAYE3_0 : IDELAYE3
+  U_IDELAYE3_0 : entity surf.Idelaye3Wrapper 
     generic map (
       CASCADE => "NONE",          -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
       DELAY_FORMAT => "COUNT",     -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -267,7 +265,7 @@ begin
   -----------------------------------------------------------------------------
   -- crossing clock domain
   -----------------------------------------------------------------------------
-  U_sync_0: entity work.SynchronizerOneShot 
+  U_sync_0: entity surf.SynchronizerOneShot 
    generic map(
       TPD_G           => 1 ns,   -- Simulation FF output delay
       RST_POLARITY_G  => '1',    -- '1' for active HIGH reset, '0' for active LOW reset

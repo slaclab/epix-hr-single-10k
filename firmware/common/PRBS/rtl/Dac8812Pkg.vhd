@@ -1,12 +1,8 @@
 -------------------------------------------------------------------------------
--- Title         : DAC 8812 package
--- Project       : EPIX HR Readout
+-- File       : Dac8812Pkg.vhd
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- File          : Dac8812Pkg.vhd
--- Created       : 06/02/2017
--------------------------------------------------------------------------------
--- Description:
--- Types for DAC 8812 DAC
+-- Description: Types for DAC 8812 DAC
 -------------------------------------------------------------------------------
 -- This file is part of 'EPIX HR Development Firmware'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -16,9 +12,7 @@
 -- may be copied, modified, propagated, or distributed except according to 
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
--- Modification history:
--- 06/02/2017: created by Dionisio Doering.
--------------------------------------------------------------------------------
+
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 
