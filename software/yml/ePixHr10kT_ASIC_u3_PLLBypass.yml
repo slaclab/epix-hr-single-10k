@@ -3,7 +3,7 @@ ePixHr10kT:
   ForceWrite: False
   EpixHR:
     enable: True
-    Hr10kTAsic0:
+    Hr10kTAsic3:
       enable: True
       shvc_DAC: 0x17
       fastPP_enable: False

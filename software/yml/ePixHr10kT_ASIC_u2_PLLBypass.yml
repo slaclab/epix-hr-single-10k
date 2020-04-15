@@ -24,12 +24,12 @@ ePixHr10kT:
       DigMon2: 0x1
       PulserDac: 0x3
       MonostPulser: 0x0
-      RefGenB: 0x1
-      Dm1En: True
+      RefGenB: 0x3
+      Dm1En: False
       Dm2En: False
       emph_bd: 0x0
       emph_bc: 0x0
-      VRef_DAC: 0x10
+      VRef_DAC: 0x35
       VRefLow: 0x3
       trbit: False
       TpsMux: 0x0
@@ -41,7 +41,7 @@ ePixHr10kT:
       Monost: 0x3
       mTest: False
       Preamp: 0x4
-      S2D_1_b: 0x3
+      S2D_1_b: 0x0
       Vld1_b: 0x1
       CompTH_DAC: 0x2a
       TC: 0x0
@@ -69,12 +69,12 @@ ePixHr10kT:
       Debug_bit: 0x1
       OSRsel: False
       SecondOrder: False
-      DHg: False
+      DHg: True
       RefGenC: 0x2
       dbus_del_sel: False
       SDclk_b: 0x0
-      SDrst_b: 0x8
+      SDrst_b: 0x2
       Filter_DAC: 0x26
       CompEn: 0x7
       Pixel_CB: 0x4
-      rowCK2matrix_delay: 0x4
+      rowCK2matrix_delay: 0x8
