@@ -1,0 +1,133 @@
+ePixHr10kT:
+  enable: True
+  ForceWrite: False
+  EpixHR:
+    enable: True
+    DeserRegisters0:
+      enable: True
+      StreamsEn_n: 0x0
+      IdelayRst: 0x0
+      IserdeseRst: 0x0
+      Resync: False
+      Delay0_: 308
+      Delay0: 308
+      Delay1_: 119
+      Delay1: 119
+      Delay2_: 408
+      Delay2: 408
+      Delay3_: 373
+      Delay3: 373
+      Delay4_: 349
+      Delay4: 349
+      Delay5_: 323
+      Delay5: 323
+      FreezeDebug: False
+      BERTRst: False
+      tenbData_ser0:
+        enable: True
+      tenbData_ser1:
+        enable: True
+      tenbData_ser2:
+        enable: True
+      tenbData_ser3:
+        enable: True
+      tenbData_ser4:
+        enable: True
+      tenbData_ser5:
+        enable: True
+    DeserRegisters1:
+      enable: True
+      StreamsEn_n: 0x0
+      IdelayRst: 0x0
+      IserdeseRst: 0x0
+      Resync: False
+      Delay0_: 133
+      Delay0: 133
+      Delay1_: 248
+      Delay1: 248
+      Delay2_: 252
+      Delay2: 252
+      Delay3_: 221
+      Delay3: 221
+      Delay4_: 177
+      Delay4: 177
+      Delay5_: 153
+      Delay5: 153
+      FreezeDebug: False
+      BERTRst: False
+      tenbData_ser0:
+        enable: ParentFalse
+      tenbData_ser1:
+        enable: ParentFalse
+      tenbData_ser2:
+        enable: ParentFalse
+      tenbData_ser3:
+        enable: ParentFalse
+      tenbData_ser4:
+        enable: ParentFalse
+      tenbData_ser5:
+        enable: ParentFalse
+    DeserRegisters2:
+      enable: True
+      StreamsEn_n: 0x0
+      IdelayRst: 0x0
+      IserdeseRst: 0x0
+      Resync: False
+      Delay0_: 403
+      Delay0: 403
+      Delay1_: 256
+      Delay1: 256
+      Delay2_: 405
+      Delay2: 405
+      Delay3_: 184
+      Delay3: 184
+      Delay4_: 410
+      Delay4: 410
+      Delay5_: 117
+      Delay5: 117
+      FreezeDebug: False
+      BERTRst: False
+      tenbData_ser0:
+        enable: True
+      tenbData_ser1:
+        enable: True
+      tenbData_ser2:
+        enable: True
+      tenbData_ser3:
+        enable: True
+      tenbData_ser4:
+        enable: True
+      tenbData_ser5:
+        enable: True
+    DeserRegisters3:
+      enable: True
+      StreamsEn_n: 0x0
+      IdelayRst: 0x0
+      IserdeseRst: 0x0
+      Resync: False
+      Delay0_: 343
+      Delay0: 343
+      Delay1_: 177
+      Delay1: 177
+      Delay2_: 106
+      Delay2: 106
+      Delay3_: 389
+      Delay3: 389
+      Delay4_: 368
+      Delay4: 368
+      Delay5_: 359
+      Delay5: 359
+      FreezeDebug: False
+      BERTRst: False
+      tenbData_ser0:
+        enable: ParentFalse
+      tenbData_ser1:
+        enable: ParentFalse
+      tenbData_ser2:
+        enable: ParentFalse
+      tenbData_ser3:
+        enable: ParentFalse
+      tenbData_ser4:
+        enable: ParentFalse
+      tenbData_ser5:
+        enable: ParentFalse
