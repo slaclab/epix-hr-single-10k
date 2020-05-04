@@ -437,13 +437,10 @@ begin
             end if;
          end if;
          
-         -- single pulse. zero value corresponds to infinite delay/width
-         --if r.asicAcqReg.GlblRstDelay /= 0 and r.asicAcqReg.GlblRstDelay <= r.asicAcqTimeCnt then
-         --   v.asicAcqReg.GlblRst := not r.asicAcqReg.GlblRstPolarity;
-         --   if r.asicAcqReg.GlblRstWidth /= 0 and (r.asicAcqReg.GlblRstWidth + r.asicAcqReg.GlblRstDelay) <= r.asicAcqTimeCnt then
+         -- global reset changes in sync with SHCnt per ASIC designers recomendation
+         if r.asicAcqReg.ePixAdcSHCnt = 0 then
                v.asicAcqReg.GlblRst := r.asicAcqReg.GlblRstPolarity;
-         --   end if;
-         --end if;
+         end if;
          
          -- double pulse. zero value corresponds to infinite delay/width
          if r.asicAcqReg.AcqDelay1 /= 0 and r.asicAcqReg.AcqDelay1 <= r.asicAcqTimeCnt then
