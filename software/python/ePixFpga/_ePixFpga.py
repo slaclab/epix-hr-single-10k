@@ -312,7 +312,7 @@ class EpixHR10kT(pr.Device):
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
             #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
             # app registers
-            MMCM7Registers(          name='MMCMRegisters',                    offset=0x80000000, expand=False, enabled=False),
+            MMCM7Registers(          name='MMCMRegisters',                     offset=0x80000000, expand=False, enabled=False),
             TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
@@ -324,7 +324,7 @@ class EpixHR10kT(pr.Device):
             epix.EpixHr10kTAsic(     name='Hr10kTAsic1',                       offset=0x88400000, expand=False, enabled=False),
             epix.EpixHr10kTAsic(     name='Hr10kTAsic2',                       offset=0x88800000, expand=False, enabled=False),
             epix.EpixHr10kTAsic(     name='Hr10kTAsic3',                       offset=0x88C00000, expand=False, enabled=False),
-            EPixHr10kTAppCoreFpgaRegisters(name="RegisterControl",            offset=0x96000000, expand=False, enabled=False),
+            EPixHr10kTAppCoreFpgaRegisters(name="RegisterControl",             offset=0x96000000, expand=False, enabled=False),
             powerSupplyRegisters(    name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
             pr.MemoryDevice(         name='waveformMem',                       offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
@@ -1113,6 +1113,11 @@ class EPixHrePixMAppCoreFpgaRegisters(pr.Device):
 class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
    def __init__(self, **kwargs):
       """Create the configuration device for HR Gen1 core FPGA registers"""
+      """Version 1 is for ASIC 0.1 and test ADC ASIC"""
+      """Version 2 is for ASIC 0.2 whee ClkSyncEn has been added"""
+
+      version = 2
+      
       super().__init__(description='HR Gen 1 core FPGA configuration registers', **kwargs)
       
       # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
@@ -1130,6 +1135,8 @@ class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
       
       self.add(pr.RemoteVariable(name='Version',         description='Version',           offset=0x00000000, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{:#x}',  verify = False, mode='RW'))
       self.add(pr.RemoteVariable(name='GlblRstPolarity', description='GlblRstPolarity',   offset=0x0000010C, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
+      if version == 2:
+          self.add(pr.RemoteVariable(name='ClkSyncEn',   description='Enables clock to be available inside ASIC.',   offset=0x0000010C, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='AcqPolarity',     description='AcqPolarity',       offset=0x00000118, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='AcqDelay1',       description='AcqDelay',          offset=0x0000011C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='AcqWidth1',       description='AcqWidth',          offset=0x00000120, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))

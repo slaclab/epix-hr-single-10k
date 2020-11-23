@@ -59,6 +59,7 @@ entity RegisterControl is
       asicTpulse     : out sl;
       asicStart      : out sl;
       asicSR0        : out sl;
+      asicClkSyncEn  : out sl;
       asicGlblRst    : out sl;
       asicSync       : out sl;
       asicAcq        : out sl;
@@ -81,6 +82,8 @@ architecture rtl of RegisterControl is
       SR0Polarity       : sl;
       SR0Delay          : slv(31 downto 0);
       SR0Width          : slv(31 downto 0);
+      ClkSyncEn         : sl;
+      ClkSyncEnLatched  : sl;
       GlblRst           : sl;
       GlblRstPolarity   : sl;
       GlblRstDelay      : slv(31 downto 0);
@@ -142,6 +145,8 @@ architecture rtl of RegisterControl is
       SR0Polarity       => '0',
       SR0Delay          => (others=>'0'),
       SR0Width          => (others=>'0'),
+      ClkSyncEn         => '0',
+      ClkSyncEnLatched  => '0',
       GlblRst           => '1',
       GlblRstPolarity   => '1',
       GlblRstDelay      => (others=>'0'),
@@ -280,6 +285,7 @@ begin
       axiSlaveRegisterR(regCon, x"0018",  0, ite(idValids(2) = '1',idValues(2)(63 downto 32), x"00000000")); --Carrier card ID high
       
       axiSlaveRegister(regCon,  x"010C",  0, v.asicAcqReg.GlblRstPolarity);
+      axiSlaveRegister(regCon,  x"010C",  1, v.asicAcqReg.ClkSyncEn);
       axiSlaveRegister(regCon,  x"0110",  0, v.asicAcqReg.GlblRstDelay);
       axiSlaveRegister(regCon,  x"0114",  0, v.asicAcqReg.GlblRstWidth);
       axiSlaveRegister(regCon,  x"0118",  0, v.asicAcqReg.AcqPolarity);
@@ -439,7 +445,8 @@ begin
          
          -- global reset changes in sync with SHCnt per ASIC designers recomendation
          if r.asicAcqReg.ePixAdcSHCnt = 0 then
-               v.asicAcqReg.GlblRst := r.asicAcqReg.GlblRstPolarity;
+           v.asicAcqReg.GlblRst := r.asicAcqReg.GlblRstPolarity;
+           v.asicAcqReg.ClkSyncEnLatched := r.asicAcqReg.ClkSyncEn;
          end if;
          
          -- double pulse. zero value corresponds to infinite delay/width
@@ -551,6 +558,7 @@ begin
       asicTpulse     <= r.asicAcqReg.Tpulse;
       asicStart      <= r.asicAcqReg.Start;
       asicSR0        <= r.asicAcqReg.SR0;
+      asicClkSyncEn  <= r.asicAcqReg.ClkSyncEnLatched;
       asicGlblRst    <= r.asicAcqReg.GlblRst;
       asicSync       <= r.asicAcqReg.Sync;
       asicAcq        <= r.asicAcqReg.Acq;

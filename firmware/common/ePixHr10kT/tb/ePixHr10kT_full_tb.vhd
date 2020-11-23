@@ -415,7 +415,7 @@ begin  --
     end loop;
   end process;
 
-  U_encoder : entity work.SspEncoder8b10b 
+  U_encoder : entity surf.SspEncoder8b10b 
    generic map (
      TPD_G          => TPD_G,
      RST_POLARITY_G => '1',

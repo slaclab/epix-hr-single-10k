@@ -11,7 +11,7 @@ source /afs/slac.stanford.edu/g/reseng/xilinx/vivado_2019.1/Vivado/2019.1/settin
 # Setup the VCS software
 
 #source  /afs/slac.stanford.edu/g/reseng/synopsys/vcs/P-2019.06/settings.csh
-#source /afs/slac.stanford.edu/g/reseng/synopsys/vcs-mx/O-2018.09-SP2/settings.csh
-source /afs/slac.stanford.edu/g/reseng/synopsys/vcs-mx/N-2017.12-1/settings.csh
+source /afs/slac.stanford.edu/g/reseng/synopsys/vcs-mx/O-2018.09-SP2/settings.csh
+#source /afs/slac.stanford.edu/g/reseng/synopsys/vcs-mx/N-2017.12-1/settings.csh
 
 source /afs/slac.stanford.edu/g/reseng/zeromq/4.2.0/settings.csh

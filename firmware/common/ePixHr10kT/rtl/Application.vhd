@@ -226,6 +226,7 @@ architecture mapping of Application is
    signal iAsicEnB             : sl;
    signal iAsicVid             : sl;
    signal iAsicSR0, oAsicSR0   : sl;
+   signal iAsicClkSyncEn       : sl;
    signal iAsic01DM1           : sl;
    signal iAsic01DM2           : sl;
    signal iAsicPPbe            : sl;
@@ -556,6 +557,15 @@ begin
       I  => oAsicSR0,
       C  => asicRdClk,
       O  => spareHrP(0));
+
+  AsicClksyncEnaBuf: entity surf.OutputBufferReg
+    generic map(
+      TPD_G          => TPD_G,
+      DIFF_PAIR_G    => false)
+    port map(
+      I  => iAsicClkSyncEn,
+      C  => asicRdClk,
+      O  => spareHrP(1));
    -------------------------------------------------------------------------------
    -- unasigned signals
    ----------------------------------------------------------------------------
@@ -801,6 +811,7 @@ begin
       asicTpulse     => open,
       asicStart      => iAsicR0,
       asicSR0        => iAsicSR0,
+      asicClkSyncEn  => iAsicClkSyncEn,
       asicGlblRst    => iAsicGrst,
       asicSync       => iAsicSync,
       asicAcq        => iAsicAcq,
