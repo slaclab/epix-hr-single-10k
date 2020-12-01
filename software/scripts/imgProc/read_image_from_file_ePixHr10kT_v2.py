@@ -18,7 +18,7 @@
 # copied, modified, propagated, or distributed except according to the terms 
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
-
+import setupLibPaths
 import os, sys, time
 import numpy as np
 import ePixViewer.Cameras as cameras
@@ -167,165 +167,165 @@ if(SAVEHDF5):
 ##################################################
 #from here on we have a set of images to work with
 ##################################################
-if PLOT_ADC9_VS_N :
-    # All averages
-    plt.plot(imgDesc[i,9,:])
-    plt.title('ADC value')
-    plt.show()
+# if PLOT_ADC9_VS_N :
+#     # All averages
+#     plt.plot(imgDesc[i,9,:])
+#     plt.title('ADC value')
+#     plt.show()
 
-    # All averages and stds
-    plt.figure(1)
-    plt.subplot(211)
-    plt.title('Average ADC value')
-    plt.plot(np.transpose(imgDesc[i,0:31,:]))
+#     # All averages and stds
+#     plt.figure(1)
+#     plt.subplot(211)
+#     plt.title('Average ADC value')
+#     plt.plot(np.transpose(imgDesc[i,0:31,:]))
 
-    plt.subplot(212)
-    plt.plot(np.transpose(imgDesc[i,32:63,:]))
-    plt.title('Standard deviation of the ADC value')
-    plt.show()
-
-
-
-#show first image
-if PLOT_IMAGE :
-    for i in range(0, 5):
-        plt.imshow((imgDesc[i,:,:]), vmin=4000, vmax=6000,  interpolation='nearest')
-        plt.gray()
-        plt.colorbar()
-        plt.title('image %d.' % (i))
-        plt.show()
-    plt.plot(imgDesc[:,110,110])
-    plt.plot(imgDesc[:,110,115])
-    plt.title('Pixel time series (15,15) and (15,45) :'+filename)
-    plt.show()
-
-darkImg = np.mean(imgDesc[0:2], axis=0)
-print(darkImg.shape)
-
-
-if PLOT_IMAGE_DARK :
-    plt.imshow(darkImg, interpolation='nearest')
-    plt.gray()
-    plt.colorbar()
-    plt.title('Dark image map of :'+filename)
-    plt.show()
-
-heatMap = np.std(imgDesc, axis=0)
-if PLOT_IMAGE_HEATMAP :
-    plt.imshow(heatMap, interpolation='nearest', vmin=0, vmax=200)
-    plt.gray()
-    plt.colorbar()
-    plt.title('Heat map of :'+filename)
-    plt.show()
-
-darkSub = imgDesc - darkImg
-if PLOT_IMAGE_DARKSUB :
-    for i in range(5, 10):
-        #plt.imshow(darkSub[i,:,0:31], interpolation='nearest')
-        plt.imshow(darkSub[i,:,:], interpolation='nearest')
-        plt.gray()
-        plt.colorbar()
-        plt.title('First image of :'+filename)
-        plt.show()
+#     plt.subplot(212)
+#     plt.plot(np.transpose(imgDesc[i,32:63,:]))
+#     plt.title('Standard deviation of the ADC value')
+#     plt.show()
 
 
 
-# the histogram of the data
-centralValue = 0
-if PLOT_SET_HISTOGRAM :
-    nbins = 100
-    EnergyTh = -50
-    n = np.zeros(nbins)
-    for i in range(0, imgDesc.shape[0]):
-    #    n, bins, patches = plt.hist(darkSub[5,:,:], bins=256, range=(0.0, 256.0), fc='k', ec='k')
-    #    [x,y] = np.where(darkSub[i,:,32:63]>EnergyTh)
-    #   h, b = np.histogram(darkSub[i,x,y], np.arange(-nbins/2,nbins/2+1))
-    #    h, b = np.histogram(np.average(darkSub[i,:,5]), np.arange(-nbins/2,nbins/2+1))
-        dataSet = darkSub[i,:,5]
-        h, b = np.histogram(np.average(dataSet), np.arange(centralValue-nbins/2,centralValue+nbins/2+1))
-        n = n + h
+# #show first image
+# if PLOT_IMAGE :
+#     for i in range(0, 5):
+#         plt.imshow((imgDesc[i,:,:]), vmin=4000, vmax=6000,  interpolation='nearest')
+#         plt.gray()
+#         plt.colorbar()
+#         plt.title('image %d.' % (i))
+#         plt.show()
+#     plt.plot(imgDesc[:,110,110])
+#     plt.plot(imgDesc[:,110,115])
+#     plt.title('Pixel time series (15,15) and (15,45) :'+filename)
+#     plt.show()
 
-    plt.bar(b[1:nbins+1],n, width = 0.55)
-    plt.title('Histogram')
-    plt.show()
+# darkImg = np.mean(imgDesc[0:2], axis=0)
+# print(darkImg.shape)
 
 
-standAloneADCPlot = 5
-centralValue_even = np.average(imgDesc[0,np.arange(0,32,2),standAloneADCPlot])
-centralValue_odd  = np.average(imgDesc[0,np.arange(1,32,2),standAloneADCPlot])
-# the histogram of the data
-if PLOT_SET_HISTOGRAM :
-    nbins = 100
-    EnergyTh = -50
-    n_even = np.zeros(nbins)
-    n_odd  = np.zeros(nbins)
-    for i in range(0, imgDesc.shape[0]):
-    #    n, bins, patches = plt.hist(darkSub[5,:,:], bins=256, range=(0.0, 256.0), fc='k', ec='k')
-    #    [x,y] = np.where(darkSub[i,:,32:63]>EnergyTh)
-    #   h, b = np.histogram(darkSub[i,x,y], np.arange(-nbins/2,nbins/2+1))
-    #    h, b = np.histogram(np.average(darkSub[i,:,5]), np.arange(-nbins/2,nbins/2+1))
-        h, b = np.histogram(np.average(imgDesc[i,np.arange(0,32,2),standAloneADCPlot]), np.arange(centralValue_even-nbins/2,centralValue_even+nbins/2+1))
-        n_even = n_even + h
-        h, b = np.histogram(np.average(imgDesc[i,np.arange(1,32,2),standAloneADCPlot]), np.arange(centralValue_odd-nbins/2,centralValue_odd+nbins/2+1))
-        n_odd = n_odd + h
+# if PLOT_IMAGE_DARK :
+#     plt.imshow(darkImg, interpolation='nearest')
+#     plt.gray()
+#     plt.colorbar()
+#     plt.title('Dark image map of :'+filename)
+#     plt.show()
 
-    np.savez("adc_" + str(standAloneADCPlot), imgDesc[:,:,standAloneADCPlot])
+# heatMap = np.std(imgDesc, axis=0)
+# if PLOT_IMAGE_HEATMAP :
+#     plt.imshow(heatMap, interpolation='nearest', vmin=0, vmax=200)
+#     plt.gray()
+#     plt.colorbar()
+#     plt.title('Heat map of :'+filename)
+#     plt.show()
 
-    plt.bar(b[1:nbins+1],n_even, width = 0.55)
-    plt.bar(b[1:nbins+1],n_odd,  width = 0.55,color='red')
-    plt.title('Histogram')
-    plt.show()
+# darkSub = imgDesc - darkImg
+# if PLOT_IMAGE_DARKSUB :
+#     for i in range(5, 10):
+#         #plt.imshow(darkSub[i,:,0:31], interpolation='nearest')
+#         plt.imshow(darkSub[i,:,:], interpolation='nearest')
+#         plt.gray()
+#         plt.colorbar()
+#         plt.title('First image of :'+filename)
+#         plt.show()
 
 
-numColumns = 192
-averages = np.zeros([imgDesc.shape[0],numColumns])
-noises   = np.zeros([imgDesc.shape[0],numColumns])
-if PLOT_ADC_VS_N :
-    for i in range(0, imgDesc.shape[0]):
-        averages[i] = np.mean(imgDesc[i], axis=0)
-        noises[i]   = np.std(imgDesc[i], axis=0)
 
-    #rolls matrix to enable dnl[n] = averages[n+1] - averages[n]
-    dnls = np.roll(averages,-1, axis=0) - averages
+# # the histogram of the data
+# centralValue = 0
+# if PLOT_SET_HISTOGRAM :
+#     nbins = 100
+#     EnergyTh = -50
+#     n = np.zeros(nbins)
+#     for i in range(0, imgDesc.shape[0]):
+#     #    n, bins, patches = plt.hist(darkSub[5,:,:], bins=256, range=(0.0, 256.0), fc='k', ec='k')
+#     #    [x,y] = np.where(darkSub[i,:,32:63]>EnergyTh)
+#     #   h, b = np.histogram(darkSub[i,x,y], np.arange(-nbins/2,nbins/2+1))
+#     #    h, b = np.histogram(np.average(darkSub[i,:,5]), np.arange(-nbins/2,nbins/2+1))
+#         dataSet = darkSub[i,:,5]
+#         h, b = np.histogram(np.average(dataSet), np.arange(centralValue-nbins/2,centralValue+nbins/2+1))
+#         n = n + h
 
-    # All averages
-    plt.plot(averages)
-    plt.title('Average ADC value')
-    plt.show()
-    # All stds
-    plt.plot(noises)
-    plt.title('Standard deviation of the ADC value')
-    plt.show()
-    #dnl
-    plt.plot(dnls)
-    plt.title('DNL of the ADC value')
-    plt.show()
+#     plt.bar(b[1:nbins+1],n, width = 0.55)
+#     plt.title('Histogram')
+#     plt.show()
 
-    # All averages and stds
-    plt.figure(1)
-    plt.subplot(211)
-    plt.title('Average ADC value')
-    plt.plot(averages)
 
-    plt.subplot(212)
-    plt.plot(noises)
-    plt.title('Standard deviation of the ADC value')
-    plt.show()
+# standAloneADCPlot = 5
+# centralValue_even = np.average(imgDesc[0,np.arange(0,32,2),standAloneADCPlot])
+# centralValue_odd  = np.average(imgDesc[0,np.arange(1,32,2),standAloneADCPlot])
+# # the histogram of the data
+# if PLOT_SET_HISTOGRAM :
+#     nbins = 100
+#     EnergyTh = -50
+#     n_even = np.zeros(nbins)
+#     n_odd  = np.zeros(nbins)
+#     for i in range(0, imgDesc.shape[0]):
+#     #    n, bins, patches = plt.hist(darkSub[5,:,:], bins=256, range=(0.0, 256.0), fc='k', ec='k')
+#     #    [x,y] = np.where(darkSub[i,:,32:63]>EnergyTh)
+#     #   h, b = np.histogram(darkSub[i,x,y], np.arange(-nbins/2,nbins/2+1))
+#     #    h, b = np.histogram(np.average(darkSub[i,:,5]), np.arange(-nbins/2,nbins/2+1))
+#         h, b = np.histogram(np.average(imgDesc[i,np.arange(0,32,2),standAloneADCPlot]), np.arange(centralValue_even-nbins/2,centralValue_even+nbins/2+1))
+#         n_even = n_even + h
+#         h, b = np.histogram(np.average(imgDesc[i,np.arange(1,32,2),standAloneADCPlot]), np.arange(centralValue_odd-nbins/2,centralValue_odd+nbins/2+1))
+#         n_odd = n_odd + h
 
-    # selected ADC
-    plt.figure(1)
-    plt.subplot(211)
-    plt.title('Average ADC value')
-    customLabel = "ADC_"+str(standAloneADCPlot)
-    line, = plt.plot(averages[:,standAloneADCPlot], label=customLabel)
-    plt.legend(handles = [line])
+#     np.savez("adc_" + str(standAloneADCPlot), imgDesc[:,:,standAloneADCPlot])
 
-    plt.subplot(212)
-    plt.plot(noises[:, standAloneADCPlot], label="ADC_"+str(standAloneADCPlot))
-    plt.title('Standard deviation of the ADC value')
-    plt.show()
+#     plt.bar(b[1:nbins+1],n_even, width = 0.55)
+#     plt.bar(b[1:nbins+1],n_odd,  width = 0.55,color='red')
+#     plt.title('Histogram')
+#     plt.show()
 
-print (np.max(averages,axis=0) -  np.min(averages,axis=0))
+
+# numColumns = 192
+# averages = np.zeros([imgDesc.shape[0],numColumns])
+# noises   = np.zeros([imgDesc.shape[0],numColumns])
+# if PLOT_ADC_VS_N :
+#     for i in range(0, imgDesc.shape[0]):
+#         averages[i] = np.mean(imgDesc[i], axis=0)
+#         noises[i]   = np.std(imgDesc[i], axis=0)
+
+#     #rolls matrix to enable dnl[n] = averages[n+1] - averages[n]
+#     dnls = np.roll(averages,-1, axis=0) - averages
+
+#     # All averages
+#     plt.plot(averages)
+#     plt.title('Average ADC value')
+#     plt.show()
+#     # All stds
+#     plt.plot(noises)
+#     plt.title('Standard deviation of the ADC value')
+#     plt.show()
+#     #dnl
+#     plt.plot(dnls)
+#     plt.title('DNL of the ADC value')
+#     plt.show()
+
+#     # All averages and stds
+#     plt.figure(1)
+#     plt.subplot(211)
+#     plt.title('Average ADC value')
+#     plt.plot(averages)
+
+#     plt.subplot(212)
+#     plt.plot(noises)
+#     plt.title('Standard deviation of the ADC value')
+#     plt.show()
+
+#     # selected ADC
+#     plt.figure(1)
+#     plt.subplot(211)
+#     plt.title('Average ADC value')
+#     customLabel = "ADC_"+str(standAloneADCPlot)
+#     line, = plt.plot(averages[:,standAloneADCPlot], label=customLabel)
+#     plt.legend(handles = [line])
+
+#     plt.subplot(212)
+#     plt.plot(noises[:, standAloneADCPlot], label="ADC_"+str(standAloneADCPlot))
+#     plt.title('Standard deviation of the ADC value')
+#     plt.show()
+
+# print (np.max(averages,axis=0) -  np.min(averages,axis=0))
 
 
 
