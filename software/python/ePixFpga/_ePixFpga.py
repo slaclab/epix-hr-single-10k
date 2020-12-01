@@ -289,7 +289,7 @@ class EpixHRGen1ePixM(pr.Device):
 
 #######################################################
 #
-# ePixHrePixM Tx target
+# ePixHr 10kT Tx target
 #
 #######################################################
 
@@ -320,10 +320,10 @@ class EpixHR10kT(pr.Device):
             ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, expand=False, enabled=False),
             axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
             axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False, enabled=False),
-            epix.EpixHr10kTAsic(     name='Hr10kTAsic0',                       offset=0x88000000, expand=False, enabled=False),
-            epix.EpixHr10kTAsic(     name='Hr10kTAsic1',                       offset=0x88400000, expand=False, enabled=False),
-            epix.EpixHr10kTAsic(     name='Hr10kTAsic2',                       offset=0x88800000, expand=False, enabled=False),
-            epix.EpixHr10kTAsic(     name='Hr10kTAsic3',                       offset=0x88C00000, expand=False, enabled=False),
+            epix.EpixHr10kTV2Asic(   name='Hr10kTAsic0',                       offset=0x88000000, expand=False, enabled=False),
+            epix.EpixHr10kTV2Asic(   name='Hr10kTAsic1',                       offset=0x88400000, expand=False, enabled=False),
+            epix.EpixHr10kTV2Asic(   name='Hr10kTAsic2',                       offset=0x88800000, expand=False, enabled=False),
+            epix.EpixHr10kTV2Asic(   name='Hr10kTAsic3',                       offset=0x88C00000, expand=False, enabled=False),
             EPixHr10kTAppCoreFpgaRegisters(name="RegisterControl",             offset=0x96000000, expand=False, enabled=False),
             powerSupplyRegisters(    name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
