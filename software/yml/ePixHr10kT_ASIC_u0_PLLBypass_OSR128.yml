@@ -66,7 +66,7 @@ ePixHr10kT:
       DCycle_DAC: 0x0
       DCycle_en: False
       DCycle_bypass: False
-      Debug_bit: 0x1
+      Debug_bit: 0x3
       OSRsel: True
       SecondOrder: False
       DHg: False

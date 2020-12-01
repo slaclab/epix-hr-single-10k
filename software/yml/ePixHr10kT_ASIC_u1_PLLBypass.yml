@@ -4,7 +4,7 @@ ePixHr10kT:
   EpixHR:
     enable: True
     Hr10kTAsic1:
-            enable: True
+      enable: True
       shvc_DAC: 0x17
       fastPP_enable: False
       PulserSync: False
@@ -52,7 +52,7 @@ ePixHr10kT:
       PLL_RO_filter2: 0x2
       PLL_RO_divider: 0x0
       TestBe: False
-      DigRO_disable: False
+      RSTreg: False
       DelExec: False
       DelCCKReg: False
       RO_rst_en: True
@@ -66,7 +66,7 @@ ePixHr10kT:
       DCycle_DAC: 0x0
       DCycle_en: False
       DCycle_bypass: False
-      Debug_bit: 0x1
+      Debug_bit: 0x3
       OSRsel: False
       SecondOrder: False
       DHg: True
