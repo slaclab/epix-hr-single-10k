@@ -189,7 +189,7 @@ class EpixHRGen1ePixM(pr.Device):
         self.MMCMRegisters.enable.set(True)
         self.root.readBlocks()
         time.sleep(delay/10) 
-        self.root.ReadConfig(self.filenameMMCM)
+        self.root.LoadConfig(self.filenameMMCM)
         print(self.filenameMMCM)
         time.sleep(delay/10) 
         self.root.readBlocks()
@@ -200,13 +200,13 @@ class EpixHRGen1ePixM(pr.Device):
 
         # load config that sets prog supply
         print("Loading supply configuration")
-        self.root.ReadConfig(self.filenamePowerSupply)
+        self.root.LoadConfig(self.filenamePowerSupply)
         print(self.filenamePowerSupply)
         time.sleep(delay) 
 
         # load config that sets CJC
         print("Loading CJC configuration")
-        self.root.ReadConfig(self.filenameCJC)
+        self.root.LoadConfig(self.filenameCJC)
         print(self.filenameCJC)
         for i in range(5):
             time.sleep(2*delay)
@@ -225,12 +225,12 @@ class EpixHRGen1ePixM(pr.Device):
 
             ## load config for the asic
             print("Loading ASIC and timing configuration")
-            self.root.ReadConfig(self.filenameASIC)
+            self.root.LoadConfig(self.filenameASIC)
             time.sleep(5*delay) 
 
         ## load config for the asic
         print("Loading ASIC and timing configuration")
-        self.root.ReadConfig(self.filenameASIC)
+        self.root.LoadConfig(self.filenameASIC)
         time.sleep(5*delay) 
 
 
@@ -458,7 +458,7 @@ class EpixHR10kT(pr.Device):
         self.MMCMRegisters.enable.set(True)
         self.root.readBlocks()
         time.sleep(delay/10) 
-        self.root.ReadConfig(self.filenameMMCM)
+        self.root.LoadConfig(self.filenameMMCM)
         print(self.filenameMMCM)
         time.sleep(delay/10) 
         self.root.readBlocks()
@@ -469,20 +469,20 @@ class EpixHR10kT(pr.Device):
 
         # load config that sets prog supply
         print("Loading supply configuration")
-        self.root.ReadConfig(self.filenamePowerSupply)
+        self.root.LoadConfig(self.filenamePowerSupply)
         print(self.filenamePowerSupply)
         time.sleep(delay) 
 
 
         # load config that sets waveforms
         print("Loading waveforms configuration")
-        self.root.ReadConfig(self.filenameWaveForms)
+        self.root.LoadConfig(self.filenameWaveForms)
         print(self.filenameWaveForms)
         time.sleep(delay) 
 
         # load config that sets packet registers
         print("Loading packet registers")
-        self.root.ReadConfig(self.filenamePacketReg)
+        self.root.LoadConfig(self.filenamePacketReg)
         print(self.filenamePacketReg)
         time.sleep(delay)         
 
@@ -500,25 +500,25 @@ class EpixHR10kT(pr.Device):
             ## load config for the asic
             print("Loading ASIC and timing configuration")
             if arg[1] != 0:
-                self.root.ReadConfig(self.filenameASIC0)
+                self.root.LoadConfig(self.filenameASIC0)
             if arg[2] != 0:
-                self.root.ReadConfig(self.filenameASIC1)
+                self.root.LoadConfig(self.filenameASIC1)
             if arg[3] != 0:
-                self.root.ReadConfig(self.filenameASIC2)
+                self.root.LoadConfig(self.filenameASIC2)
             if arg[4] != 0:
-                self.root.ReadConfig(self.filenameASIC3)
+                self.root.LoadConfig(self.filenameASIC3)
             time.sleep(5*delay) 
 
         ## load config for the asic
         print("Loading ASIC and timing configuration")
         if arg[1] != 0:
-            self.root.ReadConfig(self.filenameASIC0)
+            self.root.LoadConfig(self.filenameASIC0)
         if arg[2] != 0:
-            self.root.ReadConfig(self.filenameASIC1)
+            self.root.LoadConfig(self.filenameASIC1)
         if arg[3] != 0:
-            self.root.ReadConfig(self.filenameASIC2)
+            self.root.LoadConfig(self.filenameASIC2)
         if arg[4] != 0:
-            self.root.ReadConfig(self.filenameASIC3)
+            self.root.LoadConfig(self.filenameASIC3)
         time.sleep(5*delay) 
 
 
@@ -535,7 +535,7 @@ class EpixHR10kT(pr.Device):
             EN_DESERIALIZERS_1 = False
             EN_DESERIALIZERS_2 = False
             EN_DESERIALIZERS_3 = False
-            self.root.ReadConfig(self.filenameDESER)                    
+            self.root.LoadConfig(self.filenameDESER)                    
             self.root.readBlocks()
             time.sleep(delay)                   
             self.DeserRegisters0.Resync.set(True)
