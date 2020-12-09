@@ -322,7 +322,7 @@ begin
        generic map (
          GEN_SYNC_FIFO_G   => false,
          FWFT_EN_G         => true,
-         ADDR_WIDTH_G      => 4,
+         ADDR_WIDTH_G      => 7,
          DATA_WIDTH_G      => 19
          )
        port map (
