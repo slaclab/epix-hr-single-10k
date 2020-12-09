@@ -385,7 +385,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1 = "./yml/ePixHr10kT_ASIC_u1_PLLBypass.yml"
             self.filenameASIC2 = "./yml/ePixHr10kT_ASIC_u2_PLLBypass.yml"
             self.filenameASIC3 = "./yml/ePixHr10kT_ASIC_u3_PLLBypass.yml"
-            self.filenameDESER = "./yml/ePix10kT_DESER_125MHz.yml"
+            self.filenameDESER = ""
             self.filenamePacketReg = "./yml/ePix10kT_PacketRegisters.yml"
         if arguments[0] == 2:
             self.filenameMMCM = "./yml/ePix10kT_MMCM_250MHz.yml"
@@ -487,9 +487,11 @@ class EpixHR10kT(pr.Device):
         time.sleep(delay)         
 
         ## takes the asic off of reset
+        self.RegisterControl.enable.set(True)
+        self.RegisterControl.ClkSyncEn.set(False)
         for i in range(2):
             print("Taking asic off of reset")
-            self.RegisterControl.enable.set(True)
+            
             self.RegisterControl.GlblRstPolarity.set(False)
             time.sleep(delay) 
             self.RegisterControl.GlblRstPolarity.set(True)
@@ -521,6 +523,8 @@ class EpixHR10kT(pr.Device):
             self.root.LoadConfig(self.filenameASIC3)
         time.sleep(5*delay) 
 
+        # starting clock inside the ASIC
+        self.RegisterControl.ClkSyncEn.set(True)
 
         ## start deserializer config for the asic
         if self.filenameDESER == "":
