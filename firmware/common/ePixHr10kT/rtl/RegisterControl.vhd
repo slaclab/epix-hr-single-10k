@@ -137,6 +137,7 @@ architecture rtl of RegisterControl is
       ssrDataSel        : integer;
       ePixAdcSHT        : slv(15 downto 0);
       ePixAdcSHCnt      : slv(15 downto 0);
+      ePixAdcSHSR0Phase : slv(15 downto 0);
       
    end record AsicAcqType;
    
@@ -199,7 +200,8 @@ architecture rtl of RegisterControl is
       ssrData           => x"FFFF_FFFF_FE",
       ssrDataSel        => 0,
       ePixAdcSHT        => X"0100",
-      ePixAdcSHCnt      => (others=>'0')
+      ePixAdcSHCnt      => (others=>'0'),
+      ePixAdcSHSR0Phase => (others=>'0')
    );
    
    type RegType is record
@@ -325,6 +327,7 @@ begin
       axiSlaveRegister(regCon,  x"019C",  0, v.asicAcqReg.ssrClkNumPeriods);
       axiSlaveRegister(regCon,  x"01A0",  0, v.asicAcqReg.ssrData);
       axiSlaveRegister(regCon,  x"01A4",  0, v.asicAcqReg.ePixAdcSHT);
+      axiSlaveRegister(regCon,  x"01A8",  0, v.asicAcqReg.ePixAdcSHSR0Phase);
       
      
       axiSlaveRegisterR(regCon, x"0200",  0, r.boardRegOut.acqCnt);
@@ -420,9 +423,9 @@ begin
          end if;
          
          -- single pulse. zero value corresponds to infinite delay/width
-         if r.asicAcqReg.SR0Delay /= 0 and r.asicAcqReg.SR0Delay <= r.asicAcqTimeCnt and r.asicAcqReg.ePixAdcSHCnt = 0 then
+         if r.asicAcqReg.SR0Delay /= 0 and r.asicAcqReg.SR0Delay <= r.asicAcqTimeCnt and r.asicAcqReg.ePixAdcSHCnt = r.asicAcqReg.ePixAdcSHSR0Phase then
             v.asicAcqReg.SR0 := not r.asicAcqReg.SR0Polarity;
-            if r.asicAcqReg.SR0Width /= 0 and (r.asicAcqReg.SR0Width + r.asicAcqReg.SR0Delay) <= r.asicAcqTimeCnt and r.asicAcqReg.ePixAdcSHCnt = 0 then
+            if r.asicAcqReg.SR0Width /= 0 and (r.asicAcqReg.SR0Width + r.asicAcqReg.SR0Delay) <= r.asicAcqTimeCnt and r.asicAcqReg.ePixAdcSHCnt = r.asicAcqReg.ePixAdcSHSR0Phase then
                v.asicAcqReg.SR0 := r.asicAcqReg.SR0Polarity;
             end if;
          end if;
