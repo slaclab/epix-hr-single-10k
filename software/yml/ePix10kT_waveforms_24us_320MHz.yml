@@ -6,7 +6,7 @@ ePixHr10kT:
       enable: True
       Version: 0x1
       GlblRstPolarity: True
-      ClkSyncEn: True
+      ClkSyncEn: False
       AcqPolarity: False
       AcqDelay1: 2400
       AcqWidth1: 2400
@@ -25,8 +25,8 @@ ePixHr10kT:
       PpmatDelay: 0
       PpmatWidth: 0
       SyncPolarity: False
-      SyncDelay: 4790
-      SyncWidth: 2
+      SyncDelay: 0
+      SyncWidth: 0
       SaciSyncPolarity: False
       SaciSyncDelay: 0
       SaciSyncWidth: 0
