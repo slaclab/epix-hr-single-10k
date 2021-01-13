@@ -43,7 +43,7 @@ PAYLOAD_TS           = 7360
 ##################################################
 cameraType            = 'ePixHr10kT'
 bitMask               = 0xffff
-PLOT_IMAGE            = False
+PLOT_IMAGE            = True
 PLOT_ADC9_VS_N        = False
 PLOT_IMAGE_DARKSUB    = False
 PLOT_IMAGE_DARK       = False
@@ -186,14 +186,14 @@ if(SAVEHDF5):
 
 
 
-# #show first image
-# if PLOT_IMAGE :
-#     for i in range(0, 5):
-#         plt.imshow((imgDesc[i,:,:]), vmin=4000, vmax=6000,  interpolation='nearest')
-#         plt.gray()
-#         plt.colorbar()
-#         plt.title('image %d.' % (i))
-#         plt.show()
+ #show first image
+if PLOT_IMAGE :
+     for i in range(5, 6):
+         plt.imshow((imgDesc[i,:,:]), vmin=6000, vmax=16000,  interpolation='nearest')
+         plt.gray()
+         plt.colorbar()
+         plt.title('image %d.' % (i))
+         plt.show()
 #     plt.plot(imgDesc[:,110,110])
 #     plt.plot(imgDesc[:,110,115])
 #     plt.title('Pixel time series (15,15) and (15,45) :'+filename)

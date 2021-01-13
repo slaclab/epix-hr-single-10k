@@ -1105,9 +1105,18 @@ class Camera():
                 img = np.frombuffer(rawData,dtype='uint16')
              if (PRINT_VERBOSE):print("shape", img.shape)
              quadrant0 = np.frombuffer(img[6:28038],dtype='uint16')
+             #quadrant0 = np.frombuffer(img[6+192:28038-192],dtype='uint16')
+            
              adcImg = quadrant0.reshape(-1,6)
              for i in range(0,6):
-                 adcImg2 = adcImg[:,i].reshape(-1,32)
+                 adcImg2 = adcImg[0:adcImg.shape[0],i].reshape(-1,32)
+                 if i == 3:
+#                     adcImg2[1:,26] = adcImg2[0:adcImg2.shape[0]-1,26]
+#                     adcImg2[1:,27] = adcImg2[0:adcImg2.shape[0]-1,27]
+#                     adcImg2[1:,28] = adcImg2[0:adcImg2.shape[0]-1,28]
+                     adcImg2[1:,29] = adcImg2[0:adcImg2.shape[0]-1,29]
+                 adcImg2[1:,30] = adcImg2[0:adcImg2.shape[0]-1,30]
+                 adcImg2[1:,31] = adcImg2[0:adcImg2.shape[0]-1,31]
                  if i == 0:
                      quadrant0sq = adcImg2
                  else:
