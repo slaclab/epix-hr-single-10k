@@ -175,7 +175,6 @@ architecture mapping of Application is
    signal asicRdClk      : sl;
    signal idelayCtrlClk  : sl;
    signal appRst         : sl;
-   signal axiRst         : sl;
    signal asicRst        : sl;
    signal byteClkRst     : sl;
    signal asicRdClkRst   : sl;
@@ -780,7 +779,7 @@ begin
   -----------------------------------------------------------------------------
   -- Regiester control
   -----------------------------------------------------------------------------
-  U_RegControl : entity work.RegisterControl
+  U_RegControl : entity work.RegisterControlDualClock
    generic map (
       TPD_G            => TPD_G,
       EN_DEVICE_DNA_G  => false,        -- this is causing placement errors,
@@ -788,9 +787,8 @@ begin
       BUILD_INFO_G     => BUILD_INFO_G
    )
    port map (
-      axiClk         => appClk,
-      axiRst         => axiRst,
-      sysRst         => appRst,
+      axilClk         => appClk,
+      axilRst        => appRst,
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  => mAxiReadMasters(APP_REG_AXI_INDEX_C),
       axiReadSlave   => mAxiReadSlaves(APP_REG_AXI_INDEX_C),
@@ -800,28 +798,22 @@ begin
       boardConfig    => boardConfig,
       -- 1-wire board ID interfaces
       serialIdIo     => serialIdIo,
-      -- fast ADC clock
-      adcClk         => open,
       -- ASICs acquisition signals
       acqStart       => acqStart,
-      saciReadoutReq => saciPrepReadoutReq,
-      saciReadoutAck => saciPrepReadoutAck,
+      asicR0         => iAsicR0,
+      asicAcq        => iAsicAcq,
       asicPPbe       => iAsicPpbe,
       asicPpmat      => iAsicPpmat,
-      asicTpulse     => open,
-      asicStart      => iAsicR0,
+      saciReadoutReq => saciPrepReadoutReq,
+      saciReadoutAck => saciPrepReadoutAck,
+      errInhibit     => errInhibit,
+      -- sys clock based signals
+      sysRst         => asicRst,
+      sysClk         => asicClk,
       asicSR0        => iAsicSR0,
       asicClkSyncEn  => iAsicClkSyncEn,
       asicGlblRst    => iAsicGrst,
-      asicSync       => iAsicSync,
-      asicAcq        => iAsicAcq,
-      asicSsrRst     => open,
-      asicSsrSerClrb => open,
-      asicSsrStoClrb => open,
-      asicSsrData    => open,
-      asicSsrClk     => open,
-      asicVid        => open,     
-      errInhibit     => errInhibit
+      asicSync       => iAsicSync
    );
 
    ---------------------
