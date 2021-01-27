@@ -545,9 +545,9 @@ begin
   
       -- programmable ASIC acquisition waveform
       if startReadoutSynced = '1' then
-         v.asicAcqReg2.SR0           := r.asicAcqReg2.SR0Polarity;
-         v.asicAcqReg2.GlblRst       := r.asicAcqReg2.GlblRstPolarity;
-         v.asicAcqReg2.Sync          := r.asicAcqReg2.SyncPolarity;
+         v.asicAcqReg2.SR0           := r_sys.asicAcqReg2.SR0Polarity;
+         v.asicAcqReg2.GlblRst       := r_sys.asicAcqReg2.GlblRstPolarity;
+         v.asicAcqReg2.Sync          := r_sys.asicAcqReg2.SyncPolarity;
          v.asicAcqTimeCnt           := (others=>'0');
       else
          if r_sys.asicAcqTimeCnt /= x"FFFFFFFF" then
