@@ -12,9 +12,6 @@ ePixHr10kT:
       AcqWidth1: 3200
       AcqDelay2: 0
       AcqWidth2: 0
-      TPulsePolarity: False
-      TPulseDelay: 0
-      TPulseWidth: 0
       R0Polarity: False
       R0Delay: 100
       R0Width: 45000
@@ -33,7 +30,6 @@ ePixHr10kT:
       SR0Polarity: False
       SR0Delay1: 7000
       SR0Width1: 38000
-      Vid: 0
       ResetCounters: False
       AsicPwrEnable: False
       AsicPwrManual: False
@@ -43,5 +39,4 @@ ePixHr10kT:
       AsicPwrManualFpga: False
       DebugSel1: 17
       DebugSel2: 17
-      AdcClkHalfT: 1
       StartupReq: True
