@@ -937,7 +937,8 @@ begin
       IODELAY_GROUP_G   => IODELAY_GROUP_G,
       IDELAYCTRL_FREQ_G => 250.0,
       DEFAULT_DELAY_G   => (others => '0'),
-      ADC_INVERT_CH_G   => "00000010"
+      ADC_INVERT_CH_G   => "00000010",
+      USE_MMCME_G       => true
    )
    port map (
       -- Master system clock, 100Mhz
@@ -951,7 +952,11 @@ begin
       axilWriteSlave    => mAxiWriteSlaves(ADC_RD_AXI_INDEX_C),
 
       -- Reset for adc deserializer
-      adcClkRst         => serdesReset,
+      adcClkRst         => '0',
+      adcBitClkIn       => '0',
+      adcBitClkDiv4In   => '0',
+      adcBitRstIn       => '0',
+      adcBitRstDiv4In   => '0',
 
       -- Serial Data from ADC
       adcSerial         => monAdc,

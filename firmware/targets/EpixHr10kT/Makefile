@@ -2,7 +2,8 @@
 export GIT_BYPASS = 1
 
 # Applications must define the 32-bitFirmware Version Number
-export PRJ_VERSION = 0x00000002
+export PRJ_VERSION = 0x00000003
+export INCLUDE_PGP3_10G = 1
 
 # COMM_TYPE is defined by application
 export COMM_TYPE = pgp3
