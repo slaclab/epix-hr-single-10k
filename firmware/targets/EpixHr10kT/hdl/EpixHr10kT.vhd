@@ -175,6 +175,8 @@ architecture top_level of EpixHr10kT is
    signal axiWriteSlave   : AxiWriteSlaveType;
    -- Microblaze's Interrupt bus (sysClk domain)
    signal mbIrq           : slv(7 downto 0);
+   -- snIO and Dig monitoring share signals
+   signal asicDM          : sl;
 
 begin
 
@@ -264,7 +266,7 @@ begin
          asicAcq          => asicAcq,
          asicRoClkP       => asicRoClkP,
          asicRoClkN       => asicRoClkN,
-         asicDMSN         => snIoCarrier,
+         asicDMSN         => asicDM,
          -- SACI Ports
          asicSaciCmd      => asicSaciCmd,
          asicSaciClk      => asicSaciClk,
@@ -325,6 +327,8 @@ begin
          ----------------   
          -- Board IDs Ports
          snIoAdcCard      => snIoAdcCard,
+         snIoCarrier      => snIoCarrier,
+         snCarrierOut     => asicDM,
          -- QSFP Ports
          qsfpRxP          => qsfpRxP,
          qsfpRxN          => qsfpRxN,
