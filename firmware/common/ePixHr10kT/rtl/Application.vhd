@@ -331,7 +331,8 @@ begin
   -----------------------------------------------------------------------------
   -- remaps data lines into adapter board control/status lines
   -----------------------------------------------------------------------------
-  IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN,    T => '1');
+  --IOBUF_DM1      : IOBUF  port map (O  => iAsic01DM1,   I => '0',           IO => asicDMSN,    T => '1');
+  iAsic01DM1 <= asicDMSN; -- this signal is shared with the SN form core, so it comes buffered already.
   IOBUF_DM2      : IOBUF  port map (O  => iAsic01DM2,   I => '0',           IO => spareHrN(0), T => '1');
   -----------------------------------------------------------------------------
   -- Differential asic signals IOBUF & MAPPING
