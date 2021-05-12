@@ -25,6 +25,7 @@ import os
 import ePixAsics as epix
 import surf.axi as axi
 import surf.protocols.pgp as pgp
+import surf.protocols.ssp as ssp
 import surf.devices.analog_devices as analog_devices
 import surf.misc
 import surf
@@ -306,44 +307,40 @@ class EpixHR10kT(pr.Device):
         super(self.__class__, self).__init__(**kwargs)
         self.add((
             # core registers
-            axi.AxiVersion(offset=0x00000000),          
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane0', offset=0x05000000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane1', offset=0x05010000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
+            axi.AxiVersion(                                                    offset=0x00000000),
+            micron.AxiMicronN25Q(             name='MicronN25Q',               offset=0x02000000, expand=False, enabled=True),
+            pgp.Pgp3AxiL(                     name='Pgp3Axi_lane0',            offset=0x05000000, expand=False, enabled=False),
+            pgp.Pgp3AxiL(                     name='Pgp3Axi_lane1',            offset=0x05010000, expand=False, enabled=False),
+            pgp.Pgp3AxiL(                     name='Pgp3Axi_lane2',            offset=0x05020000, expand=False, enabled=False),
+            pgp.Pgp3AxiL(                     name='Pgp3Axi_lane3',            offset=0x05030000, expand=False, enabled=False),
             # app registers
-            MMCM7Registers(          name='MMCMRegisters',                     offset=0x80000000, expand=False, enabled=False),
-            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, expand=False, enabled=False),
-            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
-            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False, enabled=False),
-            epix.EpixHr10kTV2Asic(   name='Hr10kTAsic0',                       offset=0x88000000, expand=False, enabled=False),
-            epix.EpixHr10kTV2Asic(   name='Hr10kTAsic1',                       offset=0x88400000, expand=False, enabled=False),
-            epix.EpixHr10kTV2Asic(   name='Hr10kTAsic2',                       offset=0x88800000, expand=False, enabled=False),
-            epix.EpixHr10kTV2Asic(   name='Hr10kTAsic3',                       offset=0x88C00000, expand=False, enabled=False),
-            EPixHr10kTAppCoreFpgaRegisters(name="RegisterControl",             offset=0x96000000, expand=False, enabled=False),
-            powerSupplyRegisters(    name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
-            HighSpeedDacRegisters(   name='HSDac',                             offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
-            pr.MemoryDevice(         name='waveformMem',                       offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
-            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8C000000, expand=False, enabled=False),
-            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
-            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8E000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',        offset=0x8F000000, expand=False, enabled=False),
-            SlowAdcRegisters(            name="SlowAdcRegisters",              offset=0x90000000, expand=False, enabled=False),
-            ##ProgrammablePowerSupply(     name="ProgPowerSupply",               offset=0x92000000, expand=False, enabled=False),
-            ##ClockJitterCleanerRegisters( name="Clock Jitter Cleaner",          offset=0x93000000, expand=False, enabled=False),
-            AsicDeserHr16bRegisters6St(  name="DeserRegisters0",               offset=0x94000000, expand=False, enabled=False),
-            AsicDeserHr16bRegisters6St(  name="DeserRegisters1",               offset=0x94010000, expand=False, enabled=False),
-            AsicDeserHr16bRegisters6St(  name="DeserRegisters2",               offset=0x94020000, expand=False, enabled=False),
-            AsicDeserHr16bRegisters6St(  name="DeserRegisters3",               offset=0x94030000, expand=False, enabled=False), 
-            DigitalPktRegisters(         name="PacketRegisters0",              offset=0x95000000, expand=False, enabled=False), 
-            DigitalPktRegisters(         name="PacketRegisters1",              offset=0x95100000, expand=False, enabled=False), 
-            DigitalPktRegisters(         name="PacketRegisters2",              offset=0x95200000, expand=False, enabled=False), 
-            DigitalPktRegisters(         name="PacketRegisters3",              offset=0x95300000, expand=False, enabled=False)
-            ))
+            MMCM7Registers(                   name='MMCMRegisters',            offset=0x80000000, expand=False, enabled=False),
+            TriggerRegisters(                 name="TriggerRegisters",         offset=0x81000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(               name='ssiPrbs0PktRegisters',     offset=0x82000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(               name='ssiPrbs1PktRegisters',     offset=0x83000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(               name='ssiPrbs2PktRegisters',     offset=0x84000000, expand=False, enabled=False),
+            ssiPrbsTxRegisters(               name='ssiPrbs3PktRegisters',     offset=0x85000000, expand=False, enabled=False),
+            axi.AxiStreamMonitoring(          name='AxiStreamMon',             offset=0x86000000, expand=False, enabled=False, numberLanes=4),
+            axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False),
+            epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
+            epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
+            epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
+            epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False),
+            EPixHr10kTAppCoreFpgaRegisters(   name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
+            powerSupplyRegisters(             name='PowerSupply',              offset=0x89000000, expand=False, enabled=False),            
+            HighSpeedDacRegisters(            name='HSDac',                    offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
+            pr.MemoryDevice(                  name='waveformMem',              offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
+            sDacRegisters(                    name='SlowDacs'    ,             offset=0x8C000000, expand=False, enabled=False),
+            OscilloscopeRegisters(            name='Oscilloscope',             offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
+            MonAdcRegisters(                  name='FastADCsDebug',            offset=0x8E000000, expand=False, enabled=False),
+            analog_devices.Ad9249ConfigGroup( name='Ad9249Config_Adc_0',       offset=0x8F000000, expand=False, enabled=False),
+            SlowAdcRegisters(                 name="SlowAdcRegisters",         offset=0x90000000, expand=False, enabled=False),
+            ssp.SspLowSpeedDecoderReg(        name="SspLowSpeedDecoderReg",    offset=0x94010000, expand=False, enabled=False, numberLanes=24),
+            DigitalPktRegisters(              name="PacketRegisters0",         offset=0x95000000, expand=False, enabled=False), 
+            DigitalPktRegisters(              name="PacketRegisters1",         offset=0x95100000, expand=False, enabled=False), 
+            DigitalPktRegisters(              name="PacketRegisters2",         offset=0x95200000, expand=False, enabled=False), 
+            DigitalPktRegisters(              name="PacketRegisters3",         offset=0x95300000, expand=False, enabled=False)
+        ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
         self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))

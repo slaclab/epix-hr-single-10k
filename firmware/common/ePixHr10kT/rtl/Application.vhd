@@ -162,24 +162,19 @@ architecture mapping of Application is
 
    attribute keep : string;
 
-   constant AXIL_ASIC_CONFIG_C : AxiLiteCrossbarMasterConfigArray(3 downto 0) := genAxiLiteConfig(4, (HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C(ASIC_READOUT_AXI_INDEX_C).baseAddr), 20, 16);
+   constant AXIL_ASIC_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := genAxiLiteConfig(2, (HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C(ASIC_READOUT_AXI_INDEX_C).baseAddr), 20, 16);
  
    -- prbs signals
    signal prbsBusy       : slv(NUMBER_OF_LANES_C-1 downto 0) := (others => '0');
 
    -- clock signals
    signal appClk         : sl;
-   signal asicClk        : sl;
-   signal byteClk        : sl;
-   signal deserClk       : sl;
+   signal refClk         : sl;
    signal asicRdClk      : sl;
-   signal idelayCtrlClk  : sl;
+
    signal appRst         : sl;
-   signal asicRst        : sl;
-   signal byteClkRst     : sl;
+   signal refRst         : sl;
    signal asicRdClkRst   : sl;
-   signal idelayCtrlRst  : sl;
-   signal idelayCtrlRst_i: sl;
    signal clkLocked      : sl;
    signal dummyRst       : slv(1 downto 0);
      
@@ -195,10 +190,10 @@ architecture mapping of Application is
    signal mAxiReadMasters  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0); 
    signal mAxiReadSlaves   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0);
    -- AXI-Lite Signals (Asic xbar)
-   signal axilAsicWriteMasters : AxiLiteWriteMasterArray(3 downto 0);
-   signal axilAsicWriteSlaves  : AxiLiteWriteSlaveArray(3 downto 0);
-   signal axilAsicReadMasters  : AxiLiteReadMasterArray(3 downto 0);
-   signal axilAsicReadSlaves   : AxiLiteReadSlaveArray(3 downto 0);
+   signal axilAsicWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
+   signal axilAsicWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
+   signal axilAsicReadMasters  : AxiLiteReadMasterArray(1 downto 0);
+   signal axilAsicReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
 
    --constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
@@ -307,8 +302,19 @@ architecture mapping of Application is
    constant STREAMS_PER_ASIC_C : natural := 6;
    --
    signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
-   signal asicStreams       : AxiStreamMasterArray(NUMBER_OF_ASICS_C*STREAMS_PER_ASIC_C-1 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
-   signal adcStreamsEn_n    : slv(NUMBER_OF_ASICS_C*STREAMS_PER_ASIC_C-1 downto 0);
+
+   signal deserClk        : sl;
+   signal deserRst        : sl;
+   signal deserData       : Slv8Array(23 downto 0);
+   signal dlyLoad         : slv(23 downto 0);
+   signal dlyCfg          : Slv9Array(23 downto 0);
+   
+   signal rxLinkUp        : slv(23 downto 0);
+   signal rxValid         : slv(23 downto 0);
+   signal rxData          : Slv16Array(23 downto 0);
+   signal rxSof           : slv(23 downto 0);
+   signal rxEof           : slv(23 downto 0);
+   signal rxEofe          : slv(23 downto 0);
 
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
@@ -449,7 +455,7 @@ begin
       iSaciSelL(0)      when boardConfig.epixhrDbgSel1 = "00111" else
       iSaciSelL(1)      when boardConfig.epixhrDbgSel1 = "01000" else
       asicRdClk         when boardConfig.epixhrDbgSel1 = "01001" else
-      byteClk           when boardConfig.epixhrDbgSel1 = "01010" else
+      deserClk          when boardConfig.epixhrDbgSel1 = "01010" else
       WFdacDin_i        when boardConfig.epixhrDbgSel1 = "01011" else
       WFdacSclk_i       when boardConfig.epixhrDbgSel1 = "01100" else
       WFdacCsL_i        when boardConfig.epixhrDbgSel1 = "01101" else
@@ -476,7 +482,7 @@ begin
       iSaciSelL(0)      when boardConfig.epixhrDbgSel2 = "00111" else
       iSaciSelL(1)      when boardConfig.epixhrDbgSel2 = "01000" else
       asicRdClk         when boardConfig.epixhrDbgSel2 = "01001" else
-      byteClk           when boardConfig.epixhrDbgSel2 = "01010" else
+      deserClk          when boardConfig.epixhrDbgSel2 = "01010" else
       WFdacDin_i        when boardConfig.epixhrDbgSel2 = "01011" else
       WFdacSclk_i       when boardConfig.epixhrDbgSel2 = "01100" else
       WFdacCsL_i        when boardConfig.epixhrDbgSel2 = "01101" else
@@ -582,17 +588,16 @@ begin
        rst     => asicRdClkRst,
        dataIn  => iAsicSR0,
        dataOut => oAsicSR0);
-  
+
+
    ------------------------------------------
    -- Generate clocks from 156.25 MHz PGP  --
    ------------------------------------------
    -- clkIn     : 156.25 MHz PGP
-   -- base clk is 640 MHz
-   -- clkOut(0) : 100.00 MHz app clock
-   -- clkOut(1) : 320.00 MHz asic clock
-   -- clkOut(2) : 320.00 MHz asic clock (because HR pll bypass)
-   -- clkOut(3) : 320.00 MHz idelay control clock (valid 200MHz to 800MHz)
-   -- clkOut(4) :  45.71 MHz monitoring adc
+   -- base clk is 1000 MHz
+   -- clkOut(0) : 160.00 MHz ASIC ref clock
+   -- clkOut(1) : 50.00  MHz adc clock
+   -- clkOut(2) : 100.00 MHz app clock
    U_CoreClockGen : entity surf.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
@@ -600,52 +605,39 @@ begin
       INPUT_BUFG_G           => true,
       FB_BUFG_G              => true,
       RST_IN_POLARITY_G      => '1',     -- '0' for active low
-      NUM_CLOCKS_G           => 5,
+      NUM_CLOCKS_G           => 3,
+      SIMULATION_G           => SIMULATION_G,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
       CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
-      DIVCLK_DIVIDE_G        => 5,
-      CLKFBOUT_MULT_F_G      => 20.5,
+      DIVCLK_DIVIDE_G        => 5,        -- 1000 Base clk
+      CLKFBOUT_MULT_F_G      => 32.0,     -- 1000 Base clk
       CLKFBOUT_MULT_G        => 5,
-      CLKOUT0_DIVIDE_F_G     => 1.0,
-      CLKOUT0_DIVIDE_G       => 6,
-      CLKOUT1_DIVIDE_G       => 4,
-      CLKOUT2_DIVIDE_G       => 4,
-      CLKOUT3_DIVIDE_G       => 4,
-      CLKOUT4_DIVIDE_G       => 14,
+      CLKOUT0_DIVIDE_F_G     => 6.25,     -- 1000 Base clk
+      CLKOUT0_DIVIDE_G       => 1,
+      CLKOUT1_DIVIDE_G       => 20,       -- 1000 Base clk
+      CLKOUT2_DIVIDE_G       => 10,       -- 1000 Base clk
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
-      CLKOUT3_PHASE_G        => 0.0,
-      CLKOUT4_PHASE_G        => 0.0,
       CLKOUT0_DUTY_CYCLE_G   => 0.5,
       CLKOUT1_DUTY_CYCLE_G   => 0.5,
       CLKOUT2_DUTY_CYCLE_G   => 0.5,
-      CLKOUT3_DUTY_CYCLE_G   => 0.5,
-      CLKOUT4_DUTY_CYCLE_G   => 0.5,
       CLKOUT0_RST_HOLD_G     => 3,
       CLKOUT1_RST_HOLD_G     => 3,
       CLKOUT2_RST_HOLD_G     => 3,
-      CLKOUT3_RST_HOLD_G     => 3,
-      CLKOUT4_RST_HOLD_G     => 3,
       CLKOUT0_RST_POLARITY_G => '1',
       CLKOUT1_RST_POLARITY_G => '1',
-      CLKOUT2_RST_POLARITY_G => '1',
-      CLKOUT3_RST_POLARITY_G => '1',
-      CLKOUT4_RST_POLARITY_G => '1')
+      CLKOUT2_RST_POLARITY_G => '1')
    port map(
       clkIn           => sysClk,
       rstIn           => sysRst,
-      clkOut(0)       => appClk,
-      clkOut(1)       => asicClk,
-      clkOut(2)       => asicRdClk,
-      clkOut(3)       => idelayCtrlClk,
-      clkOut(4)       => adcClk,
-      rstOut(0)       => appRst,
-      rstOut(1)       => asicRst,
-      rstOut(2)       => asicRdClkRst,
-      rstOut(3)       => dummyRst(0),
-      rstOut(4)       => dummyRst(1),
+      clkOut(0)       => refClk,
+      clkOut(1)       => adcClk,
+      clkOut(2)       => appClk,
+      rstOut(0)       => refRst,
+      rstOut(1)       => dummyRst(0),
+      rstOut(2)       => appRst,
       locked          => clkLocked,
       -- AXI-Lite Interface 
       axilClk         => appClk,
@@ -655,59 +647,7 @@ begin
       axilWriteMaster => mAxiWriteMasters(PLLREGS_AXI_INDEX_C),
       axilWriteSlave  => mAxiWriteSlaves(PLLREGS_AXI_INDEX_C)
    );      
-
-
-   U_BUFGCE_DIV_0 : BUFGCE_DIV
-   generic map (
-      BUFGCE_DIVIDE => 5,     -- 1-8
-      IS_CE_INVERTED => '0',  -- Optional inversion for CE
-      IS_CLR_INVERTED => '0', -- Optional inversion for CLR
-      IS_I_INVERTED => '0'    -- Optional inversion for I
-   )
-   port map (
-      O => byteClk,     -- 1-bit output: Buffer
-      CE => '1',        -- 1-bit input: Buffer enable
-      CLR => '0',       -- 1-bit input: Asynchronous clear
-      I => asicClk      -- 1-bit input: Buffer
-   );
-
-  U_BUFGCE_DIV_1 : BUFGCE_DIV
-   generic map (
-      BUFGCE_DIVIDE => 4,     -- 1-8
-      IS_CE_INVERTED => '0',  -- Optional inversion for CE
-      IS_CLR_INVERTED => '0', -- Optional inversion for CLR
-      IS_I_INVERTED => '0'    -- Optional inversion for I
-   )
-   port map (
-      O => deserClk,     -- 1-bit output: Buffer
-      CE => '1',         -- 1-bit input: Buffer enable
-      CLR => '0',        -- 1-bit input: Asynchronous clear
-      I => asicClk       -- 1-bit input: Buffer
-   );
   
-
-   U_RdPwrUpRst : entity surf.PwrUpRst
-   generic map (
-     SIM_SPEEDUP_G  => SIMULATION_G,
-     DURATION_G => 20000000
-   )
-   port map (
-      clk      => byteClk,
-      rstOut   => byteClkRst
-   );
-
---   idelayCtrlRst_i <= idelayCtrlRst;    --cmt_locked or
---   U_IDELAYCTRL_0 : IDELAYCTRL
---   generic map (
---      SIM_DEVICE => "ULTRASCALE"  -- Must be set to "ULTRASCALE" 
---   )
---   port map (
---      RDY => idelayRdy,        -- 1-bit output: Ready output
---      REFCLK => idelayCtrlClk, -- 1-bit input: Reference clock input
---      RST => idelayCtrlRst_i   -- 1-bit input: Active high reset input. Asynchronous assert, synchronous deassert to
---                               -- REFCLK.
---   );
-   
    ---------------------------------------------
    -- AXI Lite Async - cross clock domain     --
    ---------------------------------------------
@@ -763,7 +703,7 @@ begin
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => 4,
+         NUM_MASTER_SLOTS_G => 2,
          MASTERS_CONFIG_G   => AXIL_ASIC_CONFIG_C)
       port map (
          axiClk              => appClk,
@@ -809,8 +749,8 @@ begin
       saciReadoutAck => saciPrepReadoutAck,
       errInhibit     => errInhibit,
       -- sys clock based signals
-      sysRst         => asicRst,
-      sysClk         => asicClk,
+      sysRst         => refRst,
+      sysClk         => refClk,
       asicSR0        => iAsicSR0,
       asicClkSyncEn  => iAsicClkSyncEn,
       asicGlblRst    => iAsicGrst,
@@ -987,17 +927,6 @@ begin
       clk      => appClk,
       asyncRst => adcCardPowerUpEdge,
       syncRst  => serdesReset
-   );
-
-   U_IdelayCtrlReset : entity surf.RstSync
-   generic map (
-      TPD_G           => TPD_G,
-      RELEASE_DELAY_G => 250
-   )
-   port map (
-      clk      => idelayCtrlClk,
-      asyncRst => serdesReset,
-      syncRst  => idelayCtrlRst
    );
    
    --------------------------------------------
@@ -1223,61 +1152,130 @@ begin
     end generate;
   
    --
-  
+
+   -------------------------------------------------------
+   -- ASIC Deserializers
+   -------------------------------------------------------
+   U_Deser : entity surf.SelectioDeserUltraScale
+     generic map(
+       TPD_G            => TPD_G,
+       SIMULATION_G     => SIMULATION_G,
+       NUM_LANE_G       => 24,
+       CLKIN_PERIOD_G   => 6.25,  -- 160 MHz
+       DIVCLK_DIVIDE_G  => 1,
+       CLKFBOUT_MULT_G  => 4,     -- 640 MHz = 160 MHz x 4 / 1
+       CLKOUT0_DIVIDE_G => 2      -- 320 MHz = 640 MHz/2
+     )
+     port map (
+       -- SELECTIO Ports
+       rxP             => asicDataP,
+       rxN             => asicDataN,
+       pllClk          => asicRdClk,
+       -- Reference Clock and Reset
+       refClk          => refClk,
+       refRst          => refRst,
+       -- Deserialization Interface (deserClk domain)
+       deserClk        => deserClk ,
+       deserRst        => deserRst ,
+       deserData       => deserData,
+       dlyLoad         => dlyLoad  ,
+       dlyCfg          => dlyCfg   ,
+       -- AXI-Lite Interface (axilClk domain)
+       axilClk         => appClk,
+       axilRst         => appRst,
+       axilReadMaster  => axilAsicReadMasters(0),
+       axilReadSlave   => axilAsicReadSlaves(0),
+       axilWriteMaster => axilAsicWriteMasters(0),
+       axilWriteSlave  => axilAsicWriteSlaves(0)
+     );
+   
+   -------------------------------------------------------
+   -- ASIC Gearboxes and SSP decoders
+   -------------------------------------------------------
+   U_SspDecoder : entity surf.SspLowSpeedDecoder8b10bWrapper
+     generic map (
+       TPD_G        => TPD_G,
+       SIMULATION_G => SIMULATION_G,
+       NUM_LANE_G   => 24
+     )
+     port map (
+       -- Deserialization Interface (deserClk domain)
+       deserClk        => deserClk ,
+       deserRst        => deserRst ,
+       deserData       => deserData,
+       dlyLoad         => dlyLoad  ,
+       dlyCfg          => dlyCfg   ,
+       -- SSP Frame Output
+       rxLinkUp        => rxLinkUp,
+       rxValid         => rxValid ,
+       rxData          => rxData  ,
+       rxSof           => rxSof   ,
+       rxEof           => rxEof   ,
+       rxEofe          => rxEofe  ,
+       -- AXI-Lite Interface (axilClk domain)
+       axilClk         => appClk,
+       axilRst         => appRst,
+       axilReadMaster  => axilAsicReadMasters(1),
+       axilReadSlave   => axilAsicReadSlaves(1),
+       axilWriteMaster => axilAsicWriteMasters(1),
+       axilWriteSlave  => axilAsicWriteSlaves(1)
+     );
+      
+    
    --------------------------------------------
    --     ASICS LOOP                         --
    --------------------------------------------   
    G_ASICS : for i in 0 to NUMBER_OF_ASICS_C-1 generate
 
-     adcSerial(i).fClkP  <= byteClk;
-     adcSerial(i).fClkN  <= not byteClk;
-     adcSerial(i).dClkP  <= asicClk;
-     adcSerial(i).dClkN  <= not asicClk;
-     adcSerial(i).chP(0) <= asicDataP(0+i*6);
-     adcSerial(i).chN(0) <= asicDataN(0+i*6);
-     adcSerial(i).chP(1) <= asicDataP(1+i*6);
-     adcSerial(i).chN(1) <= asicDataN(1+i*6);
-     adcSerial(i).chP(2) <= asicDataP(2+i*6);
-     adcSerial(i).chN(2) <= asicDataN(2+i*6);
-     adcSerial(i).chP(3) <= asicDataP(3+i*6);
-     adcSerial(i).chN(3) <= asicDataN(3+i*6);
-     adcSerial(i).chP(4) <= asicDataP(4+i*6);
-     adcSerial(i).chN(4) <= asicDataN(4+i*6);
-     adcSerial(i).chP(5) <= asicDataP(5+i*6);
-     adcSerial(i).chN(5) <= asicDataN(5+i*6);
+     -- adcSerial(i).fClkP  <= byteClk;
+     -- adcSerial(i).fClkN  <= not byteClk;
+     -- adcSerial(i).dClkP  <= asicClk;
+     -- adcSerial(i).dClkN  <= not asicClk;
+     -- adcSerial(i).chP(0) <= asicDataP(0+i*6);
+     -- adcSerial(i).chN(0) <= asicDataN(0+i*6);
+     -- adcSerial(i).chP(1) <= asicDataP(1+i*6);
+     -- adcSerial(i).chN(1) <= asicDataN(1+i*6);
+     -- adcSerial(i).chP(2) <= asicDataP(2+i*6);
+     -- adcSerial(i).chN(2) <= asicDataN(2+i*6);
+     -- adcSerial(i).chP(3) <= asicDataP(3+i*6);
+     -- adcSerial(i).chN(3) <= asicDataN(3+i*6);
+     -- adcSerial(i).chP(4) <= asicDataP(4+i*6);
+     -- adcSerial(i).chN(4) <= asicDataN(4+i*6);
+     -- adcSerial(i).chP(5) <= asicDataP(5+i*6);
+     -- adcSerial(i).chN(5) <= asicDataN(5+i*6);
      
-     -------------------------------------------------------
-     -- ASIC AXI stream framers
-     -------------------------------------------------------
-     U_AXI_ASIC : entity work.HrAdcReadoutGroup
-      generic map (
-        TPD_G           => TPD_G,
-        NUM_CHANNELS_G  => STREAMS_PER_ASIC_C,
-        SIMULATION_G    => SIMULATION_G,
-        DATA_TYPE_G     => "16b20b",
-        IODELAY_GROUP_G => "DEFAULT_GROUP",
-        XIL_DEVICE_G    => "ULTRASCALE",
-        DEFAULT_DELAY_G => (others => '0'),
-        ADC_INVERT_CH_G => "00000000")
-      port map (
-        axilClk         => appClk,
-        axilRst         => appRst,
-        axilWriteMaster => axilAsicWriteMasters(i),
-        axilWriteSlave  => axilAsicWriteSlaves(i),
-        axilReadMaster  => axilAsicReadMasters(i),
-        axilReadSlave   => axilAsicReadSlaves(i),
-        bitClk          => asicClk,
-        byteClk         => byteClk,
-        deserClk        => deserClk,
-        adcClkRst       => serdesReset,
-        idelayCtrlRdy   => idelayRdy,
-        adcSerial       => adcSerial(i),
-        adcSerialOutP   => adcSerialOutP(i),
-        adcSerialOutN   => adcSerialOutN(i),
-        adcStreamClk    => byteClk,
-        adcStreams      => asicStreams(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
-        adcStreamsEn_n  => adcStreamsEn_n(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C)
-        );
+     -- -------------------------------------------------------
+     -- -- ASIC AXI stream framers
+     -- -------------------------------------------------------
+     -- U_AXI_ASIC : entity work.HrAdcReadoutGroup
+     --  generic map (
+     --    TPD_G           => TPD_G,
+     --    NUM_CHANNELS_G  => STREAMS_PER_ASIC_C,
+     --    SIMULATION_G    => SIMULATION_G,
+     --    DATA_TYPE_G     => "16b20b",
+     --    IODELAY_GROUP_G => "DEFAULT_GROUP",
+     --    XIL_DEVICE_G    => "ULTRASCALE",
+     --    DEFAULT_DELAY_G => (others => '0'),
+     --    ADC_INVERT_CH_G => "00000000")
+     --  port map (
+     --    axilClk         => appClk,
+     --    axilRst         => appRst,
+     --    axilWriteMaster => axilAsicWriteMasters(i),
+     --    axilWriteSlave  => axilAsicWriteSlaves(i),
+     --    axilReadMaster  => axilAsicReadMasters(i),
+     --    axilReadSlave   => axilAsicReadSlaves(i),
+     --    bitClk          => asicClk,
+     --    byteClk         => byteClk,
+     --    deserClk        => deserClk,
+     --    adcClkRst       => serdesReset,
+     --    idelayCtrlRdy   => idelayRdy,
+     --    adcSerial       => adcSerial(i),
+     --    adcSerialOutP   => adcSerialOutP(i),
+     --    adcSerialOutN   => adcSerialOutN(i),
+     --    adcStreamClk    => byteClk,
+     --    adcStreams      => asicStreams(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+     --    adcStreamsEn_n  => adcStreamsEn_n(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C)
+     --    );
 
      -------------------------------------------------------------------------------
      -- generate stream frames
@@ -1288,18 +1286,19 @@ begin
          VC_NO_G             => "0000",
          LANE_NO_G           => toSlv(i, 4),
          ASIC_NO_G           => toSlv(i, 3),
-         STREAMS_PER_ASIC_G  => STREAMS_PER_ASIC_C,
-         ASIC_DATA_G         => (64*16),
-         ASIC_WIDTH_G        => 64,
-         ASIC_DATA_PADDING_G => "LSB",
+         LANES_NO_G          => STREAMS_PER_ASIC_C,
          AXIL_ERR_RESP_G     => AXI_RESP_DECERR_C
          )
        port map( 
          -- Deserialized data port
-         rxClk             => byteClk, --fClkP,    --use frame clock
-         rxRst             => byteClkRst,
-         adcStreams        => asicStreams(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
-         adcStreamsEn_n    => adcStreamsEn_n(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+         deserClk          => deserClk,
+         deserRst          => deserRst,
+         rxValid           => rxValid(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+         rxData            => rxData(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+         rxSof             => rxSof(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+         rxEof             => rxEof(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+         rxEofe            => rxEofe(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+    
       
          -- AXI lite slave port for register access
          axilClk           => appClk,
@@ -1318,9 +1317,8 @@ begin
          -- acquisition number input to the header
          acqNo             => boardConfig.acqCnt,
       
-         -- optional readout trigger for test mode
-         testTrig          => acqStart,
-         errInhibit        => errInhibit
+         -- start of readout strobe
+         startRdout        => iAsicSR0
          );       
    end generate;
 
