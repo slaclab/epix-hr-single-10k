@@ -28,7 +28,6 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiPkg.all;
-use surf.Pgp2bPkg.all;
 use surf.SsiPkg.all;
 use surf.SsiCmdMasterPkg.all;
 use surf.Code8b10bPkg.all;
@@ -59,14 +58,10 @@ end ePixHr10kT_full_tb;
 
 architecture arch of ePixHr10kT_full_tb is
 
-
-
-  
-
   --file definitions
   constant DATA_BITS   : natural := 16;
   constant DEPTH_C     : natural := 1024;
-  constant FILENAME_C  : string  := "/afs/slac.stanford.edu/u/re/ddoering/localGit/epix-hr-dev/firmware/simulations/CryoEncDec/sin.csv";
+  constant FILENAME_C  : string  := "/afs/slac.stanford.edu/u/re/ddoering/localGit/epix-hr-dev/firmware/targets/EpixHr10kT/tb/sin.csv";
   --simulation constants to select data type
   constant CH_ID       : natural := 0;
   constant CH_WF       : natural := 1;
@@ -216,6 +211,8 @@ architecture arch of ePixHr10kT_full_tb is
       -- SYSMON Ports
       signal vPIn          : sl;
       signal vNIn          : sl;
+
+  
   
   -----------------------------------------------------------------------------
   -- Signals to communicate among app and core
@@ -260,11 +257,13 @@ architecture arch of ePixHr10kT_full_tb is
   signal EncSof      : sl := '0';
   signal EncEof      : sl := '0';
 
-  signal dClkP   : sl := '1'; -- Data clock
-  signal dClkN   : sl := '0';
-  signal fClkP   : sl := '0'; -- Frame clock
-  signal fClkN   : sl := '1';
-  signal dClkP2x : sl := '1'; -- Data clock
+  signal asicSimClk : sl;
+  signal asicSimRst : sl;
+  signal dClkP      : sl := '1'; -- Data clock
+  signal dClkN      : sl := '0';
+  signal fClkP      : sl := '0'; -- Frame clock
+  signal fClkN      : sl := '1';
+  signal dClkP2x    : sl := '1'; -- Data clock
   signal serData1_20b : slv(19 downto 0);
   signal serData1_10b : slv( 9 downto 0);
   signal serData2_20b : slv(19 downto 0);
@@ -274,35 +273,31 @@ architecture arch of ePixHr10kT_full_tb is
   signal serialDataOut1d : slv(39 downto 0) := (others => '0');
   signal serialDataOut2d : slv(39 downto 0) := (others => '0');
   signal chId           : slv(15 downto 0);
-
-signal dummy : slv(2 downto 0);
+  signal dummy : slv(2 downto 0);
 
 begin  --
-
+  sysRst_n   <= not sysRst;
   asicSR0 <= spareHrP(0);
-
   EncDataOutRev <= bitReverse(EncDataOut);
+  asicSimRst <= not asicGlblRst;
+  asicSimClk <= asicRoClkP(0);
   
   -- clock generation
   qsfpClkP  <= not qsfpClkP after 3.2 ns;
   qsfpClkN  <= not qsfpClkP;
-
   ddrClkP  <= not ddrCkP after 3.2 ns;
   ddrClkN  <= not ddrCkP;
-  
---  fClkP <= not fClkP after 7 * 2 ns;
   fClkN <= not fClkP;
---  dClkP <= not dClkP after 2 ns; 
   dClkN <= not dClkP;
 
   ------------------------------------------
   -- Generate clocks from 156.25 MHz PGP  --
   ------------------------------------------
-  -- clkIn     : 156.25 MHz PGP
-  -- clkOut(0) : 500.00 MHz -- 8x cryo clock (default  56MHz)
-  -- clkOut(1) : 125.00 MHz -- 448 clock div 4
-  -- clkOut(2) : 64.00 MHz  -- 448 clock div 7
-  -- clkOut(3) : 56.00 MHz  -- cryo input clock default is 56MHz
+  -- clkIn     : 320 MHz 
+  -- clkOut(0) : 320 MHz 
+  -- clkOut(1) :  32 MHz 
+  -- clkOut(2) : 640 MHz 
+
 
   U_TB_ClockGen : entity surf.ClockManagerUltraScale 
     generic map(
@@ -314,10 +309,10 @@ begin  --
       NUM_CLOCKS_G           => 3,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
-      CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
-      DIVCLK_DIVIDE_G        => 6,
-      CLKFBOUT_MULT_F_G      => 38.4,
-      CLKFBOUT_MULT_G        => 5,
+      CLKIN_PERIOD_G         => 3.125,    -- Input period in ns );
+      DIVCLK_DIVIDE_G        => 4,
+      CLKFBOUT_MULT_F_G      => 16.0,
+      CLKFBOUT_MULT_G        => 16,
       CLKOUT0_DIVIDE_F_G     => 1.0,
       CLKOUT0_DIVIDE_G       => 4,
       CLKOUT0_PHASE_G        => 0.0,
@@ -335,8 +330,8 @@ begin  --
       CLKOUT2_RST_HOLD_G     => 3,
       CLKOUT2_RST_POLARITY_G => '1')
    port map(
-      clkIn           => sysClk,
-      rstIn           => sysRst,
+      clkIn           => asicSimClk, --56MHz
+      rstIn           => asicSimRst,
       clkOut(0)       => dClkP,       --bit clk
       clkOut(1)       => fClkP,
       clkOut(2)       => dClkP2x,
@@ -478,58 +473,18 @@ begin  --
     end loop;
   end process;
 
-
-  
-  sysRst_n   <= not sysRst;
-    
-  asicDataP(0) <=     serialDataOut1;
-  asicDataN(0) <= not serialDataOut1;
-  asicDataP(1) <=     serialDataOut1d(0);
-  asicDataN(1) <= not serialDataOut1d(0);
-  asicDataP(2) <=     serialDataOut1d(1);
-  asicDataN(2) <= not serialDataOut1d(1);
-  asicDataP(3) <=     serialDataOut1d(2);
-  asicDataN(3) <= not serialDataOut1d(2);
-  asicDataP(4) <=     serialDataOut1d(3);
-  asicDataN(4) <= not serialDataOut1d(3);
-  asicDataP(5) <=     serialDataOut1d(4);
-  asicDataN(5) <= not serialDataOut1d(4);
-  asicDataP(6) <=     serialDataOut1d(5);
-  asicDataN(6) <= not serialDataOut1d(5);
-  asicDataP(7) <=     serialDataOut1d(6);
-  asicDataN(7) <= not serialDataOut1d(6);
-  asicDataP(8) <=     serialDataOut1d(7);
-  asicDataN(8) <= not serialDataOut1d(7);
-  asicDataP(9) <=     serialDataOut1d(8);
-  asicDataN(9) <= not serialDataOut1d(8);
-  asicDataP(10) <=     serialDataOut1d(9);
-  asicDataN(10) <= not serialDataOut1d(9);
-  asicDataP(11) <=     serialDataOut1d(10);
-  asicDataN(11) <= not serialDataOut1d(10);
-  asicDataP(12) <=     serialDataOut1d(11);
-  asicDataN(12) <= not serialDataOut1d(11);
-  asicDataP(13) <=     serialDataOut1d(12);
-  asicDataN(13) <= not serialDataOut1d(12);
-  asicDataP(14) <=     serialDataOut1d(13);
-  asicDataN(14) <= not serialDataOut1d(13);
-  asicDataP(15) <=     serialDataOut1d(14);
-  asicDataN(15) <= not serialDataOut1d(14);
-  asicDataP(16) <=     serialDataOut1d(15);
-  asicDataN(16) <= not serialDataOut1d(15);
-  asicDataP(17) <=     serialDataOut1d(16);
-  asicDataN(17) <= not serialDataOut1d(16);
-  asicDataP(18) <=     serialDataOut1d(17);
-  asicDataN(18) <= not serialDataOut1d(17);
-  asicDataP(19) <=     serialDataOut1d(18);
-  asicDataN(19) <= not serialDataOut1d(18);
-  asicDataP(20) <=     serialDataOut1d(19);
-  asicDataN(20) <= not serialDataOut1d(19);
-  asicDataP(21) <=     serialDataOut1d(20);
-  asicDataN(21) <= not serialDataOut1d(20);
-  asicDataP(22) <=     serialDataOut1d(21);
-  asicDataN(22) <= not serialDataOut1d(21);
-  asicDataP(23) <=     serialDataOut1d(22);
-  asicDataN(23) <= not serialDataOut1d(22);
+  asicDataWiring:  process(serialDataOut1, serialDataOut1d)
+      variable i       : natural;
+      variable retVarP : std_logic_vector(24-1 downto 0);
+      variable retVarN : std_logic_vector(24-1 downto 0);
+   begin
+      for i in 0 to 24-1 loop
+        retVarP(i) := serialDataOut2d(i);
+        retVarN(i) := not serialDataOut2d(i);
+      end loop;
+      asicDataP <= retVarP;
+      asicDataN <= retVarN;
+   end process;    
   
  
   U_App : entity work.Application
@@ -640,82 +595,82 @@ begin  --
          smaTxP           => smaTxP,
          smaTxN           => smaTxN);
 
-  -- U_Core : entity epix_hr_core.EpixHrCore
-  --     generic map (
-  --        TPD_G                => TPD_G,
-  --        BUILD_INFO_G         => BUILD_INFO_G,
-  --        ROGUE_SIM_EN_G       => true,
-  --        ROGUE_SIM_PORT_NUM_G => 13000
-  --     )
-  --     port map (
-  --        ----------------------
-  --        -- Top Level Interface
-  --        ----------------------
-  --        -- System Clock and Reset
-  --        sysClk           => sysClk,
-  --        sysRst           => sysRst,
-  --        -- AXI-Lite Register Interface (sysClk domain)
-  --        -- Register Address Range = [0x80000000:0xFFFFFFFF]
-  --        mAxilReadMaster  => axilReadMaster,
-  --        mAxilReadSlave   => axilReadSlave,
-  --        mAxilWriteMaster => axilWriteMaster,
-  --        mAxilWriteSlave  => axilWriteSlave,
-  --        -- AXI Stream, one per QSFP lane (sysClk domain)
-  --        sAxisMasters     => axisMasters,
-  --        sAxisSlaves      => axisSlaves,
-  --        -- Auxiliary AXI Stream, (sysClk domain)
-  --        sAuxAxisMasters  => sAuxAxisMasters,
-  --        sAuxAxisSlaves   => sAuxAxisSlaves,
-  --        ssiCmd           => ssiCmd,
-  --        -- DDR's AXI Memory Interface (sysClk domain)
-  --        -- DDR Address Range = [0x00000000:0x3FFFFFFF]
-  --        sAxiReadMaster   => axiReadMaster,
-  --        sAxiReadSlave    => axiReadSlave,
-  --        sAxiWriteMaster  => axiWriteMaster,
-  --        sAxiWriteSlave   => axiWriteSlave,
-  --        -- Microblaze's Interrupt bus (sysClk domain)
-  --        mbIrq            => mbIrq,
-  --        ----------------
-  --        -- Core Ports --
-  --        ----------------   
-  --        -- Board IDs Ports
-  --        snIoAdcCard      => snIoAdcCard,
-  --        -- QSFP Ports
-  --        qsfpRxP          => qsfpRxP,
-  --        qsfpRxN          => qsfpRxN,
-  --        qsfpTxP          => qsfpTxP,
-  --        qsfpTxN          => qsfpTxN,
-  --        qsfpClkP         => qsfpClkP,
-  --        qsfpClkN         => qsfpClkN,
-  --        qsfpLpMode       => qsfpLpMode,
-  --        qsfpModSel       => qsfpModSel,
-  --        qsfpInitL        => qsfpInitL,
-  --        qsfpRstL         => qsfpRstL,
-  --        qsfpPrstL        => qsfpPrstL,
-  --        qsfpScl          => qsfpScl,
-  --        qsfpSda          => qsfpSda,
-  --        -- DDR Ports
-  --        ddrClkP          => ddrClkP,
-  --        ddrClkN          => ddrClkN,
-  --        ddrBg            => ddrBg,
-  --        ddrCkP           => ddrCkP,
-  --        ddrCkN           => ddrCkN,
-  --        ddrCke           => ddrCke,
-  --        ddrCsL           => ddrCsL,
-  --        ddrOdt           => ddrOdt,
-  --        ddrAct           => ddrAct,
-  --        ddrRstL          => ddrRstL,
-  --        ddrA             => ddrA,
-  --        ddrBa            => ddrBa,
-  --        ddrDm            => ddrDm,
-  --        ddrDq            => ddrDq,
-  --        ddrDqsP          => ddrDqsP,
-  --        ddrDqsN          => ddrDqsN,
-  --        ddrPg            => ddrPg,
-  --        ddrPwrEn         => ddrPwrEn,
-  --        -- SYSMON Ports
-  --        vPIn             => vPIn,
-  --        vNIn             => vNIn);  
+  U_Core : entity epix_hr_core.EpixHrCore
+      generic map (
+         TPD_G                => TPD_G,
+         BUILD_INFO_G         => BUILD_INFO_G,
+         ROGUE_SIM_EN_G       => true,
+         ROGUE_SIM_PORT_NUM_G => 13000
+      )
+      port map (
+         ----------------------
+         -- Top Level Interface
+         ----------------------
+         -- System Clock and Reset
+         sysClk           => sysClk,
+         sysRst           => sysRst,
+         -- AXI-Lite Register Interface (sysClk domain)
+         -- Register Address Range = [0x80000000:0xFFFFFFFF]
+         mAxilReadMaster  => axilReadMaster,
+         mAxilReadSlave   => axilReadSlave,
+         mAxilWriteMaster => axilWriteMaster,
+         mAxilWriteSlave  => axilWriteSlave,
+         -- AXI Stream, one per QSFP lane (sysClk domain)
+         sAxisMasters     => axisMasters,
+         sAxisSlaves      => axisSlaves,
+         -- Auxiliary AXI Stream, (sysClk domain)
+         sAuxAxisMasters  => sAuxAxisMasters,
+         sAuxAxisSlaves   => sAuxAxisSlaves,
+         ssiCmd           => ssiCmd,
+         -- DDR's AXI Memory Interface (sysClk domain)
+         -- DDR Address Range = [0x00000000:0x3FFFFFFF]
+         sAxiReadMaster   => axiReadMaster,
+         sAxiReadSlave    => axiReadSlave,
+         sAxiWriteMaster  => axiWriteMaster,
+         sAxiWriteSlave   => axiWriteSlave,
+         -- Microblaze's Interrupt bus (sysClk domain)
+         mbIrq            => mbIrq,
+         ----------------
+         -- Core Ports --
+         ----------------   
+         -- Board IDs Ports
+         snIoAdcCard      => snIoAdcCard,
+         -- QSFP Ports
+         qsfpRxP          => qsfpRxP,
+         qsfpRxN          => qsfpRxN,
+         qsfpTxP          => qsfpTxP,
+         qsfpTxN          => qsfpTxN,
+         qsfpClkP         => qsfpClkP,
+         qsfpClkN         => qsfpClkN,
+         qsfpLpMode       => qsfpLpMode,
+         qsfpModSel       => qsfpModSel,
+         qsfpInitL        => qsfpInitL,
+         qsfpRstL         => qsfpRstL,
+         qsfpPrstL        => qsfpPrstL,
+         qsfpScl          => qsfpScl,
+         qsfpSda          => qsfpSda,
+         -- DDR Ports
+         ddrClkP          => ddrClkP,
+         ddrClkN          => ddrClkN,
+         ddrBg            => ddrBg,
+         ddrCkP           => ddrCkP,
+         ddrCkN           => ddrCkN,
+         ddrCke           => ddrCke,
+         ddrCsL           => ddrCsL,
+         ddrOdt           => ddrOdt,
+         ddrAct           => ddrAct,
+         ddrRstL          => ddrRstL,
+         ddrA             => ddrA,
+         ddrBa            => ddrBa,
+         ddrDm            => ddrDm,
+         ddrDq            => ddrDq,
+         ddrDqsP          => ddrDqsP,
+         ddrDqsN          => ddrDqsN,
+         ddrPg            => ddrPg,
+         ddrPwrEn         => ddrPwrEn,
+         -- SYSMON Ports
+         vPIn             => vPIn,
+         vNIn             => vNIn);  
 
 end arch;
 

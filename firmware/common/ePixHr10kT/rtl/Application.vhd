@@ -33,7 +33,7 @@ use surf.Code8b10bPkg.all;
 library epix_hr_core;
 use epix_hr_core.EpixHrCorePkg.all;
 
-use work.HrAdcPkg.all;
+--use work.HrAdcPkg.all;
 use work.AppPkg.all;
 
 library unisim;
@@ -122,8 +122,8 @@ entity Application is
       dacSck           : out   sl;
       dacDin           : out   sl;
       -- ASIC Gbps Ports
-      asicDataP        : inout slv(23 downto 0);
-      asicDataN        : inout slv(23 downto 0);
+      asicDataP        : in slv(23 downto 0);
+      asicDataN        : in slv(23 downto 0);
       -- ASIC Control Ports
       asicR0           : out   sl;
       asicPpmat        : out   sl;
@@ -301,7 +301,7 @@ architecture mapping of Application is
    -- ASIC signals
    constant STREAMS_PER_ASIC_C : natural := 6;
    --
-   signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
+   --signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
 
    signal deserClk        : sl;
    signal deserRst        : sl;
@@ -496,16 +496,8 @@ begin
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10111" else
       '0';
 
-  smaTxP          <=
-     adcSerialOutP(0) when boardConfig.epixhrDbgSel3(1 downto 0) = "00" else
-     adcSerialOutP(1) when boardConfig.epixhrDbgSel3(1 downto 0) = "01" else
-     adcSerialOutP(2) when boardConfig.epixhrDbgSel3(1 downto 0) = "10" else
-     adcSerialOutP(3);
-  smaTxN          <=
-     adcSerialOutP(0) when boardConfig.epixhrDbgSel3(3 downto 2) = "00" else
-     adcSerialOutP(1) when boardConfig.epixhrDbgSel3(3 downto 2) = "01" else
-     adcSerialOutP(2) when boardConfig.epixhrDbgSel3(3 downto 2) = "10" else
-     adcSerialOutP(3);
+  smaTxP          <= '0';
+  smaTxN          <= '0';
 
    -----------------------------------------------------------------------------
    -- ASIC signal routing

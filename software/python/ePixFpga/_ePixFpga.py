@@ -27,6 +27,7 @@ import surf.axi as axi
 import surf.protocols.pgp as pgp
 import surf.protocols.ssp as ssp
 import surf.devices.analog_devices as analog_devices
+import surf.devices.micron as micron
 import surf.misc
 import surf
 import numpy as np
@@ -121,7 +122,7 @@ class EpixHRGen1ePixM(pr.Device):
             ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, expand=False, enabled=False),
-            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
+            axi.AxiStreamMonAxiL(    name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
             axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False, enabled=False),
             epix.EpixHrAdcAsic(      name='HrAdcAsic0',                        offset=0x88000000, expand=False, enabled=False),
             EPixHrePixMAppCoreFpgaRegisters(name="AppFpgaRegisters",           offset=0x96000000, expand=False, enabled=False),
@@ -320,7 +321,7 @@ class EpixHR10kT(pr.Device):
             ssiPrbsTxRegisters(               name='ssiPrbs1PktRegisters',     offset=0x83000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(               name='ssiPrbs2PktRegisters',     offset=0x84000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(               name='ssiPrbs3PktRegisters',     offset=0x85000000, expand=False, enabled=False),
-            axi.AxiStreamMonitoring(          name='AxiStreamMon',             offset=0x86000000, expand=False, enabled=False, numberLanes=4),
+            axi.AxiStreamMonAxiL(             name='AxiStreamMon',             offset=0x86000000, expand=False, enabled=False, numberLanes=4),
             axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False),
             epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
             epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
@@ -816,7 +817,7 @@ class EpixHRGen1Prbs(pr.Device):
             ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, enabled=False, expand=False),
             ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, enabled=False, expand=False),
             ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, enabled=False, expand=False),
-            axi.AxiStreamMonitoring( name='AxiStreamMon',                      offset=0x86000000, numberLanes=4,enabled=False, expand=False),
+            axi.AxiStreamMonAxiL(    name='AxiStreamMon',                      offset=0x86000000, numberLanes=4,enabled=False, expand=False),
             axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False),
             powerSupplyRegisters(    name='PowerSupply',                       offset=0x88000000, expand=False),            
             HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
@@ -886,7 +887,7 @@ class EpixHRGen1FD(pr.Device):
             AsicPktRegisters(name='Asic1PktRegisters',              offset=0x84000000, enabled=False, expand=False),
             AsicPktRegisters(name='Asic2PktRegisters',              offset=0x85000000, enabled=False, expand=False),
             AsicPktRegisters(name='Asic3PktRegisters',              offset=0x86000000, enabled=False, expand=False),
-            axi.AxiStreamMonitoring(name='AxiStreamMon',               offset=0x87000000, enabled=False, expand=False),
+            axi.AxiStreamMonAxiL(name='AxiStreamMon',               offset=0x87000000, enabled=False, expand=False),
             ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))

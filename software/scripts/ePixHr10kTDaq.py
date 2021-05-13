@@ -25,6 +25,7 @@ import pyrogue.interfaces.simulation
 import pyrogue.gui
 import rogue.hardware.pgp
 import rogue.protocols
+import pyrogue.pydm
 import surf
 import surf.axi
 import surf.protocols.ssi
@@ -180,7 +181,7 @@ class MbDebug(rogue.interfaces.stream.Slave):
 #######################################
 # Custom run control
 #######################################
-class MyRunControl(pyrogue.RunControl):
+class MyRunControl(pr.RunControl):
     def __init__(self,name):
         pyrogue.RunControl.__init__(self,name, description='Run Controller ePix HR empty',  rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'})
         self._thread = None
@@ -213,7 +214,7 @@ class MyRunControl(pyrogue.RunControl):
 ##############################
 # Set base
 ##############################
-class Board(pyrogue.Root):
+class Board(pr.Root):
     def __init__(self, guiTop, cmd, dataWriter, srp, **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
         self.add(dataWriter)
@@ -262,77 +263,83 @@ if (args.verbose): pyrogue.streamTap(pgpL3Vc0, dbgData)
 
 #this command can fill up the hard drive /var/log
 #if (args.verbose): pgpL2Vc0.setDriverDebug(True)
-
-# Create GUI
+if args.type == 'SIM':
+    pollEn = False
+    timeout = 5.0
+else:
+    pollEn = True
+    timeout = 1.0
+    
+    # Create GUI
 appTop = QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='ePixHr10kT')
-ePixHrBoard = Board(guiTop, cmd, dataWriter, srp)
-if ( args.type == 'dataFile' or args.type == 'SIM' ):
-    ePixHrBoard.start(pollEn=False,timeout=5.0 ,pyroGroup=None)
-else:
-    ePixHrBoard.start(pollEn=True, pyroGroup=None)
-guiTop.addTree(ePixHrBoard)
-guiTop.resize(800,800)
+with Board(guiTop, cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
 
-# Viewer gui
-ePixHrBoard.onlineViewer0 = vi.Window(cameraType='ePixHr10kT')
-ePixHrBoard.onlineViewer0.eventReader.frameIndex = 0
-ePixHrBoard.onlineViewer0.setReadDelay(0)
-ePixHrBoard.onlineViewer0.setWindowTitle("ePix image viewer ASIC 0")
-pyrogue.streamTap(pgpL0Vc0, ePixHrBoard.onlineViewer0.eventReader)
-ePixHrBoard.onlineViewer1 = vi.Window(cameraType='ePixHr10kT')
-ePixHrBoard.onlineViewer1.eventReader.frameIndex = 0 
-ePixHrBoard.onlineViewer1.setReadDelay(0)
-ePixHrBoard.onlineViewer1.setWindowTitle("ePix image viewer ASIC 1")
-pyrogue.streamTap(pgpL1Vc0, ePixHrBoard.onlineViewer1.eventReader)
-ePixHrBoard.onlineViewer2 = vi.Window(cameraType='ePixHr10kT')
-ePixHrBoard.onlineViewer2.eventReader.frameIndex = 0
-ePixHrBoard.onlineViewer2.setReadDelay(0)
-ePixHrBoard.onlineViewer2.setWindowTitle("ePix image viewer ASIC 2")
-pyrogue.streamTap(pgpL2Vc0, ePixHrBoard.onlineViewer2.eventReader)
-ePixHrBoard.onlineViewer3 = vi.Window(cameraType='ePixHr10kT')
-ePixHrBoard.onlineViewer3.eventReader.frameIndex = 0
-ePixHrBoard.onlineViewer3.setReadDelay(0)
-ePixHrBoard.onlineViewer3.setWindowTitle("ePix image viewer ASIC 3")
-pyrogue.streamTap(pgpL3Vc0, ePixHrBoard.onlineViewer3.eventReader)
-if (args.type != 'dataFile'):
-    pyrogue.streamTap(pgpL0Vc2, ePixHrBoard.onlineViewer0.eventReaderScope)# PseudoScope
-    pyrogue.streamTap(pgpL0Vc3, ePixHrBoard.onlineViewer0.eventReaderMonitoring) # Slow Monitoring
+    #if ( args.type == 'dataFile' or args.type == 'SIM' ):
+    #    ePixHrBoard.start(pollEn=False,timeout=5.0 ,pyroGroup=None)
+    #else:
+    #    ePixHrBoard.start(pollEn=True, pyroGroup=None)
+    #    guiTop.addTree(ePixHrBoard)
+    #    guiTop.resize(800,800)
 
-if (args.start_viewer == 'False'):
-    ePixHrBoard.onlineViewer0.hide()
-    ePixHrBoard.onlineViewer1.hide()
-    ePixHrBoard.onlineViewer2.hide()
-    ePixHrBoard.onlineViewer3.hide()
+    # Viewer gui
+    ePixHrBoard.onlineViewer0 = vi.Window(cameraType='ePixHr10kT')
+    ePixHrBoard.onlineViewer0.eventReader.frameIndex = 0
+    ePixHrBoard.onlineViewer0.setReadDelay(0)
+    ePixHrBoard.onlineViewer0.setWindowTitle("ePix image viewer ASIC 0")
+    pyrogue.streamTap(pgpL0Vc0, ePixHrBoard.onlineViewer0.eventReader)
+    ePixHrBoard.onlineViewer1 = vi.Window(cameraType='ePixHr10kT')
+    ePixHrBoard.onlineViewer1.eventReader.frameIndex = 0 
+    ePixHrBoard.onlineViewer1.setReadDelay(0)
+    ePixHrBoard.onlineViewer1.setWindowTitle("ePix image viewer ASIC 1")
+    pyrogue.streamTap(pgpL1Vc0, ePixHrBoard.onlineViewer1.eventReader)
+    ePixHrBoard.onlineViewer2 = vi.Window(cameraType='ePixHr10kT')
+    ePixHrBoard.onlineViewer2.eventReader.frameIndex = 0
+    ePixHrBoard.onlineViewer2.setReadDelay(0)
+    ePixHrBoard.onlineViewer2.setWindowTitle("ePix image viewer ASIC 2")
+    pyrogue.streamTap(pgpL2Vc0, ePixHrBoard.onlineViewer2.eventReader)
+    ePixHrBoard.onlineViewer3 = vi.Window(cameraType='ePixHr10kT')
+    ePixHrBoard.onlineViewer3.eventReader.frameIndex = 0
+    ePixHrBoard.onlineViewer3.setReadDelay(0)
+    ePixHrBoard.onlineViewer3.setWindowTitle("ePix image viewer ASIC 3")
+    pyrogue.streamTap(pgpL3Vc0, ePixHrBoard.onlineViewer3.eventReader)
+    if (args.type != 'dataFile'):
+        pyrogue.streamTap(pgpL0Vc2, ePixHrBoard.onlineViewer0.eventReaderScope)# PseudoScope
+        pyrogue.streamTap(pgpL0Vc3, ePixHrBoard.onlineViewer0.eventReaderMonitoring) # Slow Monitoring
 
-
-if ( args.type == 'dataFile' or args.type == 'SIM'):
-    print("Simulation mode does not initialize monitoring ADC")
-else:
-    #configure internal ADC
-    ePixHrBoard.EpixHR.FastADCsDebug.enable.set(True)   
-    ePixHrBoard.EpixHR.FastADCsDebug.DelayAdc0.set(15)
-    ePixHrBoard.EpixHR.FastADCsDebug.enable.set(False)
-
-    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(True)
-    ePixHrBoard.readBlocks()
-    ePixHrBoard.EpixHR.FastADCsDebug.DelayAdc0.set(15)
-    ePixHrBoard.EpixHR.FastADCsDebug.enable.set(False)
-
-    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(True)
-    ePixHrBoard.readBlocks()
-    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(3)
-    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(0)
-    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.OutputFormat.set(0)
-    ePixHrBoard.readBlocks()
-    ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(False)
-    ePixHrBoard.readBlocks()
-
-# Create GUI
-if (args.start_gui=='True'):
-    appTop.exec_()
-
-# Close window and stop polling
-ePixHrBoard.stop()
+    if (args.start_viewer == 'False'):
+        ePixHrBoard.onlineViewer0.hide()
+        ePixHrBoard.onlineViewer1.hide()
+        ePixHrBoard.onlineViewer2.hide()
+        ePixHrBoard.onlineViewer3.hide()
 
 
+    if ( args.type == 'dataFile' or args.type == 'SIM'):
+        print("Simulation mode does not initialize monitoring ADC")
+    else:
+        #configure internal ADC
+        ePixHrBoard.EpixHR.FastADCsDebug.enable.set(True)   
+        ePixHrBoard.EpixHR.FastADCsDebug.DelayAdc0.set(15)
+        ePixHrBoard.EpixHR.FastADCsDebug.enable.set(False)
+
+        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(True)
+        ePixHrBoard.readBlocks()
+        ePixHrBoard.EpixHR.FastADCsDebug.DelayAdc0.set(15)
+        ePixHrBoard.EpixHR.FastADCsDebug.enable.set(False)
+
+        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(True)
+        ePixHrBoard.readBlocks()
+        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(3)
+        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(0)
+        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.OutputFormat.set(0)
+        ePixHrBoard.readBlocks()
+        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(False)
+        ePixHrBoard.readBlocks()
+
+
+
+    pyrogue.pydm.runPyDM(
+        root  = ePixHrBoard,
+        sizeX = 800,
+        sizeY = 800,
+        )
