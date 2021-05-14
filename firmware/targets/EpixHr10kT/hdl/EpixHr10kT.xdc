@@ -15,7 +15,7 @@
 #set_property -dict {PACKAGE_PIN H27 IOSTANDARD LVCMOS18} [get_ports userSmaP]
 #set_property -dict {PACKAGE_PIN G27 IOSTANDARD LVCMOS18} [get_ports userSmaN]
 
-
+ 
 
 ####################################
 ## Application Timing Constraints ##
@@ -24,34 +24,33 @@
 ##########################
 ## Misc. Configurations ##
 ##########################
-create_generated_clock -name appClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
-create_generated_clock -name asicClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]
-create_generated_clock -name asicRdClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]
-create_generated_clock -name idelayCtrlClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT3]
-create_generated_clock -name adcClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT4]
+create_generated_clock -name sysClk [get_pins U_Core/U_Mmcm/PllGen.U_Pll/CLKOUT0]
+
+create_generated_clock -name refClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
+create_generated_clock -name adcClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]
+create_generated_clock -name appClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]
+
+create_generated_clock -name asicClk  [get_pins U_App/U_Deser/GEN_REAL.U_PLL/CLKOUT0]
+create_generated_clock -name deserClk [get_pins U_App/U_Deser/U_Bufg/O]
+
+create_clock -name adcClkIn   -period  2.85 [get_ports {adcDoClkP}]
+create_generated_clock -name adcBitClk     [get_pins U_App/U_MonAdcReadout/G_MMCM.U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT0]
 create_generated_clock -name adcBitClkDiv4 [get_pins U_App/U_MonAdcReadout/G_MMCM.U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT1]
 
-set_clock_groups -asynchronous -group [get_clocks sysClk]    -group [get_clocks appClk]
-set_clock_groups -asynchronous -group [get_clocks sysClk]    -group [get_clocks asicClk]
-set_clock_groups -asynchronous -group [get_clocks sysClk]    -group [get_clocks byteClk]
-set_clock_groups -asynchronous -group [get_clocks sysClk]    -group [get_clocks asicRdClk]
-set_clock_groups -asynchronous -group [get_clocks sysClk]    -group [get_clocks adcClk]
-set_clock_groups -asynchronous -group [get_clocks sysClk]    -group [get_clocks deserClk]
-set_clock_groups -asynchronous -group [get_clocks sysClk]    -group [get_clocks adcBitClkDiv4]
-set_clock_groups -asynchronous -group [get_clocks appClk]    -group [get_clocks adcBitClkDiv4]
-set_clock_groups -asynchronous -group [get_clocks appClk]    -group [get_clocks byteClk]
-set_clock_groups -asynchronous -group [get_clocks appClk]    -group [get_clocks deserClk]
-set_clock_groups -asynchronous -group [get_clocks appClk]    -group [get_clocks adcMonDoClkP]
-set_clock_groups -asynchronous -group [get_clocks appClk]    -group [get_clocks asicClk]
-set_clock_groups -asynchronous -group [get_clocks appClk]    -group [get_clocks asicRdClk]
-set_clock_groups -asynchronous -group [get_clocks appClk]    -group [get_clocks idelayCtrlClk]
-set_clock_groups -asynchronous -group [get_clocks dnaClk]    -group [get_clocks byteClk]
-set_clock_groups -asynchronous -group [get_clocks byteClk]   -group [get_clocks deserClk]
-set_clock_groups -asynchronous -group [get_clocks byteClk]   -group [get_clocks adcClk]
-set_clock_groups -asynchronous -group [get_clocks asicRdClk] -group [get_clocks adcBitClkDiv4]
-set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins U_App/U_BUFGCE_DIV_0/O]] -group [get_clocks -of_objects [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]]
+set_clock_groups -asynchronous \
+   -group [get_clocks -include_generated_clocks sysClk] \
+   -group [get_clocks -include_generated_clocks refClk] \
+   -group [get_clocks -include_generated_clocks appClk] \
+   -group [get_clocks -include_generated_clocks adcClk] \
+   -group [get_clocks -include_generated_clocks asicClk] \
+   -group [get_clocks -include_generated_clocks deserClk] \
+   -group [get_clocks -include_generated_clocks adcClkIn] \
+   -group [get_clocks -include_generated_clocks adcBitClk] \
+   -group [get_clocks -include_generated_clocks adcBitClkDiv4] 
 
-
+set_clock_groups -asynchronous \
+   -group [get_clocks -include_generated_clocks sysClk] \
+   -group [get_clocks -include_generated_clocks divClk_1]
 # ASIC Gbps Ports
 
 set_property -dict {PACKAGE_PIN V20 IOSTANDARD LVDS} [get_ports {asicDataP[0]}]
@@ -219,7 +218,4 @@ set_property -dict {PACKAGE_PIN Y13  IOSTANDARD LVCMOS25} [get_ports {spareHrP[3
 set_property -dict {PACKAGE_PIN AA13 IOSTANDARD LVCMOS25} [get_ports {spareHrN[3]}]
 set_property -dict {PACKAGE_PIN AA12 IOSTANDARD LVCMOS25} [get_ports {spareHrP[4]}]
 set_property -dict {PACKAGE_PIN AB12 IOSTANDARD LVCMOS25} [get_ports {spareHrN[4]}]
-set_property -dict {PACKAGE_PIN Y12  IOSTANDARD LVCMOS25} [get_ports {spareHrP[5]}]
-set_property -dict {PACKAGE_PIN Y11  IOSTANDARD LVCMOS25} [get_ports {spareHrN[5]}]
-
-
+set_property -dict {PACKAGE_PIN Y12  IOSTANDARD LVCMOS25} [get_ports {spareHrP[5

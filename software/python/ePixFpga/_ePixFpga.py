@@ -8,8 +8,7 @@
 # Last update: 2017-01-31
 #-----------------------------------------------------------------------------
 # Description:
-# PyRogue AXI Version Module for ePix100a
-# for genDAQ compatibility check software/deviceLib/Epix100aAsic.cpp
+# PyRogue AXI Version Module for ePixHR family
 #-----------------------------------------------------------------------------
 # This file is part of the rogue software platform. It is subject to 
 # the license terms in the LICENSE.txt file found in the top-level directory 
@@ -337,10 +336,10 @@ class EpixHR10kT(pr.Device):
             analog_devices.Ad9249ConfigGroup( name='Ad9249Config_Adc_0',       offset=0x8F000000, expand=False, enabled=False),
             SlowAdcRegisters(                 name="SlowAdcRegisters",         offset=0x90000000, expand=False, enabled=False),
             ssp.SspLowSpeedDecoderReg(        name="SspLowSpeedDecoderReg",    offset=0x94010000, expand=False, enabled=False, numberLanes=24),
-            DigitalPktRegisters(              name="PacketRegisters0",         offset=0x95000000, expand=False, enabled=False), 
-            DigitalPktRegisters(              name="PacketRegisters1",         offset=0x95100000, expand=False, enabled=False), 
-            DigitalPktRegisters(              name="PacketRegisters2",         offset=0x95200000, expand=False, enabled=False), 
-            DigitalPktRegisters(              name="PacketRegisters3",         offset=0x95300000, expand=False, enabled=False)
+            DigitalAsicStreamAxi(             name="PacketRegisters0",         offset=0x95000000, expand=False, enabled=False, numberLanes=6), 
+            DigitalAsicStreamAxi(             name="PacketRegisters1",         offset=0x95100000, expand=False, enabled=False, numberLanes=6), 
+            DigitalAsicStreamAxi(             name="PacketRegisters2",         offset=0x95200000, expand=False, enabled=False, numberLanes=6), 
+            DigitalAsicStreamAxi(             name="PacketRegisters3",         offset=0x95300000, expand=False, enabled=False, numberLanes=6)
         ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -2027,7 +2026,7 @@ class DigitalPktRegisters(pr.Device):
       
       
       #Setup registers & variables
-      
+
       self.add(pr.RemoteVariable(name='FrameCount',      description='FrameCount',                                  offset=0x00000000, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='FrameSize',       description='FrameSize',                                   offset=0x00000004, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='FrameMaxSize',    description='FrameMaxSize',                                offset=0x00000008, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
@@ -2044,12 +2043,93 @@ class DigitalPktRegisters(pr.Device):
       self.add(pr.RemoteVariable(name='StopDataTx',      description='Interrupt data stream',                       offset=0x00000020, bitSize=1,   bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='ResetCounters',   description='ResetCounters',                               offset=0x00000024, bitSize=1,   bitOffset=0, base=pr.Bool, mode='WO'))
       self.add(pr.RemoteVariable(name='asicDataReq',     description='Number of samples requested per ADC stream.', offset=0x00000028, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      #self.add(pr.RemoteVariable(name='adcIndexOffset',  description='Changes the sequence where adc are readout',  offset=0x0000002C, bitSize=5,   bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      #self.add(pr.RemoteVariable(name='DecData0',        description='Decoded data',                                offset=0x00000080, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
-      #self.add(pr.RemoteVariable(name='DecData1',        description='Decoded data',                                offset=0x00000084, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))      
-
-
-
+      self.add(pr.RemoteVariable(name='DisableLane',     description='Disable selected lanes.',                     offset=0x0000002C, bitSize=24,  bitOffset=0, base=pr.UInt, mode='RW'))
+      
+class DigitalAsicStreamAxi(pr.Device):
+   def __init__(self, numberLanes=1, **kwargs):
+      super().__init__(description='Asic data packet registers', **kwargs)
+      
+      #Setup registers & variables
+      
+      self.add(pr.RemoteVariable(name='FrameCount',      description='FrameCount',                                  offset=0x00000000, bitSize=32,  bitOffset=0, base=pr.UInt, mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameSize',       description='FrameSize',                                   offset=0x00000004, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameMaxSize',    description='FrameMaxSize',                                offset=0x00000008, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameMinSize',    description='FrameMinSize',                                offset=0x0000000C, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RO'))
+      self.add(pr.RemoteVariable(name='ResetCounters',   description='ResetCounters',                               offset=0x00000024, bitSize=1,   bitOffset=0, base=pr.Bool, mode='WO'))
+      self.add(pr.RemoteVariable(name='asicDataReq',     description='Number of samples requested per ADC stream.', offset=0x00000028, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RW'))
+      self.add(pr.RemoteVariable(name='DisableLane',     description='Disable selected lanes.',                     offset=0x0000002C, bitSize=numberLanes,  bitOffset=0, base=pr.UInt, mode='RW'))
+      self.add(pr.RemoteVariable(name='EnumerateDisLane',description='Insert lane number into disabled lane.',      offset=0x00000030, bitSize=numberLanes,  bitOffset=0, base=pr.UInt, mode='RW'))
+      
+      self.addRemoteVariables(
+         name         = 'TimeoutCntLane',
+         offset       = 0x100,
+         bitSize      = 16,
+         mode         = 'RO',
+         number       = numberLanes,
+         stride       = 4,
+         pollInterval = 1,
+      )
+      
+      self.addRemoteVariables(
+         name         = 'DataCntLaneAct',
+         offset       = 0x200,
+         bitSize      = 16,
+         mode         = 'RO',
+         number       = numberLanes,
+         stride       = 4,
+         pollInterval = 1,
+      )
+      
+      self.addRemoteVariables(
+         name         = 'DataCntLaneReg',
+         offset       = 0x300,
+         bitSize      = 16,
+         mode         = 'RO',
+         number       = numberLanes,
+         stride       = 4,
+         pollInterval = 1,
+      )
+      
+      self.addRemoteVariables(
+         name         = 'DataCntLaneMin',
+         offset       = 0x400,
+         bitSize      = 16,
+         mode         = 'RO',
+         number       = numberLanes,
+         stride       = 4,
+         pollInterval = 1,
+      )
+      
+      self.addRemoteVariables(
+         name         = 'DataCntLaneMax',
+         offset       = 0x500,
+         bitSize      = 16,
+         mode         = 'RO',
+         number       = numberLanes,
+         stride       = 4,
+         pollInterval = 1,
+      )
+      
+      self.addRemoteVariables(
+         name         = 'DataDlyLaneReg',
+         offset       = 0x600,
+         bitSize      = 16,
+         mode         = 'RO',
+         number       = numberLanes,
+         stride       = 4,
+         pollInterval = 1,
+      )
+      
+      self.addRemoteVariables(
+         name         = 'DataOvfLane',
+         offset       = 0x700,
+         bitSize      = 16,
+         mode         = 'RO',
+         number       = numberLanes,
+         stride       = 4,
+         pollInterval = 1,
+      )
+      
 class AxiStreamMonitoring(pr.Device):
    def __init__(self, **kwargs):
       super().__init__(description='Axi Stream Monitoring registers', **kwargs)

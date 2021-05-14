@@ -290,9 +290,9 @@ begin  --
   fClkN <= not fClkP;
   dClkN <= not dClkP;
 
-  ------------------------------------------
-  -- Generate clocks from 156.25 MHz PGP  --
-  ------------------------------------------
+  ----------------------------------------------
+  -- Generate clocks for ASIC emulation model --
+  ----------------------------------------------
   -- clkIn     : 320 MHz 
   -- clkOut(0) : 320 MHz 
   -- clkOut(1) :  32 MHz 
@@ -358,7 +358,7 @@ begin  --
 
 
 -------------------------------------------------------------------------------
---  simulation process for channel ID. Counter from 0 to 31
+--  Starts transmitting data in the righ clock transition
 -------------------------------------------------------------------------------  
   EncValid_Proc: process  
   begin
@@ -436,7 +436,7 @@ begin  --
   
   U_serializer :  entity work.serializerSim 
     generic map(
-      TPD_G    => 2ns,
+      TPD_G    => 0ns,
       g_dwidth => 10 
     )
     port map(
