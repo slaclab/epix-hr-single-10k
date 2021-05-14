@@ -289,7 +289,6 @@ begin
    begin
       v := r;
             
-      v.sAxilReadSlave.rdata := (others => '0');
       axiSlaveWaitTxn(regCon, sAxilWriteMaster(0), sAxilReadMaster(0), v.sAxilWriteSlave, v.sAxilReadSlave);
       
       axiSlaveRegister (regCon, x"0000",  0, v.waveform.enabled);
