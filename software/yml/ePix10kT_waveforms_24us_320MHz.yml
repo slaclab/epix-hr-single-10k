@@ -4,7 +4,6 @@ ePixHr10kT:
     enable: True
     RegisterControl:
       enable: True
-      Version: 0x1
       GlblRstPolarity: True
       ClkSyncEn: True
       AcqPolarity: False

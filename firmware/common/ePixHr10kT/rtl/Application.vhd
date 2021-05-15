@@ -318,18 +318,18 @@ architecture mapping of Application is
 
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
-   attribute keep of startDdrTest_n    : signal is "true";
    attribute keep of iAsicAcq          : signal is "true";
    attribute keep of ssiCmd_i          : signal is "true";
    attribute keep of iDaqTrigger       : signal is "true";
    attribute keep of iRunTrigger       : signal is "true";
-   attribute keep of slowAdcDin_i      : signal is "true";
-   attribute keep of slowAdcDrdy       : signal is "true";
-   attribute keep of slowAdcDout       : signal is "true";
-   attribute keep of slowAdcRefClk_i   : signal is "true";
-   attribute keep of slowAdcCsL_i      : signal is "true";
-   attribute keep of slowAdcSclk_i     : signal is "true";
-   attribute keep of adcStreams        : signal is "true";
+   attribute keep of connMpsMux        : signal is "true";
+   attribute keep of connTgMux         : signal is "true";
+   attribute keep of deserData         : signal is "true";
+   attribute keep of rxLinkUp          : signal is "true";
+   attribute keep of rxValid           : signal is "true";
+   attribute keep of rxData            : signal is "true";
+   attribute keep of rxSof             : signal is "true";
+   attribute keep of rxEofe            : signal is "true";
 
 
 begin
