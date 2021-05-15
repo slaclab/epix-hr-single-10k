@@ -511,7 +511,25 @@ begin
          dataOut => startReadoutSynced
          );
    
-
+   SynchronizerGlblRst : entity surf.Synchronizer
+       generic map(
+         TPD_G          => TPD_G,
+         STAGES_G       => 2)
+       port map(
+         clk     => sysClk,
+         rst     => sysRst,
+         dataIn  => r.asicAcqReg2.GlblRstPolarity,
+         dataOut => asicAcqReg2Synced.GlblRstPolarity);
+   
+   SynchronizerSampClkEn : entity surf.Synchronizer
+       generic map(
+         TPD_G          => TPD_G,
+         STAGES_G       => 2)
+       port map(
+         clk     => sysClk,
+         rst     => sysRst,
+         dataIn  => r.asicAcqReg2.ClkSyncEn,
+         dataOut => asicAcqReg2Synced.ClkSyncEn);
 
    -----------------------------------------------
    -- System clock combinatorial logic
@@ -565,8 +583,8 @@ begin
         
          -- global reset changes in sync with SHCnt per ASIC designers recomendation
          if r_sys.asicAcqReg2.ePixAdcSHCnt = 0 then
-           v.asicAcqReg2.GlblRst := r_sys.asicAcqReg2.GlblRstPolarity;
-           v.asicAcqReg2.ClkSyncEnLatched := r_sys.asicAcqReg2.ClkSyncEn;
+           v.asicAcqReg2.GlblRst := asicAcqReg2Synced.GlblRstPolarity;
+           v.asicAcqReg2.ClkSyncEnLatched := asicAcqReg2Synced.ClkSyncEn;
          end if;
          
         

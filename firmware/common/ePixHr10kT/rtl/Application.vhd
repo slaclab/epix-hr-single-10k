@@ -720,7 +720,7 @@ begin
       BUILD_INFO_G     => BUILD_INFO_G
    )
    port map (
-      axilClk         => appClk,
+      axilClk        => appClk,
       axilRst        => appRst,
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  => mAxiReadMasters(APP_REG_AXI_INDEX_C),
