@@ -100,11 +100,11 @@ ConfigProbe ${ilaName} {U_App/iAsicAcq}
 ConfigProbe ${ilaName} {U_App/connMpsMux}
 ConfigProbe ${ilaName} {U_App/connTgMux}
 ConfigProbe ${ilaName} {U_App/deserData[0][*]}
-ConfigProbe ${ilaName} {U_App/rxLinkUp}
-ConfigProbe ${ilaName} {U_App/rxValid}
-ConfigProbe ${ilaName} {U_App/rxData}
-ConfigProbe ${ilaName} {U_App/rxSof}
-ConfigProbe ${ilaName} {U_App/rxEofe}
+ConfigProbe ${ilaName} {U_App/rxLinkUp[*]}
+ConfigProbe ${ilaName} {U_App/rxValid[*]}
+ConfigProbe ${ilaName} {U_App/rxData[*]}
+ConfigProbe ${ilaName} {U_App/rxSof[*]}
+ConfigProbe ${ilaName} {U_App/rxEofe[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/s[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
