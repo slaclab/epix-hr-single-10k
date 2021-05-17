@@ -1,9 +1,10 @@
 ePixHr10kT:
   enable: True
   ForceWrite: False
+  InitAfterConfig: False
   EpixHR:
     enable: True
-    Hr10kTAsic0:
+    Hr10kTAsic3:
       enable: True
       shvc_DAC: 0x17
       fastPP_enable: False
@@ -60,13 +61,13 @@ ePixHr10kT:
       FELmode: True
       CompEnOn: True
       RowStartAddr: 0x0
-      RowStopAddr: 0x91
+      RowStopAddr: 0x94
       ColStartAddr: 0x0
       ColStopAddr: 0x2f
       DCycle_DAC: 0x0
       DCycle_en: False
       DCycle_bypass: False
-      Debug_bit: 0x3 
+      Debug_bit: 0x3
       OSRsel: False
       SecondOrder: False
       DHg: True
@@ -75,6 +76,11 @@ ePixHr10kT:
       SDclk_b: 0x0
       SDrst_b: 0x2
       Filter_DAC: 0x26
+      Rodis01: 0x0
       CompEn: 0x7
       Pixel_CB: 0x4
+      rodis34: 0x0
       rowCK2matrix_delay: 0x8
+      ro_mode: 0x0
+      rodis5: 0x0
+      pipoclk_delay: 0x8

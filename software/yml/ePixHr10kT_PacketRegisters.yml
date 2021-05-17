@@ -1,0 +1,30 @@
+ePixHr10kT:
+  enable: True
+  ForceWrite: False
+  InitAfterConfig: False
+  EpixHR:
+    enable: True
+    PacketRegisters0:
+      enable: True
+      ResetCounters: False
+      asicDataReq: 0x123f
+      DisableLane: 0x0
+      EnumerateDisLane: 0x0
+    PacketRegisters1:
+      enable: True
+      ResetCounters: False
+      asicDataReq: 0x123f
+      DisableLane: 0x0
+      EnumerateDisLane: 0x0
+    PacketRegisters2:
+      enable: True
+      ResetCounters: False
+      asicDataReq: 0x123f
+      DisableLane: 0x0
+      EnumerateDisLane: 0x0
+    PacketRegisters3:
+      enable: True
+      ResetCounters: False
+      asicDataReq: 0x123f
+      DisableLane: 0x0
+      EnumerateDisLane: 0x0

@@ -1,0 +1,16 @@
+ePixHr10kT:
+  enable: True
+  ForceWrite: False
+  InitAfterConfig: False
+  EpixHR:
+    enable: True
+    TriggerRegisters:
+      enable: True
+      RunTriggerEnable: False
+      RunTriggerDelay: 0
+      DaqTriggerEnable: False
+      DaqTriggerDelay: 0
+      AutoRunEn: True
+      AutoDaqEn: True
+      AutoTrigPeriod: 1000000
+      PgpTrigEn: False

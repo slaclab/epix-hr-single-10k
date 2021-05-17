@@ -1,9 +1,10 @@
 ePixHr10kT:
   enable: True
   ForceWrite: False
+  InitAfterConfig: False
   EpixHR:
     enable: True
-    Hr10kTAsic2:
+    Hr10kTAsic1:
       enable: True
       shvc_DAC: 0x17
       fastPP_enable: False
@@ -24,12 +25,12 @@ ePixHr10kT:
       DigMon2: 0x1
       PulserDac: 0x3
       MonostPulser: 0x0
-      RefGenB: 0x1
-      Dm1En: True
+      RefGenB: 0x3
+      Dm1En: False
       Dm2En: False
       emph_bd: 0x0
       emph_bc: 0x0
-      VRef_DAC: 0x10
+      VRef_DAC: 0x35
       VRefLow: 0x3
       trbit: False
       TpsMux: 0x0
@@ -41,18 +42,18 @@ ePixHr10kT:
       Monost: 0x3
       mTest: False
       Preamp: 0x4
-      S2D_1_b: 0x3
+      S2D_1_b: 0x0
       Vld1_b: 0x1
       CompTH_DAC: 0x2a
       TC: 0x0
       S2d: 0x3
       S2dDacBias: 0x3
-      Tsd_Tser: 0x1
+      Tsd_Tser: 0x0
       Tps_DAC: 0x16
       PLL_RO_filter2: 0x2
       PLL_RO_divider: 0x0
       TestBe: False
-      DigRO_disable: False
+      RSTreg: False
       DelExec: False
       DelCCKReg: False
       RO_rst_en: True
@@ -60,21 +61,26 @@ ePixHr10kT:
       FELmode: True
       CompEnOn: True
       RowStartAddr: 0x0
-      RowStopAddr: 0x91
+      RowStopAddr: 0x94
       ColStartAddr: 0x0
       ColStopAddr: 0x2f
       DCycle_DAC: 0x0
       DCycle_en: False
       DCycle_bypass: False
       Debug_bit: 0x3
-      OSRsel: True
+      OSRsel: False
       SecondOrder: False
-      DHg: False
+      DHg: True
       RefGenC: 0x2
       dbus_del_sel: False
       SDclk_b: 0x0
-      SDrst_b: 0x8
+      SDrst_b: 0x2
       Filter_DAC: 0x26
+      Rodis01: 0x0
       CompEn: 0x7
       Pixel_CB: 0x4
-      rowCK2matrix_delay: 0x4
+      rodis34: 0x0
+      rowCK2matrix_delay: 0x8
+      ro_mode: 0x0
+      rodis5: 0x0
+      pipoclk_delay: 0x8
