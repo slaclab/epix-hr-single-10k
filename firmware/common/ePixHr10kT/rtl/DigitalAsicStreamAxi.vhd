@@ -151,7 +151,7 @@ architecture RTL of DigitalAsicStreamAxi is
    signal dFifoExtData  : slv(16*LANES_NO_G-1 downto 0) := (others => '0');
    signal dFifoRst      : sl;
 
-   signal rxDataRemMap  : Slv16Array(LANES_NO_G-1 downto 0);
+   signal rxDataReMap   : Slv16Array(LANES_NO_G-1 downto 0);
    signal rxFull        : slv(LANES_NO_G-1 downto 0);
    
    signal startRdSync   : sl;
@@ -226,15 +226,15 @@ begin
    G_FIFO : for i in 0 to LANES_NO_G-1 generate
      
       -- ePixHR10k has the gian it defined as LSB and it is remapped as MSB.
-      U_GainBitReMap : process (rxData)
+      U_GainBitReMap : process (rxData, r)
       begin
-        if (r.gainBitRemap) then
-          rxDataRemMap(i)(14 downto 0)   <= rxData(i)(15 downto 1);
-          rxDataRemMap(i)(15)            <= rxData(i)(0);
+        if (r.gainBitRemap(i) = '1') then
+          rxDataReMap(i)(14 downto 0)   <= rxData(i)(15 downto 1);
+          rxDataReMap(i)(15)            <= rxData(i)(0);
         else
-          rxDataRemMap(i) <= rxData(i);
-        end;
-      end;       
+          rxDataReMap(i) <= rxData(i);
+        end if;
+      end process;       
    
       -- async fifo for data
       DataFifo_U : entity surf.FifoCascade
