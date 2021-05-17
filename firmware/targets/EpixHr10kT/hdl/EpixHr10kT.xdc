@@ -24,7 +24,7 @@
 ##########################
 ## Misc. Configurations ##
 ##########################
-create_generated_clock -name sysClk [get_pins U_Core/U_Mmcm/PllGen.U_Pll/CLKOUT0]
+create_generated_clock -name sysClk [get_pins  U_Core/GEN_PLL.U_Mmcm/PllGen.U_Pll/CLKOUT0]
 
 create_generated_clock -name refClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
 create_generated_clock -name adcClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]
@@ -33,7 +33,7 @@ create_generated_clock -name appClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmc
 create_generated_clock -name asicClk  [get_pins U_App/U_Deser/GEN_REAL.U_PLL/CLKOUT0]
 create_generated_clock -name deserClk [get_pins U_App/U_Deser/U_Bufg/O]
 
-create_clock -name adcClkIn   -period  2.85 [get_ports {adcDoClkP}]
+#create_clock -name adcClkIn   -period  2.85 [get_ports {adcDoClkP}]
 create_generated_clock -name adcBitClk     [get_pins U_App/U_MonAdcReadout/G_MMCM.U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT0]
 create_generated_clock -name adcBitClkDiv4 [get_pins U_App/U_MonAdcReadout/G_MMCM.U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT1]
 
@@ -44,7 +44,7 @@ set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks adcClk] \
    -group [get_clocks -include_generated_clocks asicClk] \
    -group [get_clocks -include_generated_clocks deserClk] \
-   -group [get_clocks -include_generated_clocks adcClkIn] \
+   -group [get_clocks -include_generated_clocks adcMonDoClkP] \
    -group [get_clocks -include_generated_clocks adcBitClk] \
    -group [get_clocks -include_generated_clocks adcBitClkDiv4] 
 
@@ -218,4 +218,4 @@ set_property -dict {PACKAGE_PIN Y13  IOSTANDARD LVCMOS25} [get_ports {spareHrP[3
 set_property -dict {PACKAGE_PIN AA13 IOSTANDARD LVCMOS25} [get_ports {spareHrN[3]}]
 set_property -dict {PACKAGE_PIN AA12 IOSTANDARD LVCMOS25} [get_ports {spareHrP[4]}]
 set_property -dict {PACKAGE_PIN AB12 IOSTANDARD LVCMOS25} [get_ports {spareHrN[4]}]
-set_property -dict {PACKAGE_PIN Y12  IOSTANDARD LVCMOS25} [get_ports {spareHrP[5
+set_property -dict {PACKAGE_PIN Y12  IOSTANDARD LVCMOS25} [get_ports {spareHrP[5]}]

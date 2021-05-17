@@ -30,8 +30,10 @@ use work.AppPkg.all;
 
 entity EpixHr10kT is
    generic (
-      TPD_G        : time := 1 ns;
-      BUILD_INFO_G : BuildInfoType);
+      TPD_G                : time := 1 ns;
+      BUILD_INFO_G         : BuildInfoType;
+      ROGUE_SIM_EN_G       : boolean                     := false;
+      ROGUE_SIM_PORT_NUM_G : natural range 1024 to 49151 := 11000);
    port (
       -----------------------
       -- Application Ports --
@@ -182,7 +184,8 @@ begin
 
    U_App : entity work.Application
       generic map (
-         TPD_G => TPD_G,
+         TPD_G        => TPD_G,
+         SIMULATION_G => ROGUE_SIM_EN_G,
          BUILD_INFO_G => BUILD_INFO_G)
       port map (
          ----------------------
@@ -291,8 +294,11 @@ begin
 
    U_Core : entity epix_hr_core.EpixHrCore
       generic map (
-         TPD_G        => TPD_G,
-         BUILD_INFO_G => BUILD_INFO_G)
+         TPD_G                => TPD_G,
+         RATE_G               => "6.25Gbps",
+         BUILD_INFO_G         => BUILD_INFO_G,
+         ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
+         ROGUE_SIM_PORT_NUM_G => ROGUE_SIM_PORT_NUM_G)
       port map (
          ----------------------
          -- Top Level Interface
