@@ -85,7 +85,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--verbose", 
-    type     = bool,
+    type     = str,
     required = False,
     default  = False,
     help     = "true for verbose printout",
@@ -101,8 +101,13 @@ parser.add_argument(
 
 # Get the arguments
 args = parser.parse_args()
-
-# Add PGP virtual channels
+# string to boolean
+if (args.verbose == 'False'):
+    args.verbose = False
+else:
+    args.verbose = True
+    
+    # Add PGP virtual channels
 if ( args.type == 'pgp-gen3' ):
     # Create the PGP interfaces for ePix hr camera
     pgpL0Vc0 = rogue.hardware.pgp.PgpCard('/dev/pgpcard_0',0,0) # Data & cmds
