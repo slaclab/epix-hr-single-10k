@@ -30,7 +30,7 @@ entity DigitalAsicStreamAxi is
       VC_NO_G              : slv(3 downto 0)  := "0000";
       LANE_NO_G            : slv(3 downto 0)  := "0000";
       ASIC_NO_G            : slv(2 downto 0)  := "000";
-      LANES_NO_G           : natural := 6;   
+      LANES_NO_G           : natural := 6;
       AXIL_ERR_RESP_G      : slv(1 downto 0)  := AXI_RESP_DECERR_C
    );
    port ( 
@@ -86,6 +86,7 @@ architecture RTL of DigitalAsicStreamAxi is
       stateD1        : StateType;
       disableLane    : slv(LANES_NO_G-1 downto 0);
       enumDisLane    : slv(LANES_NO_G-1 downto 0);
+      gainBitRemap   : slv(LANES_NO_G-1 downto 0);
       dataReqLane    : slv(15 downto 0);
       dataCntLane    : Slv16Array(LANES_NO_G-1 downto 0);
       dataCntLaneReg : Slv16Array(LANES_NO_G-1 downto 0);
@@ -114,6 +115,7 @@ architecture RTL of DigitalAsicStreamAxi is
       stateD1        => IDLE_S,
       disableLane    => (others=>'0'),
       enumDisLane    => (others=>'0'),
+      gainBitRemap   => (others=>'1'),
       dataReqLane    => (others=>'0'),
       dataCntLane    => (others=>(others=>'0')),
       dataCntLaneReg => (others=>(others=>'0')),
@@ -148,7 +150,8 @@ architecture RTL of DigitalAsicStreamAxi is
    signal dFifoOut      : slv16Array(LANES_NO_G-1 downto 0);
    signal dFifoExtData  : slv(16*LANES_NO_G-1 downto 0) := (others => '0');
    signal dFifoRst      : sl;
-   
+
+   signal rxDataRemMap  : Slv16Array(LANES_NO_G-1 downto 0);
    signal rxFull        : slv(LANES_NO_G-1 downto 0);
    
    signal startRdSync   : sl;
@@ -221,6 +224,17 @@ begin
    -- Instatiate one FIFO per data stream.
    ----------------------------------------------------------------------------
    G_FIFO : for i in 0 to LANES_NO_G-1 generate
+     
+      -- ePixHR10k has the gian it defined as LSB and it is remapped as MSB.
+      U_GainBitReMap : process (rxData)
+      begin
+        if (r.gainBitRemap) then
+          rxDataRemMap(i)(14 downto 0)   <= rxData(i)(15 downto 1);
+          rxDataRemMap(i)(15)            <= rxData(i)(0);
+        else
+          rxDataRemMap(i) <= rxData(i);
+        end;
+      end;       
    
       -- async fifo for data
       DataFifo_U : entity surf.FifoCascade
@@ -235,7 +249,7 @@ begin
          wr_clk            => deserClk,
          wr_en             => rxValid(i),
          full              => rxFull(i),
-         din(15 downto 0)  => rxData(i),
+         din(15 downto 0)  => rxDataReMap(i),
          din(16)           => rxEofe(i),
          din(17)           => rxEof(i),
          din(18)           => rxSof(i),
@@ -294,6 +308,7 @@ begin
       axiSlaveRegister (regCon, x"028",  0, v.dataReqLane);
       axiSlaveRegister (regCon, x"02C",  0, v.disableLane);
       axiSlaveRegister (regCon, x"030",  0, v.enumDisLane);
+      axiSlaveRegister (regCon, x"034",  0, v.gainBitRemap);
       
       for i in 0 to (LANES_NO_G-1) loop
          axiSlaveRegisterR(regCon, x"100"+toSlv(i*4,12),  0, r.timeoutCntLane(i));

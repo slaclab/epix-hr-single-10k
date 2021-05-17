@@ -2059,6 +2059,7 @@ class DigitalAsicStreamAxi(pr.Device):
       self.add(pr.RemoteVariable(name='asicDataReq',     description='Number of samples requested per ADC stream.', offset=0x00000028, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RW'))
       self.add(pr.RemoteVariable(name='DisableLane',     description='Disable selected lanes.',                     offset=0x0000002C, bitSize=numberLanes,  bitOffset=0, base=pr.UInt, mode='RW'))
       self.add(pr.RemoteVariable(name='EnumerateDisLane',description='Insert lane number into disabled lane.',      offset=0x00000030, bitSize=numberLanes,  bitOffset=0, base=pr.UInt, mode='RW'))
+      self.add(pr.RemoteVariable(name='gainBitRemapped', description='Set true to move gain bit (bit(0)) to MSB.',  offset=0x00000034, bitSize=numberLanes,  bitOffset=0, base=pr.UInt, mode='RW'))
       
       self.addRemoteVariables(
          name         = 'TimeoutCntLane',
