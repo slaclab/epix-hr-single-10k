@@ -3,11 +3,11 @@ export GIT_BYPASS = 1
 
 
 # COMM_TYPE is defined by application
-#export COMM_TYPE = pgp4
-#export INCLUDE_PGP4_6G = 1
+export COMM_TYPE = pgp4
+export INCLUDE_PGP4_6G = 1
 # COMM_TYPE is defined by application
-export COMM_TYPE = pgp3
-export INCLUDE_PGP3_10G = 1
+#export COMM_TYPE = pgp3
+#export INCLUDE_PGP3_10G = 1
 
 # COMMON_NAME is defined by application
 export COMMON_NAME = ePixHr10kT
