@@ -45,8 +45,6 @@ except ImportError:
     from PyQt4.QtGui     import *
 
 
-PRINT_VERBOSE = 0
-
 ################################################################################
 ################################################################################
 #   Window class
@@ -66,15 +64,16 @@ class Window(QMainWindow, QObject):
     processMonitoringFrameTrigger = pyqtSignal()
 
 
-    def __init__(self, cameraType = 'ePix100a'):
+    def __init__(self, cameraType = 'ePix100a', verbose = False):
         super(Window, self).__init__()    
+        self.Verbose = verbose
         # window init
         self.mainWdGeom = [50, 50, 1100, 600] # x, y, width, height
         self.setGeometry(self.mainWdGeom[0], self.mainWdGeom[1], self.mainWdGeom[2],self.mainWdGeom[3])
         self.setWindowTitle("ePix image viewer")
 
         # creates a camera object
-        self.currentCam = cameras.Camera(cameraType = cameraType)
+        self.currentCam = cameras.Camera(cameraType = cameraType, verbose=self.Verbose)
 
         # add actions for menu item
         extractAction = QAction("&Quit", self)
@@ -624,6 +623,7 @@ class EventReader(rogue.interfaces.stream.Slave):
         self.readDataDone = False
         self.parent = parent
         self.lastTime = time.clock_gettime(0)
+        self.Verbose = parent.Verbose
         #############################
         # define the data type IDs
         #############################
@@ -648,8 +648,8 @@ class EventReader(rogue.interfaces.stream.Slave):
             # reads entire frame
             p = bytearray(self.lastFrame.getPayload())
             self.lastFrame.read(p,0)
-            if (PRINT_VERBOSE): print('_accepted p[',self.numAcceptedFrames, ']: ', p[0:10])
-            if (PRINT_VERBOSE): print('Length of accpeted frame: ' , len(p)) 
+            if (self.Verbose): print('_accepted p[',self.numAcceptedFrames, ']: ', p[0:10])
+            if (self.Verbose): print('Length of accpeted frame: ' , len(p)) 
             self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
             self.numAcceptedFrames += 1
 
@@ -658,13 +658,13 @@ class EventReader(rogue.interfaces.stream.Slave):
             if (time.clock_gettime(0)-self.lastTime)>1:
                 self.lastTime = time.clock_gettime(0)
                 if ((VcNum == self.VIEW_PSEUDOSCOPE_ID)):
-                    if (PRINT_VERBOSE): print('Decoding PseudoScopeData')
+                    if (self.Verbose): print('Decoding PseudoScopeData')
                     self.parent.processPseudoScopeFrameTrigger.emit()
                 elif (VcNum == self.VIEW_MONITORING_DATA_ID):
-                    if (PRINT_VERBOSE): print('Decoding Monitoring Data')
+                    if (self.Verbose): print('Decoding Monitoring Data')
                     self.parent.processMonitoringFrameTrigger.emit()
                 elif (VcNum == 0):
-                    if (PRINT_VERBOSE): print('Decoding ASIC Data')
+                    if (self.Verbose): print('Decoding ASIC Data')
                     if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
                         self.parent.processFrameTrigger.emit()
 
@@ -680,12 +680,12 @@ class EventReader(rogue.interfaces.stream.Slave):
             p = self.frameDataArray[index] 
             # reads entire frame
             VcNum =  p[0] & 0xF
-            if (PRINT_VERBOSE): print('-------- Frame ',self.numAcceptedFrames,'Channel flags',self.lastFrame.getFlags() , ' Channel Num:' , chNum, ' Vc Num:' , VcNum)
+            if (self.Verbose): print('-------- Frame ',self.numAcceptedFrames,'Channel flags',self.lastFrame.getFlags() , ' Channel Num:' , chNum, ' Vc Num:' , VcNum)
             # Check if channel number is 0x1 (streaming data channel)
             if (chNum == self.VIEW_DATA_CHANNEL_ID or VcNum == 0) :
                 # Collect the data
-                if (PRINT_VERBOSE): print('-------- Frame ',self.numAcceptedFrames,'Channel flags',self.lastFrame.getFlags() , ' Channel Num:' , chNum, ' Vc Num:' , VcNum)
-                if (PRINT_VERBOSE): print('Num. image data readout: ', len(p))
+                if (self.Verbose): print('-------- Frame ',self.numAcceptedFrames,'Channel flags',self.lastFrame.getFlags() , ' Channel Num:' , chNum, ' Vc Num:' , VcNum)
+                if (self.Verbose): print('Num. image data readout: ', len(p))
                 self.frameData = p
                 cnt = 0
 #                if ((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)):              
@@ -700,7 +700,7 @@ class EventReader(rogue.interfaces.stream.Slave):
             #during stream VIEW_PSEUDOSCOPE_ID is set to zero
             if (chNum == self.VIEW_PSEUDOSCOPE_ID or VcNum == self.VIEW_PSEUDOSCOPE_ID) :
                 #view Pseudo Scope Data
-                if (PRINT_VERBOSE): print('Num. pseudo scope data readout: ', len(p))
+                if (self.Verbose): print('Num. pseudo scope data readout: ', len(p))
                 self.frameDataScope[:] = p
                 # Emit the signal.
                 self.parent.pseudoScopeTrigger.emit()
@@ -710,7 +710,7 @@ class EventReader(rogue.interfaces.stream.Slave):
 
             if (chNum == self.VIEW_MONITORING_DATA_ID or VcNum == self.VIEW_MONITORING_DATA_ID) :
                 #view Pseudo Scope Data
-                if (PRINT_VERBOSE): print('Num. slow monitoring data readout: ', len(p))
+                if (self.Verbose): print('Num. slow monitoring data readout: ', len(p))
                 self.frameDataMonitoring[:] = p
                 # Emit the signal.
                 self.parent.monitoringDataTrigger.emit()

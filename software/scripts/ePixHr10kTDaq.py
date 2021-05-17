@@ -79,7 +79,7 @@ parser.add_argument(
     "--start_viewer", 
     type     = str,
     required = False,
-    default  = 'True',
+    default  = 'False',
     help     = "true to show gui",
 )  
 
@@ -283,22 +283,22 @@ with Board(guiTop, cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePix
     #    guiTop.resize(800,800)
 
     # Viewer gui
-    ePixHrBoard.onlineViewer0 = vi.Window(cameraType='ePixHr10kT')
+    ePixHrBoard.onlineViewer0 = vi.Window(cameraType='ePixHr10kT', verbose=args.verbose)
     ePixHrBoard.onlineViewer0.eventReader.frameIndex = 0
     ePixHrBoard.onlineViewer0.setReadDelay(0)
     ePixHrBoard.onlineViewer0.setWindowTitle("ePix image viewer ASIC 0")
     pyrogue.streamTap(pgpL0Vc0, ePixHrBoard.onlineViewer0.eventReader)
-    ePixHrBoard.onlineViewer1 = vi.Window(cameraType='ePixHr10kT')
+    ePixHrBoard.onlineViewer1 = vi.Window(cameraType='ePixHr10kT', verbose=args.verbose)
     ePixHrBoard.onlineViewer1.eventReader.frameIndex = 0 
     ePixHrBoard.onlineViewer1.setReadDelay(0)
     ePixHrBoard.onlineViewer1.setWindowTitle("ePix image viewer ASIC 1")
     pyrogue.streamTap(pgpL1Vc0, ePixHrBoard.onlineViewer1.eventReader)
-    ePixHrBoard.onlineViewer2 = vi.Window(cameraType='ePixHr10kT')
+    ePixHrBoard.onlineViewer2 = vi.Window(cameraType='ePixHr10kT', verbose=args.verbose)
     ePixHrBoard.onlineViewer2.eventReader.frameIndex = 0
     ePixHrBoard.onlineViewer2.setReadDelay(0)
     ePixHrBoard.onlineViewer2.setWindowTitle("ePix image viewer ASIC 2")
     pyrogue.streamTap(pgpL2Vc0, ePixHrBoard.onlineViewer2.eventReader)
-    ePixHrBoard.onlineViewer3 = vi.Window(cameraType='ePixHr10kT')
+    ePixHrBoard.onlineViewer3 = vi.Window(cameraType='ePixHr10kT', verbose=args.verbose)
     ePixHrBoard.onlineViewer3.eventReader.frameIndex = 0
     ePixHrBoard.onlineViewer3.setReadDelay(0)
     ePixHrBoard.onlineViewer3.setWindowTitle("ePix image viewer ASIC 3")
