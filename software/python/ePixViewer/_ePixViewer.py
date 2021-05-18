@@ -31,7 +31,6 @@ import time
 import ePixViewer.imgProcessing as imgPr
 import ePixViewer.Cameras as cameras
 import numpy as np
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import pdb
@@ -40,9 +39,11 @@ try:
     from PyQt5.QtWidgets import *
     from PyQt5.QtCore    import *
     from PyQt5.QtGui     import *
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 except ImportError:
     from PyQt4.QtCore    import *
     from PyQt4.QtGui     import *
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
 
 ################################################################################

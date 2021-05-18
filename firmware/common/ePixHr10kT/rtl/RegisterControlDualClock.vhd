@@ -547,7 +547,9 @@ begin
       v.asicAcqReg2.SyncPolarity := asicAcqReg2Synced.SyncPolarity;
       v.asicAcqReg2.SyncDelay := asicAcqReg2Synced.SyncDelay;
       v.asicAcqReg2.SyncWidth := asicAcqReg2Synced.SyncWidth;
-      
+      --
+      v.asicAcqReg2.ePixAdcSHT := asicAcqReg2Synced.ePixAdcSHT;
+      v.asicAcqReg2.ePixAdcSHSR0Phase := asicAcqReg2Synced.ePixAdcSHSR0Phase;
       
             
       -- ePixHrADC clock counter to mimic the SHClk and SDrst periods in the asic
