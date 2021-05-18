@@ -945,8 +945,8 @@ class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
          pr.RemoteVariable(name='AsicPwrManualIo',       description='AsicPower',         offset=0x00000250, bitSize=1, bitOffset=22, base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='AsicPwrManualFpga',     description='AsicPower',         offset=0x00000250, bitSize=1, bitOffset=23, base=pr.Bool, mode='RW')))
       self.add(pr.RemoteVariable(name='AsicMask',        description='AsicMask',          offset=0x00000254, bitSize=32,bitOffset=0,  base=pr.UInt, disp = '{:#x}',  mode='RO'))
-      self.add(pr.RemoteVariable(name='DebugSel1',       description='TG connector sel.', offset=0x00000258, bitSize=5, bitOffset=0,  mode='RW', enum=debugChEnum))
-      self.add(pr.RemoteVariable(name='DebugSel2',       description='MPS connector sel.',offset=0x0000025C, bitSize=5, bitOffset=0,  mode='RW', enum=debugChEnum))
+      self.add(pr.RemoteVariable(name='DebugSel_TG',       description='TG connector sel.', offset=0x00000258, bitSize=5, bitOffset=0,  mode='RW', enum=debugChEnum))
+      self.add(pr.RemoteVariable(name='DebugSel_MPS',       description='MPS connector sel.',offset=0x0000025C, bitSize=5, bitOffset=0,  mode='RW', enum=debugChEnum))
       self.add((
          pr.RemoteVariable(name='StartupReq',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='StartupAck',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=1, base=pr.Bool, mode='RO'),
