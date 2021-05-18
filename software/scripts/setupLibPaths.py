@@ -11,6 +11,7 @@
 import pyrogue as pr
 
 pr.addLibraryPath('../../firmware/submodules/axi-pcie-core/python')
+pr.addLibraryPath('../../firmware/submodules/epix-hr-core/python')
 pr.addLibraryPath('../../firmware/submodules/surf/python')
 #pr.addLibraryPath('../../firmware/common/python')
 pr.addLibraryPath('../python')

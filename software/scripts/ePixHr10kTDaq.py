@@ -29,7 +29,8 @@ import pyrogue.pydm
 import surf
 import surf.axi
 import surf.protocols.ssi
-from XilinxKcu1500Pgp3.XilinxKcu1500Pgp3 import *
+import epix_hr_core as epixHr
+
 
 import threading
 import signal
@@ -225,6 +226,12 @@ class Board(pr.Root):
         self.add(dataWriter)
         self.guiTop = guiTop
         self.cmd = cmd
+        self._sim = (args.type == 'SIM');
+        
+        # Create arrays to be filled
+        self.dmaStream   = [None for x in range(4)]
+        # Connect PGP[VC=1] to SRPv3
+        self._srp = srp
 
         @self.command()
         def Trigger():
@@ -245,9 +252,10 @@ class Board(pr.Root):
 
         # Add Devices
         if ( args.type == 'kcu1500' ):
-            coreMap = rogue.hardware.axi.AxiMemMap('/dev/datadev_0')
-            self.add(XilinxKcu1500Pgp3(memBase=coreMap))        
-        self.add(fpga.EpixHR10kT(name='EpixHR', offset=0, memBase=srp, hidden=False, enabled=True))
+            #coreMap = rogue.hardware.axi.AxiMemMap('/dev/datadev_0')
+            # Add Devices
+            self.add(epixHr.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,))
+        self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 
 if (args.verbose): dbgData = rogue.interfaces.stream.Slave()

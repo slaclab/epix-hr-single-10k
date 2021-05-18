@@ -29,6 +29,7 @@ import surf.devices.analog_devices as analog_devices
 import surf.devices.micron as micron
 import surf.misc
 import surf
+import epix_hr_core as epixHr
 import numpy as np
 import time
 
@@ -39,7 +40,6 @@ try:
 except ImportError:
     from PyQt4.QtCore    import *
     from PyQt4.QtGui     import *
-
 
 
 ################################################################################################
@@ -307,12 +307,12 @@ class EpixHR10kT(pr.Device):
         super(self.__class__, self).__init__(**kwargs)
         self.add((
             # core registers
-            axi.AxiVersion(                                                    offset=0x00000000),
-            micron.AxiMicronN25Q(             name='MicronN25Q',               offset=0x02000000, expand=False, enabled=True),
-            pgp.Pgp3AxiL(                     name='Pgp3Axi_lane0',            offset=0x05000000, expand=False, enabled=False),
-            pgp.Pgp3AxiL(                     name='Pgp3Axi_lane1',            offset=0x05010000, expand=False, enabled=False),
-            pgp.Pgp3AxiL(                     name='Pgp3Axi_lane2',            offset=0x05020000, expand=False, enabled=False),
-            pgp.Pgp3AxiL(                     name='Pgp3Axi_lane3',            offset=0x05030000, expand=False, enabled=False),
+            #axi.AxiVersion(                                                    offset=0x00000000),
+            #micron.AxiMicronN25Q(             name='MicronN25Q',               offset=0x02000000, expand=False, enabled=True),
+            #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane0',            offset=0x05000000, expand=False, enabled=False),
+            #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane1',            offset=0x05010000, expand=False, enabled=False),
+            #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane2',            offset=0x05020000, expand=False, enabled=False),
+            #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane3',            offset=0x05030000, expand=False, enabled=False),
             # app registers
             MMCM7Registers(                   name='MMCMRegisters',            offset=0x80000000, expand=False, enabled=False),
             TriggerRegisters(                 name="TriggerRegisters",         offset=0x81000000, expand=False, enabled=False),
