@@ -476,7 +476,7 @@ class EpixHR10kT(pr.Device):
                 self.Hr10kTAsic3.RSTreg.set(True)
                 time.sleep(delay) 
                 self.Hr10kTAsic3.RSTreg.set(False)
-            time.sleep(5*delay) 
+            #time.sleep(5*delay) 
 
         # starting clock inside the ASIC
         self.RegisterControl.ClkSyncEn.set(True)
