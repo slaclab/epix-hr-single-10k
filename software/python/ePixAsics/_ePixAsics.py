@@ -964,7 +964,7 @@ class EpixHr10kTAsic(pr.Device):
             pr.RemoteCommand(name='WriteMatrixData', description='', offset=0x00004000*addrSize, bitSize=4, bitOffset=0, function=pr.Command.touch, hidden=False)))
    
         # CMD = 5, Addr = X  : Read/Write Pixel with data
-        self.add(pr.RemoteCommand(name='WritePixelData',  description='WritePixelData',  offset=0x00005000*addrSize, bitSize=4, bitOffset=0,  function=pr.Command.touch, hidden=False))
+        self.add(pr.RemoteVariable(name='WritePixelData',  description='WritePixelData',  offset=0x00005000*addrSize, bitSize=4, bitOffset=0, hidden=False))
  
         # CMD = 7, Addr = X  : Prepare to write chip ID
         #self.add((
@@ -1378,10 +1378,10 @@ class EpixHr10kTV2Asic(pr.Device):
             pr.LocalCommand(name='ClearMatrix',description='Clear configuration bits of all pixels', function=self.fnClearMatrix))
 
         self.add(
-            pr.LocalCommand(name='SetPixelBitmap',description='Set pixel bitmap of the matrix', function=self.fnSetPixelBitmap))
+            pr.LocalCommand(name='SetPixelBitmap',description='Set pixel bitmap of the matrix', function=self.fnSetPixelBitmap, value='./pixelBitMaps/HR.csv'))
         
         self.add(
-            pr.LocalCommand(name='GetPixelBitmap',description='Get pixel bitmap of the matrix', function=self.fnGetPixelBitmap))
+            pr.LocalCommand(name='GetPixelBitmap',description='Get pixel bitmap of the matrix', function=self.fnGetPixelBitmap, value='./pixelBitMaps/readBack.csv'))
 
 #    def enableChanged(self,value):
 #        if value is True:
@@ -1399,38 +1399,40 @@ class EpixHr10kTV2Asic(pr.Device):
         if (self.enable.get()):
             self.reportCmd(dev,cmd,arg)
             if len(arg) > 0:
-               self.filename = arg
-            else:
-               self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+               self.filename = [arg]
+               print(arg)
+            #else:
+            #   self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
             # in PyQt5 QFileDialog returns a tuple
-            if usingPyQt5:
-               self.filename = self.filename[0]
-            if os.path.splitext(self.filename)[1] == '.csv':
-                matrixCfg = np.genfromtxt(self.filename, delimiter=',')
-                if matrixCfg.shape == (146, 192):
-                    self._rawWrite(0x00000000*addrSize,0)
-                    self._rawWrite(0x00008000*addrSize,0)
-                    for x in range (0, 145):
-                        for y in range (0, 192):
-                            bankToWrite = int(y/48);
-                            if (bankToWrite == 0):
-                               colToWrite = 0x700 + y%48;
-                            elif (bankToWrite == 1):
-                               colToWrite = 0x680 + y%48;
-                            elif (bankToWrite == 2):
-                               colToWrite = 0x580 + y%48;
-                            elif (bankToWrite == 3):
-                               colToWrite = 0x380 + y%48;
-                            else:
-                               print('unexpected bank number')
-                            self._rawWrite(0x00006011*addrSize, x)
-                            self._rawWrite(0x00006013*addrSize, colToWrite) 
-                            self._rawWrite(0x00005000*addrSize, (int(matrixCfg[x][y])))
-                    self._rawWrite(0x00000000*addrSize,0)
-                else:
-                    print('csv file must be 192x146 pixels', matrixCfg.shape)
-            else:
-                print("Not csv file : ", self.filename)
+               if usingPyQt5:
+                   self.filename = self.filename[0]
+               if os.path.splitext(self.filename)[1] == '.csv':
+                    matrixCfg = np.genfromtxt(self.filename, delimiter=',')
+                    if matrixCfg.shape == (146, 192):
+                        self.CmdPrepForRead() #0000
+                        self.PrepareMultiConfig() #8000
+                        for x in range (0, 145):
+                            for y in range (0, 192):
+                                bankToWrite = int(y/48);
+                                if (bankToWrite == 0):
+                                    colToWrite = 0x700 + y%48;
+                                elif (bankToWrite == 1):
+                                    colToWrite = 0x680 + y%48;
+                                elif (bankToWrite == 2):
+                                    colToWrite = 0x580 + y%48;
+                                elif (bankToWrite == 3):
+                                    colToWrite = 0x380 + y%48;
+                                else:
+                                    print('unexpected bank number')
+                                self.RowCounter.set(x) #6011
+                                self.ColCounter.set(colToWrite) #6013
+                                self.WritePixelData.set(int(matrixCfg[x][y])) #5000
+                        self.CmdPrepForRead()
+
+                    else:
+                        print('csv file must be 192x146 pixels', matrixCfg.shape)
+               else:
+                   print("Not csv file : ", self.filename)
         else:
             print("Warning: ASIC enable is set to False!")      
 
@@ -1445,15 +1447,15 @@ class EpixHr10kTV2Asic(pr.Device):
         if (self.enable.get()):
             self.reportCmd(dev,cmd,arg)
             if len(arg) > 0:
-               self.filename = arg
-            else:
-               self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
+               self.filename = [arg]
+            #else:
+            #   self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
             if usingPyQt5:
                self.filename = self.filename[0]
             if os.path.splitext(self.filename)[1] == '.csv':
                 readBack = np.zeros((146, 192),dtype='uint16')
-                self._rawWrite(0x00000000*addrSize,0)
-                self._rawWrite(0x00008000*addrSize,0)
+                self.CmdPrepForRead() #0000
+                self.PrepareMultiConfig() #8000
                 for x in range (0, 145):
                    for y in range (0, 192):
                       bankToWrite = int(y/48);
@@ -1467,9 +1469,9 @@ class EpixHr10kTV2Asic(pr.Device):
                          colToWrite = 0x380 + y%48;
                       else:
                          print('unexpected bank number')
-                      self._rawWrite(0x00006011*addrSize, x)
-                      self._rawWrite(0x00006013*addrSize, colToWrite)
-                      readBack[x, y] = self._rawRead(0x00005000*addrSize)
+                      self.RowCounter.set(x) #6011
+                      self.ColCounter.set(colToWrite) #6013
+                      readBack[x, y] = self.WritePixelData.get() #5000
                 np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
         else:
             print("Warning: ASIC enable is set to False!")             
