@@ -964,7 +964,7 @@ class EpixHr10kTAsic(pr.Device):
             pr.RemoteCommand(name='WriteMatrixData', description='', offset=0x00004000*addrSize, bitSize=4, bitOffset=0, function=pr.Command.touch, hidden=False)))
    
         # CMD = 5, Addr = X  : Read/Write Pixel with data
-        self.add(pr.RemoteVariable(name='WritePixelData',  description='WritePixelData',  offset=0x00005000*addrSize, bitSize=4, bitOffset=0, hidden=False))
+        self.add(pr.RemoteCommand(name='WritePixelData',  description='WritePixelData',  offset=0x00005000*addrSize, bitSize=4, bitOffset=0,  function=pr.Command.touch, hidden=False))
  
         # CMD = 7, Addr = X  : Prepare to write chip ID
         #self.add((
@@ -1350,7 +1350,7 @@ class EpixHr10kTV2Asic(pr.Device):
             pr.RemoteCommand(name='WriteMatrixData', description='', offset=0x00004000*addrSize, bitSize=4, bitOffset=0, function=pr.Command.touch, hidden=False)))
    
         # CMD = 5, Addr = X  : Read/Write Pixel with data
-        self.add(pr.RemoteCommand(name='WritePixelData',  description='WritePixelData',  offset=0x00005000*addrSize, bitSize=4, bitOffset=0,  function=pr.Command.touch, hidden=False))
+        self.add(pr.RemoteVariable(name='WritePixelData',  description='WritePixelData',  offset=0x00005000*addrSize, bitSize=4, bitOffset=0, verify=False, hidden=False))
  
         # CMD = 7, Addr = X  : Prepare to write chip ID
         #self.add((
@@ -1472,6 +1472,10 @@ class EpixHr10kTV2Asic(pr.Device):
                       self.RowCounter.set(x) #6011
                       self.ColCounter.set(colToWrite) #6013
                       readBack[x, y] = self.WritePixelData.get() #5000
+                      if readBack[x, y] != 0:
+                         print(readBack[x, y])
+                print(self.filename)
+                self.CmdPrepForRead() #0000
                 np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
         else:
             print("Warning: ASIC enable is set to False!")             
