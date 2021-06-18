@@ -469,7 +469,7 @@ class EpixHR10kT(pr.Device):
             if arg[2] != 0:
                 print("Loading ", self.filenameASIC1)
                 self.root.LoadConfig(self.filenameASIC1)
-                self.Hr10kTAsic0.ClearMatrix()
+                self.Hr10kTAsic1.ClearMatrix()
                 print("Pulsing RSTreg ASIC1")
                 self.Hr10kTAsic1.RSTreg.set(True)
                 time.sleep(delay) 
@@ -477,7 +477,7 @@ class EpixHR10kT(pr.Device):
             if arg[3] != 0:
                 print("Loading ", self.filenameASIC2)
                 self.root.LoadConfig(self.filenameASIC2)
-                self.Hr10kTAsic0.ClearMatrix()
+                self.Hr10kTAsic2.ClearMatrix()
                 print("Pulsing RSTreg ASIC2")
                 self.Hr10kTAsic2.RSTreg.set(True)
                 time.sleep(delay) 
@@ -485,7 +485,7 @@ class EpixHR10kT(pr.Device):
             if arg[4] != 0:
                 print("Loading ", self.filenameASIC3)
                 self.root.LoadConfig(self.filenameASIC3)
-                self.Hr10kTAsic0.ClearMatrix()
+                self.Hr10kTAsic3.ClearMatrix()
                 print("Pulsing RSTreg ASIC3")
                 self.Hr10kTAsic3.RSTreg.set(True)
                 time.sleep(delay) 
