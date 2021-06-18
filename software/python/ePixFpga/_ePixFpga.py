@@ -413,6 +413,10 @@ class EpixHR10kT(pr.Device):
         time.sleep(delay) 
         self.root.readBlocks()
         print("Completed")
+		
+        #Make sure triggers are not running
+        self.TriggerRegisters.enable.set(True)
+        self.TriggerRegisters.RunTriggerEnable.set(False)
 
         #Make sure clock is disabled at the ASIC level
         self.RegisterControl.enable.set(True)
@@ -449,7 +453,7 @@ class EpixHR10kT(pr.Device):
             self.RegisterControl.GlblRstPolarity.set(True)
             time.sleep(delay) 
             self.root.readBlocks()
-            time.sleep(delay) 
+            time.sleep(delay)
 
             ## load config for the asic
             print("Loading ASIC and timing configuration")
@@ -462,35 +466,49 @@ class EpixHR10kT(pr.Device):
                 print("Loading ", self.filenameASIC0)
                 self.root.LoadConfig(self.filenameASIC0)
                 self.Hr10kTAsic0.ClearMatrix()
-                print("Pulsing RSTreg ASIC0")        
-                self.Hr10kTAsic0.RSTreg.set(True)
-                time.sleep(delay) 
-                self.Hr10kTAsic0.RSTreg.set(False)
             if arg[2] != 0:
                 print("Loading ", self.filenameASIC1)
                 self.root.LoadConfig(self.filenameASIC1)
-                self.Hr10kTAsic1.ClearMatrix()
-                print("Pulsing RSTreg ASIC1")
-                self.Hr10kTAsic1.RSTreg.set(True)
-                time.sleep(delay) 
-                self.Hr10kTAsic1.RSTreg.set(False)
+                self.Hr10kTAsic0.ClearMatrix()
             if arg[3] != 0:
                 print("Loading ", self.filenameASIC2)
                 self.root.LoadConfig(self.filenameASIC2)
-                self.Hr10kTAsic2.ClearMatrix()
-                print("Pulsing RSTreg ASIC2")
-                self.Hr10kTAsic2.RSTreg.set(True)
-                time.sleep(delay) 
-                self.Hr10kTAsic2.RSTreg.set(False)
+                self.Hr10kTAsic0.ClearMatrix()
             if arg[4] != 0:
                 print("Loading ", self.filenameASIC3)
                 self.root.LoadConfig(self.filenameASIC3)
-                self.Hr10kTAsic3.ClearMatrix()
+                self.Hr10kTAsic0.ClearMatrix()
+			
+            #Enable the ASIC clock for a bit while RSTreg is True and then turn it off again before removing RSTreg
+            self.RegisterControl.ClkSyncEn.set(True)
+				
+            if arg[1] != 0:
+                print("Pulsing RSTreg ASIC0")        
+                self.Hr10kTAsic0.RSTreg.set(True)
+            if arg[2] != 0:
+                print("Pulsing RSTreg ASIC1")
+                self.Hr10kTAsic1.RSTreg.set(True)
+            if arg[3] != 0:
+                print("Pulsing RSTreg ASIC2")
+                self.Hr10kTAsic2.RSTreg.set(True)
+            if arg[4] != 0:
                 print("Pulsing RSTreg ASIC3")
-                self.Hr10kTAsic3.RSTreg.set(True)
-                time.sleep(delay) 
+                self.Hr10kTAsic3.RSTreg.set(True)		
+				
+			#Disable the ASIC clock	
+            self.RegisterControl.ClkSyncEn.set(False)
+			#Pulse Sync
+            self.RegisterControl.SyncPolarity.set(True)
+            self.RegisterControl.SyncPolarity.set(False)
+			
+            if arg[1] != 0:      
+                self.Hr10kTAsic0.RSTreg.set(False)
+            if arg[2] != 0:
+                self.Hr10kTAsic1.RSTreg.set(False)
+            if arg[3] != 0:
+                self.Hr10kTAsic2.RSTreg.set(False)
+            if arg[4] != 0:
                 self.Hr10kTAsic3.RSTreg.set(False)
-            #time.sleep(5*delay) 
 
         # starting clock inside the ASIC
         self.RegisterControl.ClkSyncEn.set(True)
