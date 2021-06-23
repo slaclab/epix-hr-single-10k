@@ -17,8 +17,8 @@ ePixHr10kT:
       ePixAdcSHPeriod: 160
       ePixAdcSHOffset: 80
       AcqPolarity: False
-      AcqDelay1: 2400
-      AcqWidth1: 2400
+      AcqDelay1: 5000
+      AcqWidth1: 5000
       AcqDelay2: 0
       AcqWidth2: 0
       R0Polarity: False

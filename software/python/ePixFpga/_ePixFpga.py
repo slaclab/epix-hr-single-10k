@@ -385,6 +385,16 @@ class EpixHR10kT(pr.Device):
             self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 2:
+            self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_320MHz.yml"
+            self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
+            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_100us_320MHz.yml"
+            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_320MHz_ASIC_0.yml"
+            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_320MHz_ASIC_1.yml"
+            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_320MHz_ASIC_2.yml"
+            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_320MHz_ASIC_3.yml"
+            self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
+            self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+        if arguments[0] == 10:
             self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_160MHz.yml"
             self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
             self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_160MHz.yml"
@@ -469,15 +479,15 @@ class EpixHR10kT(pr.Device):
             if arg[2] != 0:
                 print("Loading ", self.filenameASIC1)
                 self.root.LoadConfig(self.filenameASIC1)
-                self.Hr10kTAsic0.ClearMatrix()
+                self.Hr10kTAsic1.ClearMatrix()
             if arg[3] != 0:
                 print("Loading ", self.filenameASIC2)
                 self.root.LoadConfig(self.filenameASIC2)
-                self.Hr10kTAsic0.ClearMatrix()
+                self.Hr10kTAsic2.ClearMatrix()
             if arg[4] != 0:
                 print("Loading ", self.filenameASIC3)
                 self.root.LoadConfig(self.filenameASIC3)
-                self.Hr10kTAsic0.ClearMatrix()
+                self.Hr10kTAsic3.ClearMatrix()
 			
             #Enable the ASIC clock for a bit while RSTreg is True and then turn it off again before removing RSTreg
             self.RegisterControl.ClkSyncEn.set(True)

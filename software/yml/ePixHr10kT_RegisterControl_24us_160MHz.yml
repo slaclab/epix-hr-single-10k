@@ -7,7 +7,7 @@ ePixHr10kT:
     RegisterControl:
       enable: True
       GlblRstPolarity: True
-      ClkSyncEn: True
+      ClkSyncEn: False
       SyncPolarity: False
       SyncDelay: 0
       SyncWidth: 0
