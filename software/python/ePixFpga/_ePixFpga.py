@@ -489,8 +489,8 @@ class EpixHR10kT(pr.Device):
                 self.root.LoadConfig(self.filenameASIC3)
                 self.Hr10kTAsic3.ClearMatrix()
 			
-            #Enable the ASIC clock for a bit while RSTreg is True and then turn it off again before removing RSTreg
-            self.RegisterControl.ClkSyncEn.set(True)
+            #Enable the ASIC clock for a bit while RSTreg is True and then turn it off again before removing RSTreg Commented to check?
+           # self.RegisterControl.ClkSyncEn.set(True)
 				
             if arg[1] != 0:
                 print("Pulsing RSTreg ASIC0")        
@@ -506,10 +506,10 @@ class EpixHR10kT(pr.Device):
                 self.Hr10kTAsic3.RSTreg.set(True)		
 				
 			#Disable the ASIC clock	
-            self.RegisterControl.ClkSyncEn.set(False)
-			#Pulse Sync
-            self.RegisterControl.SyncPolarity.set(True)
-            self.RegisterControl.SyncPolarity.set(False)
+        #    self.RegisterControl.ClkSyncEn.set(False)
+			#Pulse Sync Commented to check if works without sync
+           # self.RegisterControl.SyncPolarity.set(True)
+           # self.RegisterControl.SyncPolarity.set(False)
 			
             if arg[1] != 0:      
                 self.Hr10kTAsic0.RSTreg.set(False)

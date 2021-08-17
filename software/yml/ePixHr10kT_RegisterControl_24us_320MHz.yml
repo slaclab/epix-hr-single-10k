@@ -14,8 +14,8 @@ ePixHr10kT:
       SR0Polarity: False
       SR0Delay1: 10
       SR0Width1: 16000
-      ePixAdcSHPeriod: 160
-      ePixAdcSHOffset: 80
+      ePixAdcSHPeriod: 1
+      ePixAdcSHOffset: 0
       AcqPolarity: False
       AcqDelay1: 2400
       AcqWidth1: 2400
@@ -43,3 +43,5 @@ ePixHr10kT:
       DebugSel_TG: AsicR0
       DebugSel_MPS: AsicR0
       StartupReq: True
+
+
