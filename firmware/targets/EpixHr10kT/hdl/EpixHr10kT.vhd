@@ -208,7 +208,7 @@ begin
          -- Auxiliary AXI Stream, (sysClk domain)
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
-         -- ssi commands (Lane and Vc 0)
+         -- ssi commands (Lane 0 and Vc 1)
          ssiCmd           => ssiCmd,
          -- Trigger (sysClk domain)
          pgpTrigger       => pgpTrigger,
@@ -322,7 +322,7 @@ begin
          -- Auxiliary AXI Stream, (sysClk domain)
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
-         -- ssi commands (Lane and Vc 0)
+         -- ssi commands (Lane 0 and Vc 1)
          ssiCmd           => ssiCmd,
          -- Trigger (axilClk domain)
          pgpTrigger       => pgpTrigger,

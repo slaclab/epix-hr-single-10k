@@ -68,7 +68,7 @@ entity Application is
       -- 0 is pseudo scope, 1 is slow adc monitoring
       sAuxAxisMasters  : out   AxiStreamMasterArray(1 downto 0);
       sAuxAxisSlaves   : in    AxiStreamSlaveArray(1 downto 0);
-      -- ssi commands (Lane and Vc 0)
+      -- ssi commands (Lane 0 and Vc 1)
       ssiCmd           : in    SsiCmdMasterType;
       -- Trigger (sysClk domain)
       pgpTrigger       : in sl;

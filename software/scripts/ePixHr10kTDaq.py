@@ -111,8 +111,8 @@ else:
     # Add PGP virtual channels
 if ( args.type == 'kcu1500' ):
     # Create the PGP interfaces for ePix hr camera
-    pgpL0Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+0, True) # Registers  & cmds
-    pgpL0Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+1, True) # Data
+    pgpL0Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+0, True) # Registers  
+    pgpL0Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+1, True) # Data & cmds
     pgpL0Vc2 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+2, True) # PseudoScope
     pgpL0Vc3 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+3, True) # Monitoring (Slow ADC)
 
@@ -147,7 +147,7 @@ if ( args.type != 'dataFile' ):
 
 cmd = rogue.protocols.srp.Cmd()
 if ( args.type != 'dataFile' ):
-    pyrogue.streamConnect(cmd, pgpL0Vc0)
+    pyrogue.streamConnect(cmd, pgpL0Vc1)
 
 # Create and Connect SRP to VC1 to send commands
 srp = rogue.protocols.srp.SrpV3()
