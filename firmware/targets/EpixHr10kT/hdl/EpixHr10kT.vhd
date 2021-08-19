@@ -170,6 +170,8 @@ architecture top_level of EpixHr10kT is
    signal sAuxAxisSlaves  : AxiStreamSlaveArray(1 downto 0);
    -- ssi commands (Lane and Vc 0)
    signal ssiCmd          : SsiCmdMasterType;
+   -- Trigger (axilClk domain)
+   signal pgpTrigger      : sl;
    -- DDR's AXI Memory Interface (sysClk domain)
    signal axiReadMaster   : AxiReadMasterType;
    signal axiReadSlave    : AxiReadSlaveType;
@@ -208,6 +210,8 @@ begin
          sAuxAxisSlaves   => sAuxAxisSlaves,
          -- ssi commands (Lane and Vc 0)
          ssiCmd           => ssiCmd,
+         -- Trigger (sysClk domain)
+         pgpTrigger       => pgpTrigger,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          mAxiReadMaster   => axiReadMaster,
@@ -320,6 +324,8 @@ begin
          sAuxAxisSlaves   => sAuxAxisSlaves,
          -- ssi commands (Lane and Vc 0)
          ssiCmd           => ssiCmd,
+         -- Trigger (axilClk domain)
+         pgpTrigger       => pgpTrigger,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          sAxiReadMaster   => axiReadMaster,
