@@ -1098,36 +1098,25 @@ class Camera():
         """performs the Epix10kT image descrambling """
         if (self.Verbose):print("Length raw data: %d" % (len(rawData)))
         if (len(rawData)==56076):
-            #if (self.Verbose): print('raw data 0:', rawData[0,0:10])
-            #if (self.Verbose): print('raw data 1:', rawData[1,0:10])
              if (type(rawData != 'numpy.ndarray')):
                 img = np.frombuffer(rawData,dtype='uint16')
-             if (self.Verbose):print("shape", img.shape)
+             if (self.Verbose):print("shape", img.shape)          
+             #Select data payload
              quadrant0 = np.frombuffer(img[6:28038],dtype='uint16')
-             #quadrant0 = np.frombuffer(img[6+192:28038-192],dtype='uint16')
-            
+             #descramble image
+             #get data for each bank
              adcImg = quadrant0.reshape(-1,6)
              for i in range(0,6):
+                 #reshape data into 2D array per bank
                  adcImg2 = adcImg[0:adcImg.shape[0],i].reshape(-1,32)
-                 if i == 3:
-#                     adcImg2[1:,26] = adcImg2[0:adcImg2.shape[0]-1,26]
-#                     adcImg2[1:,27] = adcImg2[0:adcImg2.shape[0]-1,27]
-#                     adcImg2[1:,28] = adcImg2[0:adcImg2.shape[0]-1,28]
-                     adcImg2[1:,29] = adcImg2[0:adcImg2.shape[0]-1,29]
+                 #apply row-shift patch
                  adcImg2[1:,30] = adcImg2[0:adcImg2.shape[0]-1,30]
                  adcImg2[1:,31] = adcImg2[0:adcImg2.shape[0]-1,31]
+                 #concatenate bank data into a single image per asic
                  if i == 0:
                      quadrant0sq = adcImg2
                  else:
                      quadrant0sq = np.concatenate((quadrant0sq,adcImg2),1)
-             #quadrant0sq = quadrant0.reshape(-1,192)
-        #    quadrant1 = np.frombuffer(rawData[1,24:],dtype='uint16')
-        #    quadrant1sq = quadrant1.reshape(-1,192)
-        
-        #    imgTop = quadrant0sq
-        #    imgBot = quadrant1sq
-
-        #    imgDesc = np.concatenate((imgTop, imgBot),1)
              imgDesc = quadrant0sq
         else:
             print("descramble error")
