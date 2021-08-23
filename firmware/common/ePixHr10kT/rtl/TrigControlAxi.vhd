@@ -45,11 +45,9 @@ entity TrigControlAxi is
       sysRst     : in  sl;
       -- Software trigger
       ssiCmd        : in  SsiCmdMasterType;
-      -- Fiber optic trigger
-      pgpRxOut      : in  Pgp2bRxOutType;
-      -- Fiducial code output
-      opCodeOut     : out slv(7 downto 0);
-      
+      -- Fiber optic trigger (axilClk domain)
+      pgpTrigger    : in sl;
+    
       -- AXI lite slave port for register access
       axilClk           : in  sl;
       axilRst           : in  sl;
@@ -187,30 +185,17 @@ begin
    --   Any op code is a trigger, actual op
    --   code is the fiducial.
    -----------------------------------------
-   U_PgpSideBandTrigger : entity surf.SynchronizerFifo
-   generic map (
-      TPD_G        => TPD_G,
-      DATA_WIDTH_G => 8
-   )
-   port map (
-      rst    => sysRst,
-      wr_clk => sysClk,
-      wr_en  => pgpRxOut.opCodeEn,
-      din    => pgpRxOut.opCode,
-      rd_clk => appClk,
-      rd_en  => '1',
-      valid  => coreSidebandRun,
-      dout   => syncOpCode
-   );
-   -- Map op code to output port
+   U_SyncPGPTrig : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => appClk,
+         dataIn  => pgpTrigger,
+         dataOut => coreSidebandRun);
+   
    -- Have sideband DAQ lag 1 cycle behind sideband run
    process(appClk) begin
       if rising_edge(appClk) then
-         if appRst = '1' then
-            opCodeOut <= (others => '0') after TPD_G;
-         elsif coreSidebandRun = '1' then
-            opCodeOut <= syncOpCode after TPD_G;
-         end if;
          coreSidebandDaq <= coreSidebandRun;
       end if;
    end process;

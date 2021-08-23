@@ -24,7 +24,6 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiPkg.all;
-use surf.Pgp2bPkg.all;
 use surf.SsiPkg.all;
 use surf.SsiCmdMasterPkg.all;
 use surf.Ad9249Pkg.all;
@@ -69,8 +68,10 @@ entity Application is
       -- 0 is pseudo scope, 1 is slow adc monitoring
       sAuxAxisMasters  : out   AxiStreamMasterArray(1 downto 0);
       sAuxAxisSlaves   : in    AxiStreamSlaveArray(1 downto 0);
-      -- ssi commands (Lane and Vc 0)
+      -- ssi commands (Lane 0 and Vc 1)
       ssiCmd           : in    SsiCmdMasterType;
+      -- Trigger (sysClk domain)
+      pgpTrigger       : in sl;
       -- DDR's AXI Memory Interface (sysClk domain)
       -- DDR Address Range = [0x00000000:0x3FFFFFFF]
       mAxiReadMaster   : out   AxiReadMasterType;
@@ -207,13 +208,10 @@ architecture mapping of Application is
    signal iRunTrigger        : sl := '0';
    signal connTgMux          : sl;
    signal connMpsMux         : sl;
-   signal opCode             : slv(7 downto 0);
-   signal pgpOpCodeOneShot   : sl;
    signal acqStart           : sl;
    signal dataSend           : sl;
    signal saciPrepReadoutReq : sl;
    signal saciPrepReadoutAck : sl;
-   signal pgpRxOut           : Pgp2bRxOutType;
 
    -- ASIC signals (placeholders)
    signal iAsicEnA             : sl;
@@ -466,7 +464,8 @@ begin
       slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10100" else
       slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
-      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else   
+      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else
+      pgpTrigger        when boardConfig.epixhrDbgSel1 = "11000" else
       '0';   
 
    connMps    <= not connMpsMux;        -- required because the board has a
@@ -494,6 +493,7 @@ begin
       slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10101" else
       slowAdcDout       when boardConfig.epixhrDbgSel2 = "10110" else
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10111" else
+      pgpTrigger        when boardConfig.epixhrDbgSel1 = "11000" else
       '0';
 
   smaTxP          <= '0';
@@ -769,11 +769,8 @@ begin
       sysRst         => sysRst,
       -- SW trigger in (from VC)
       ssiCmd         => ssiCmd_i,
-      -- PGP RxOutType (to trigger from sideband)
-      pgpRxOut       => pgpRxOut,
-      -- Opcode associated with this trigger
-      opCodeOut      => opCode,
-      
+      -- Fiber optic trigger (axilClk domain)
+      pgpTrigger     => pgpTrigger,
       -- AXI lite slave port for register access
       axilClk           => appClk,
       axilRst           => appRst,
@@ -828,7 +825,7 @@ begin
       triggerIn(1)   => iAsicAcq,
       triggerIn(2)   => iAsicSR0,
       triggerIn(3)   => iAsicPpmat,
-      triggerIn(4)   => iAsicPpbe,
+      triggerIn(4)   => pgpTrigger,
       triggerIn(5)   => iAsicSync,
       triggerIn(6)   => iAsicGrst,
       triggerIn(7)   => asicRdClk,
