@@ -98,7 +98,7 @@ class Window(QMainWindow, QObject):
         fileMenu.addAction(extractAction)
 
         # Create widget
-        self.prepairWindow()
+        self.prepareWindow()
 
         # add all buttons to the screen
         self.def_bttns()
@@ -150,7 +150,7 @@ class Window(QMainWindow, QObject):
         self.show()
 
 
-    def prepairWindow(self):
+    def prepareWindow(self):
         # Center UI
         self.imageScaleMax = int(10000)
         self.imageScaleMin = int(-10000)
@@ -625,6 +625,8 @@ class EventReader(rogue.interfaces.stream.Slave):
         self.parent = parent
         self.lastTime = time.clock_gettime(0)
         self.Verbose = parent.Verbose
+        self.isLCLSII = False
+        
         #############################
         # define the data type IDs
         #############################
@@ -641,10 +643,12 @@ class EventReader(rogue.interfaces.stream.Slave):
     # to dislplay it. The emit signal is needed because only that class' thread can 
     # access the screen.
     def _acceptFrame(self,frame):
+        channel = frame.getChannel()
+        #print("Channel: ", channel)
         ## enter debug mode
         #print("\n---------------------------------\n-\n- Entering DEBUG mode _acceptFrame \n-\n-\n--------------------------------- ")
         #pdb.set_trace()
-        if (not self.parent.isHidden()):
+        if (not self.parent.isHidden() and channel>1):
             self.lastFrame = frame
             # reads entire frame
             p = bytearray(self.lastFrame.getPayload())
@@ -653,8 +657,12 @@ class EventReader(rogue.interfaces.stream.Slave):
             if (self.Verbose): print('Length of accpeted frame: ' , len(p)) 
             self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
             self.numAcceptedFrames += 1
-
-            VcNum =  p[0] & 0xF    
+            if (self.isLCLSII==True):
+                VcNum = channel - 2
+                print("LCLSII VcNum: ", VcNum)
+            else:
+                VcNum =  p[0] & 0xF
+                print("VcNum: ", VcNum)
 
             if (time.clock_gettime(0)-self.lastTime)>1:
                 self.lastTime = time.clock_gettime(0)
