@@ -494,7 +494,7 @@ begin
       slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10011" else
       slowAdcDout       when boardConfig.epixhrDbgSel2 = "10100" else
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10101" else
-      pgpTrigger        when boardConfig.epixhrDbgSel1 = "11110" else
+      pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
       acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
       '0';
 
