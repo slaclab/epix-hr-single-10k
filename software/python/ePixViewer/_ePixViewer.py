@@ -648,7 +648,7 @@ class EventReader(rogue.interfaces.stream.Slave):
         ## enter debug mode
         #print("\n---------------------------------\n-\n- Entering DEBUG mode _acceptFrame \n-\n-\n--------------------------------- ")
         #pdb.set_trace()
-        if (not self.parent.isHidden() and channel>1):
+        if (not self.parent.isHidden() and (channel>1 or self.isLCLSII==False)):
             self.lastFrame = frame
             # reads entire frame
             p = bytearray(self.lastFrame.getPayload())
