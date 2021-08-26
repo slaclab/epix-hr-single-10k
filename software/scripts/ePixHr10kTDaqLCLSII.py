@@ -223,6 +223,7 @@ class Board(pr.Root):
         self.dmaCtrlStreams = [None for lane in range(3)]
         self._dbg       = [DataDebug(name='DataDebug',enPrint=False) for lane in range(4)]
         self.unbatchers = [rogue.protocols.batcher.SplitterV1() for lane in range(4)]
+        self.dataFilter = [rogue.interfaces.stream.Filter(False, dataCh+3) for dataCh in range(4)]
 
         
         # Add PGP virtual channels
@@ -275,8 +276,8 @@ class Board(pr.Root):
             self.onlineViewers[viewerNum].eventReader.frameIndex = 0
             self.onlineViewers[viewerNum].setReadDelay(0)
             self.onlineViewers[viewerNum].setWindowTitle("ePix image viewer ASIC %d" % (viewerNum))
-            self.onlineViewers[viewerNum].eventReader.isLCLSII = True
-            self.unbatchers[viewerNum]  >> self.onlineViewers[viewerNum].eventReader
+            self.onlineViewers[viewerNum].eventReader.setDataDisplayParameters(2,viewerNum)
+            self.unbatchers[0]  >> self.dataFilter[viewerNum] >> self.onlineViewers[viewerNum].eventReader
             self.dmaCtrlStreams[1] >> self.onlineViewers[viewerNum].eventReaderScope
             self.dmaCtrlStreams[2] >> self.onlineViewers[viewerNum].eventReaderMonitoring
 

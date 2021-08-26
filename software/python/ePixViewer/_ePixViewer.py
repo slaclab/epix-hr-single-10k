@@ -636,7 +636,46 @@ class EventReader(rogue.interfaces.stream.Slave):
         self.readFileDelay = 0.1
         
 
+    def setDataDisplayParameters(self, timingType, displayNum):
+        # timing type
+        # 0 for no timing uses generic PCIe firmware
+        # 1 LCLS timing
+        # 2 for LCLS-II timing
+        if timingType == 0:
+            #############################
+            # define the data type IDs
+            #############################
+            self.isLCLSII = False
+            self.VIEW_DATA_CHANNEL_ID    = 0x1
+            self.VIEW_PSEUDOSCOPE_ID     = 0x2
+            self.VIEW_MONITORING_DATA_ID = 0x3
+        elif timingType == 1:
+            #############################
+            # define the data type IDs
+            #############################
+            self.isLCLSII = False
+            self.VIEW_DATA_CHANNEL_ID    = 0x1
+            self.VIEW_PSEUDOSCOPE_ID     = 0x2
+            self.VIEW_MONITORING_DATA_ID = 0x3
+        elif timingType == 2:
+            #############################
+            # define the data type IDs
+            #############################
+            self.isLCLSII = True
+            self.VIEW_DATA_CHANNEL_ID    = 0x3 + displayNum
+            self.VIEW_PSEUDOSCOPE_ID     = -1
+            self.VIEW_MONITORING_DATA_ID = -1
+        else:
+            #############################
+            # define the data type IDs
+            #############################
+            self.isLCLSII = False
+            self.VIEW_DATA_CHANNEL_ID    = 0x1
+            self.VIEW_PSEUDOSCOPE_ID     = 0x2
+            self.VIEW_MONITORING_DATA_ID = 0x3
 
+        print(f'Parameters, LCLS timing, DATA VC')
+        print(self.isLCLSII, self.VIEW_DATA_CHANNEL_ID)
     # Checks all frames in the file to look for the one that needs to be displayed
     # self.frameIndex defines which frame should be returned.
     # Once the frame is found, saves data and emits a signal do enable the class window
@@ -658,21 +697,24 @@ class EventReader(rogue.interfaces.stream.Slave):
             self.frameDataArray[self.numAcceptedFrames%4][:] = p#bytearray(self.lastFrame.getPayload())
             self.numAcceptedFrames += 1
             if (self.isLCLSII==True):
-                VcNum = channel - 2
-                print("LCLSII VcNum: ", VcNum)
+                VcNum = channel
+                if (self.Verbose): print("LCLSII VcNum: ", VcNum)
+                if (self.Verbose): print("Viewer ID: ", self.VIEW_DATA_CHANNEL_ID)
             else:
                 VcNum =  p[0] & 0xF
-                print("VcNum: ", VcNum)
+                if (self.Verbose): print("VcNum: ", VcNum)
 
             if (time.clock_gettime(0)-self.lastTime)>1:
-                self.lastTime = time.clock_gettime(0)
                 if ((VcNum == self.VIEW_PSEUDOSCOPE_ID)):
+                    self.lastTime = time.clock_gettime(0)
                     if (self.Verbose): print('Decoding PseudoScopeData')
                     self.parent.processPseudoScopeFrameTrigger.emit()
                 elif (VcNum == self.VIEW_MONITORING_DATA_ID):
+                    self.lastTime = time.clock_gettime(0)
                     if (self.Verbose): print('Decoding Monitoring Data')
                     self.parent.processMonitoringFrameTrigger.emit()
-                elif (VcNum == 0):
+                elif (VcNum == self.VIEW_DATA_CHANNEL_ID):
+                    self.lastTime = time.clock_gettime(0)
                     if (self.Verbose): print('Decoding ASIC Data')
                     if (((self.numAcceptedFrames == self.frameIndex) or (self.frameIndex == 0)) and (self.numAcceptedFrames%self.numSkipFrames==0)): 
                         self.parent.processFrameTrigger.emit()
