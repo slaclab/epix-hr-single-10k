@@ -39,6 +39,7 @@ cd epix-hr-single-10k/software
 source setup_env_slac.sh
 
 3) run the main script
+
    3.1 when using PCIe card without timing receiver
        python scripts/ePixHr10kTDaq.py --type=kcu1500
 
@@ -46,12 +47,16 @@ source setup_env_slac.sh
        python scripts/ePixHr10kTDaqLCLSII.py --type=kcu1500
 
 4) configure the available ASICs
+
    go to Commands->EpixHr and execute
    initASIC [routine, ASIC0, ASIC1, ASIC2, ASIC3]
       routine reffers to the initialization script
       ASICx should be set to one if ASIC is present or zero if not.
+
 5) check trigger setting
+
    go to Variable->EpixHr->TriggerRegisters
+   
    5.1 when using PCIe card without timing receiver
        set PgpTrigEn False
        set AutoTrigPeriod to 100000 for 1kfps
