@@ -42,252 +42,6 @@ except ImportError:
     from PyQt4.QtGui     import *
 
 
-################################################################################################
-##
-## EpixHRGen1 Classes definition
-##
-################################################################################################
-class EpixHRGenEmpty(pr.Device):
-    def __init__(self, **kwargs):
-        if 'description' not in kwargs:
-            kwargs['description'] = "HR Gen1 FPGA"
-      
-        trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
-        inChaEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
-        inChbEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
-        HsDacEnum={0:'None', 1:'DAC A', 2:'DAC B', 3:'DAC A & DAC B'}
-      
-        super(self.__class__, self).__init__(**kwargs)
-        self.add((
-            axi.AxiVersion(offset=0x00000000),
-            pgp.Pgp2bAxi(name='Pgp2bAxi_lane0', offset=0x05000000, enabled=True, expand=False),
-            pgp.Pgp2bAxi(name='Pgp2bAxi_lane1', offset=0x05010000, enabled=True, expand=False),
-            pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
-            pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False)
-            ))
-
-        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
-
-    def fnSetWaveform(self, dev,cmd,arg):
-        """SetTestBitmap command function"""
-        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename)[1] == '.csv':
-            waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
-            if waveform.shape == (1024,):
-                for x in range (0, 1024):
-                    self.waveformMem.Mem[x].set(int(waveform[x]))
-            else:
-                print('wrong csv file format')
-
-    def fnGetWaveform(self, dev,cmd,arg):
-        """GetTestBitmap command function"""
-        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename)[1] == '.csv':
-            readBack = np.zeros((1024),dtype='uint16')
-            for x in range (0, 1024):
-                readBack[x] = self.waveformMem.Mem[x].get()
-            np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
-
-
-#######################################################
-#
-# ePixHrePixM Tx target
-#
-#######################################################
-
-class EpixHRGen1ePixM(pr.Device):
-    def __init__(self, **kwargs):
-        if 'description' not in kwargs:
-            kwargs['description'] = "HR Gen1 FPGA attached to ePixHr and ePix M test board"
-      
-        trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
-        inChaEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
-        inChbEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
-        HsDacEnum={0:'None', 1:'DAC A (SE)', 2:'DAC B (Diff)', 3:'DAC A & DAC B'}
-      
-        super(self.__class__, self).__init__(**kwargs)
-        self.add((
-            # core registers
-            axi.AxiVersion(offset=0x00000000),          
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane0', offset=0x05000000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane1', offset=0x05010000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
-            # app registers
-            MMCM7Registers(          name='MMCMRegisters',                     offset=0x80000000, expand=False, enabled=False),
-            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, expand=False, enabled=False),
-            axi.AxiStreamMonAxiL(    name='AxiStreamMon',                      offset=0x86000000, expand=False, enabled=False, numberLanes=4),
-            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False, enabled=False),
-            epix.EpixHrAdcAsic(      name='HrAdcAsic0',                        offset=0x88000000, expand=False, enabled=False),
-            EPixHrePixMAppCoreFpgaRegisters(name="AppFpgaRegisters",           offset=0x96000000, expand=False, enabled=False),
-            powerSupplyRegisters(    name='PowerSupply',                       offset=0x89000000, expand=False, enabled=False),            
-            HighSpeedDacRegisters(   name='HSDac',                             offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
-            pr.MemoryDevice(         name='waveformMem',                       offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
-            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8C000000, expand=False, enabled=False),
-            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
-            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8E000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',        offset=0x8F000000, expand=False, enabled=False),
-            SlowAdcRegisters(            name="SlowAdcRegisters",              offset=0x90000000, expand=False, enabled=False),
-            ProgrammablePowerSupply(     name="ProgPowerSupply",               offset=0x92000000, expand=False, enabled=False),
-            ClockJitterCleanerRegisters( name="Clock Jitter Cleaner",          offset=0x93000000, expand=False, enabled=False),
-            AsicDeserHr16bRegisters(     name="DeserRegisters",                offset=0x94000000, expand=False, enabled=False), 
-            DigitalPktRegisters(         name="PacketRegisters",               offset=0x95000000, expand=False, enabled=False)
-            ))
-
-        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
-        self.add(pr.LocalCommand(name='InitASIC',      description='Inicialization routines', function=self.fnInitAsic))
-
-
-    def fnSetWaveform(self, dev,cmd,arg):
-        """SetTestBitmap command function"""
-        self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename[0])[1] == '.csv':
-            waveform = np.genfromtxt(self.filename[0], delimiter=',', dtype='uint16')
-            if waveform.shape == (1024,):
-                for x in range (0, 1024):
-                    self.waveformMem._rawWrite(offset = (x * 4),data =  int(waveform[x]))
-            else:
-                print('wrong csv file format, shape: ', waveform.shape)
-
-    def fnGetWaveform(self, dev,cmd,arg): 
-        """GetTestBitmap command function"""
-        self.filename = QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename)[1] == '.csv':
-            readBack = np.zeros((1024),dtype='uint16')
-            for x in range (0, 1024):
-                readBack[x] = self.waveformMem._rawRead(offset = (x * 4))
-            np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
-
-
-    def fnInitAsic(self, dev,cmd,arg):
-        """SetTestBitmap command function"""       
-        print("Rysync ASIC started")
-        if arg == 1:
-            self.filenameMMCM = "./yml/ePixHrePixM_MMCM_125MHz.yml"
-            self.filenamePowerSupply = "./yml/ePixHrePixM_PowerSupply_Default.yml"
-            self.filenameCJC = "./yml/ePixHrePixM_CJC_125MHz.yml"
-            self.filenameASIC = "./yml/ePixHrePixM_ASIC_ExtSignal_PLLBypass.yml"
-        if arg == 2:
-            self.filenameMMCM = "./yml/ePixHrePixM_MMCM_125MHz.yml"
-            self.filenamePowerSupply = "./yml/ePixHrePixM_PowerSupply_Default.yml"
-            self.filenameCJC = "./yml/ePixHrePixM_CJC_125MHz.yml"
-            self.filenameASIC = "./yml/ePixHrePixM_ASIC_MSignal_PLLBypass.yml"
-
-        if arg != 0:
-            self.fnInitAsicScript(dev,cmd,arg)
-
-    def fnInitAsicScript(self, dev,cmd,arg):
-        """SetTestBitmap command function"""       
-        print("Init ASIC script started")
-        delay = 1
-        print("Loading MMCM configuration")
-        self.MMCMRegisters.enable.set(True)
-        self.root.readBlocks()
-        time.sleep(delay/10) 
-        self.root.LoadConfig(self.filenameMMCM)
-        print(self.filenameMMCM)
-        time.sleep(delay/10) 
-        self.root.readBlocks()
-        self.MMCMRegisters.enable.set(False)
-        time.sleep(delay) 
-        self.root.readBlocks()
-        print("Completed")
-
-        # load config that sets prog supply
-        print("Loading supply configuration")
-        self.root.LoadConfig(self.filenamePowerSupply)
-        print(self.filenamePowerSupply)
-        time.sleep(delay) 
-
-        # load config that sets CJC
-        print("Loading CJC configuration")
-        self.root.LoadConfig(self.filenameCJC)
-        print(self.filenameCJC)
-        for i in range(5):
-            time.sleep(2*delay)
-            print("Waiting asic to stablize", i)
-
-        ## takes the asic off of reset
-        for i in range(2):
-            print("Taking asic off of reset")
-            self.AppFpgaRegisters.enable.set(True)
-            self.AppFpgaRegisters.GlblRstPolarity.set(False)
-            time.sleep(delay) 
-            self.AppFpgaRegisters.GlblRstPolarity.set(True)
-            time.sleep(delay) 
-            self.root.readBlocks()
-            time.sleep(delay) 
-
-            ## load config for the asic
-            print("Loading ASIC and timing configuration")
-            self.root.LoadConfig(self.filenameASIC)
-            time.sleep(5*delay) 
-
-        ## load config for the asic
-        print("Loading ASIC and timing configuration")
-        self.root.LoadConfig(self.filenameASIC)
-        time.sleep(5*delay) 
-
-
-        ## start deserializer config for the asic
-        EN_DESERIALIZERS = True
-        if EN_DESERIALIZERS : 
-            print("Starting deserializer")
-            self.serializerSyncAttempsts = 0
-            while True:
-                #make sure idle
-                self.DeserRegisters.enable.set(True)
-                self.root.readBlocks()
-                time.sleep(2*delay) 
-                self.DeserRegisters.InitAdcDelay()
-                time.sleep(delay)   
-                self.DeserRegisters.Delay0.set(self.DeserRegisters.sugDelay0)
-                self.DeserRegisters.Delay1.set(self.DeserRegisters.sugDelay1)
-                self.DeserRegisters.Resync.set(True)
-                time.sleep(delay) 
-                self.DeserRegisters.Resync.set(False)
-                time.sleep(5*delay) 
-                if self.DeserRegisters.Locked0.get() and self.DeserRegisters.Locked1.get():
-                    break
-                #limits the number of attempts to get serializer synch.
-                self.serializerSyncAttempsts = self.serializerSyncAttempsts + 1
-                if self.serializerSyncAttempsts > 2:
-                    break
-
-    def fnReSyncCryo(self, dev,cmd,arg):
-        """SetTestBitmap command function"""       
-        print("Rysync cryo started")
-        delay = 1.0
-        self.CryoAsic0.enable.set(True)
-        self.CryoAsic0.SubBnkEn.set(0x0808) #keeps only two needed adcs
-        self.CryoAsic0.encoder_mode_dft.set(0) # makes sure idle will be set
-        self.PacketRegisters.enable.set(True)
-        self.PacketRegisters.decBypass.set(False)
-        self.PacketRegisters.StreamDataMode.set(False)
-
-        self.AppFpgaRegisters.enable.set(True)
-        self.AppFpgaRegisters.SR0Polarity.set(False)
-        time.sleep(2*delay) 
-        self.DeserRegisters.enable.set(True)
-        time.sleep(2*delay) 
-        if arg == 0 :
-            self.DeserRegisters.InitAdcDelay()
-            time.sleep(delay)   
-            self.DeserRegisters.Delay0.set(self.DeserRegisters.sugDelay0)
-            self.DeserRegisters.Delay1.set(self.DeserRegisters.sugDelay1)
-        self.DeserRegisters.Resync.set(True)
-        time.sleep(delay) 
-        self.DeserRegisters.Resync.set(False)
-        time.sleep(5*delay)        
-        self.AppFpgaRegisters.SR0Polarity.set(True)
-
-
 #######################################################
 #
 # ePixHr 10kT Tx target
@@ -347,6 +101,7 @@ class EpixHR10kT(pr.Device):
         self.add(pr.LocalCommand(name='InitASIC',   description='[routine, asic0, asic1, asic2, asic3]', value=[0,0,0,0,0] ,function=self.fnInitAsic))
         self.add(pr.LocalCommand(name='ASIC0_SDrst_SDclk_scan',      description='asic scan routine', function=self.fnScanSDrstSDClkScript))
         self.add(pr.LocalCommand(name='AcqDataWithSaciClkRst',      description='acquires a set of frame sending a clock reset between frames', function=self.fnAcqDataWithSaciClkRstScript))
+        self.add(pr.LocalCommand(name='InitHSADC',   description='Initialize the HS ADC used by the scope module', value='' ,function=self.fnInitHsADC))
 
 
     def fnSetWaveform(self, dev,cmd,arg):
@@ -621,6 +376,27 @@ class EpixHR10kT(pr.Device):
                 self.root.dataWriter.open.set(False)       
 
         print("Completed")
+
+    def fnInitHsADC(self, dev,cmd,arg):
+        """Initialization routine for the HS ADC"""
+        self.FastADCsDebug.enable.set(True)   
+        self.FastADCsDebug.DelayAdc0.set(15)
+        self.FastADCsDebug.enable.set(False)
+
+        self.Ad9249Config_Adc_0.enable.set(True)
+        self.root.readBlocks()
+        self.FastADCsDebug.DelayAdc0.set(15)
+        self.FastADCsDebug.enable.set(False)
+
+        self.Ad9249Config_Adc_0.enable.set(True)
+        self.root.readBlocks()
+        self.Ad9249Config_Adc_0.InternalPdwnMode.set(3)
+        self.Ad9249Config_Adc_0.InternalPdwnMode.set(0)
+        self.Ad9249Config_Adc_0.OutputFormat.set(0)
+        self.root.readBlocks()
+        self.Ad9249Config_Adc_0.enable.set(False)
+        self.root.readBlocks()
+        print("Fast ADC initialized")
 
 #######################################################
 #

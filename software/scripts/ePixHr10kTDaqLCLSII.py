@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 #-----------------------------------------------------------------------------
-# Title      : ePix HR and ePix M DAQ top module
+# Title      : ePix HR 10kT Single for LCLSII timing tests
 #-----------------------------------------------------------------------------
-# File       : ePixHrePixMDaq.py evolved from evalBoard.py
+# File       : ePixHr10kTDaqLCLSII.py 
 # Created    : 2018-06-12
-# Last update: 2018-06-12
+# Last update: 2021-08-26
 #-----------------------------------------------------------------------------
 # Description:
-# Rogue interface to test board containig ePix HR attached directly to ePixM
+#              ePix HR 10kT Single to be used to PCIe card that has the timing
+#              receiver module (https://github.com/slaclab/lcls2-epix-hr-pcie)
 #-----------------------------------------------------------------------------
 # This file is part of the rogue_example software. It is subject to 
 # the license terms in the LICENSE.txt file found in the top-level directory 
@@ -322,27 +323,9 @@ with Board(args, guiTop, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
     if ( args.type == 'dataFile' or args.type == 'SIM'):
         print("Simulation mode does not initialize monitoring ADC")
     else:
-        #configure internal ADC
-        ePixHrBoard.EpixHR.FastADCsDebug.enable.set(True)   
-        ePixHrBoard.EpixHR.FastADCsDebug.DelayAdc0.set(15)
-        ePixHrBoard.EpixHR.FastADCsDebug.enable.set(False)
-
-        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(True)
-        ePixHrBoard.readBlocks()
-        ePixHrBoard.EpixHR.FastADCsDebug.DelayAdc0.set(15)
-        ePixHrBoard.EpixHR.FastADCsDebug.enable.set(False)
-
-        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(True)
-        ePixHrBoard.readBlocks()
-        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(3)
-        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(0)
-        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.OutputFormat.set(0)
-        ePixHrBoard.readBlocks()
-        ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(False)
-        ePixHrBoard.readBlocks()
-
-
-
+        #configure internal ADC        
+        ePixHrBoard.EpixHR.InitHSADC()
+        
     pyrogue.pydm.runPyDM(
         root  = ePixHrBoard,
         sizeX = 800,
