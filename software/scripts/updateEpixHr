@@ -1,0 +1,1 @@
+../../firmware/submodules/epix-hr-core/scripts/updateEpixHr

@@ -16,3 +16,15 @@
 
 # Clone the GIT repository
 ``` $ git clone --recursive git@github.com:slaclab/epix-hr-dev```
+
+
+# Prgrame camera mcs file
+
+1) go to folder
+cd epix-hr-single-10k/software
+
+2) source the environment
+source setup_env_slac.sh
+
+3) run script (substitute "EpixHr10kT-0x03010000-20210823153944-ddoering-20f1553.mcs" with your file
+python ./scripts/updateEpixHr  --mcs   ../firmware/targets/EpixHr10kT/images/EpixHr10kT-0x03010000-20210823153944-ddoering-20f1553.mcs --lane 0

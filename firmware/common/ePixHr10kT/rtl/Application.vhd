@@ -461,11 +461,12 @@ begin
       WFdacClrL_i       when boardConfig.epixhrDbgSel1 = "01111" else
       iAsicGrst         when boardConfig.epixhrDbgSel1 = "10000" else
       iAsicR0           when boardConfig.epixhrDbgSel1 = "10001" else   
-      slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10100" else
-      slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10101" else
-      slowAdcDout       when boardConfig.epixhrDbgSel1 = "10110" else
-      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10111" else
-      pgpTrigger        when boardConfig.epixhrDbgSel1 = "11000" else
+      slowAdcDin_i      when boardConfig.epixhrDbgSel1 = "10010" else
+      slowAdcDrdy       when boardConfig.epixhrDbgSel1 = "10011" else
+      slowAdcDout       when boardConfig.epixhrDbgSel1 = "10100" else
+      slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10101" else
+      pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
+      acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
       '0';   
 
    connMps    <= not connMpsMux;        -- required because the board has a
@@ -489,11 +490,12 @@ begin
       WFdacClrL_i       when boardConfig.epixhrDbgSel2 = "01111" else
       iAsicGrst         when boardConfig.epixhrDbgSel2 = "10000" else
       iAsicR0           when boardConfig.epixhrDbgSel2 = "10001" else   
-      slowAdcDin_i      when boardConfig.epixhrDbgSel2 = "10100" else
-      slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10101" else
-      slowAdcDout       when boardConfig.epixhrDbgSel2 = "10110" else
-      slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10111" else
-      pgpTrigger        when boardConfig.epixhrDbgSel1 = "11000" else
+      slowAdcDin_i      when boardConfig.epixhrDbgSel2 = "10010" else
+      slowAdcDrdy       when boardConfig.epixhrDbgSel2 = "10011" else
+      slowAdcDout       when boardConfig.epixhrDbgSel2 = "10100" else
+      slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10101" else
+      pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
+      acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
       '0';
 
   smaTxP          <= '0';
