@@ -1,0 +1,105 @@
+# ----------------------------------------------------------------------------
+# This file is part of the 'epix-hr-single-10k' package. It is subject to
+# the license terms in the LICENSE.txt file found in the top-level directory
+# of this distribution and at:
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+# No part of the 'epix-hr-single-10k' package, including this file, may be
+# copied, modified, propagated, or distributed except according to the terms
+# contained in the LICENSE.txt file.
+# ----------------------------------------------------------------------------
+# The following environment variables are required for this process:
+# secrets.CONDA_UPLOAD_TOKEN_TAG
+
+name: epix_hr_single_10k Integration
+on: [push]
+
+jobs:
+  conda_build:
+    name: Anaconda Build
+    if: startsWith(github.ref, 'refs/tags/')
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-10.15
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      # This step checks out a copy of your repository.
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Setup anaconda
+        env:
+          OS_NAME: ${{ matrix.os }}
+        run: |
+          cd ${HOME}
+          if [ $OS_NAME == "macos-10.15" ]
+          then
+            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+          else
+            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+          fi
+          bash miniconda.sh -b -p ${HOME}/miniconda
+          export PATH="${HOME}/miniconda/bin:$PATH"
+          source ${HOME}/miniconda/etc/profile.d/conda.sh
+          conda config --set always_yes yes
+          conda install conda-build anaconda-client conda-verify
+          if [ $OS_NAME == "macos-10.15" ]
+          then
+            conda install libiconv libarchive -c conda-forge
+          fi
+          conda update -q conda conda-build
+          conda update --all
+
+      - name: Setup MacOS
+        if: matrix.os == 'macos-10.15'
+        run: |
+          cd ${HOME}
+          wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz
+          tar xzf MacOSX10.15.sdk.tar.xz
+          sudo mkdir -p /opt/
+          sudo mv MacOSX10.15.sdk /opt/
+          CONDA_BUILD_SYSROOT=/opt/MacOSX10.15.sdk
+          CONDA_BUILD=1
+          echo "CONDA_BUILD_SYSROOT=$CONDA_BUILD_SYSROOT" >> $GITHUB_ENV
+          echo "CONDA_BUILD=$CONDA_BUILD" >> $GITHUB_ENV
+
+      - name: Get Image Information
+        id: get_image_info
+        env:
+          OS_NAME: ${{ matrix.os }}
+          CONDA_UPLOAD_TOKEN_TAG: ${{ secrets.CONDA_UPLOAD_TOKEN_TAG }}
+          URL_BASE: https://github.com/${{ github.repository }}/releases/download
+        run: |
+          echo ::set-output name=token::$CONDA_UPLOAD_TOKEN_TAG
+          if [ ${OS_NAME} == "macos-10.15" ]
+          then
+              echo ::set-output name=os::osx-64
+          else
+              echo ::set-output name=os::linux-64
+          fi
+          echo ::set-output name=url::${URL_BASE}/${GITHUB_REF#refs/tags/}/rogue_${GITHUB_REF#refs/tags/}.zip
+          echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
+
+      - name: Download And Extract
+        env:
+          DOWNLOAD_URL: ${{ steps.get_image_info.outputs.url }}
+        run: |
+          mkdir ${HOME}/download
+          cd ${HOME}/download
+          wget -O file.zip $DOWNLOAD_URL
+          unzip file.zip
+
+      - name: Build And Upload
+        run: |
+          export PATH="${HOME}/miniconda/bin:$PATH"
+          source ${HOME}/miniconda/etc/profile.d/conda.sh
+          cd ${HOME}/download/
+          conda build --debug conda-recipe --output-folder bld-dir -c tidair-tag -c tidair-packages -c conda-forge
+          anaconda -t ${{ steps.get_image_info.outputs.token }} upload bld-dir/${{ steps.get_image_info.outputs.os }}/*.tar.bz2
