@@ -1,4 +1,4 @@
-# epix-hr-dev
+# epix-hr-single-10k
 
 # Before you clone the GIT repository
 
@@ -15,7 +15,7 @@
 > $ git lfs install
 
 # Clone the GIT repository
-``` $ git clone --recursive git@github.com:slaclab/epix-hr-dev```
+``` $ git clone --recursive git@github.com:slaclab/epix-hr-single-10k```
 
 
 # Program camera mcs file
