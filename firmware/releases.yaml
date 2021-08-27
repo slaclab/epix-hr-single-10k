@@ -1,0 +1,32 @@
+
+GitBase: ..
+
+TopRoguePackage: epix_hr_single_10k
+
+RoguePackages:
+  - submodules/axi-pcie-core/python
+  - submodules/epix-hr-core/python
+  - submodules/surf/python
+  - python
+  - ../software/python
+
+RogueConfig:
+  - ../software/yml
+
+RogueScripts:
+#  - ../software/scripts/devGui
+
+Targets:
+################################################################################  
+  EpixHr10kT:
+    ImageDir: targets/EpixHr10kT/images
+    Extensions:
+      - mcs
+################################################################################        
+Releases:
+  epix_hr_single_10k:
+    Primary: True
+    Targets:
+      - EpixHr10kT
+    Types:
+      - Rogue
