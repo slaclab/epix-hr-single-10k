@@ -56,9 +56,9 @@ source setup_env_slac.sh
 5) check trigger setting
 
    go to Variable->EpixHr->TriggerRegisters
-   
+
    5.1 when using PCIe card without timing receiver
-   
+
        set PgpTrigEn False
 
        set AutoTrigPeriod to 100000 for 1kfps
@@ -86,6 +86,5 @@ source setup_env_slac.sh
        set RunTriggerEn True
 
        At this point the camera is ready to receive triggers from the timing module
-   
-	
-   
+
+
