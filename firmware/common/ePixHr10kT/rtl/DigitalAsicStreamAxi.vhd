@@ -225,7 +225,7 @@ begin
    ----------------------------------------------------------------------------
    G_FIFO : for i in 0 to LANES_NO_G-1 generate
      
-      -- ePixHR10k has the gian it defined as LSB and it is remapped as MSB.
+      -- ePixHR10k has the gian bit defined as LSB and it is remapped as MSB.
       U_GainBitReMap : process (rxData, r)
       begin
         if (r.gainBitRemap(i) = '1') then
