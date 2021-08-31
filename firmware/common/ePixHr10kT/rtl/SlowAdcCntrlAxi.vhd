@@ -170,6 +170,7 @@ architecture RTL of SlowAdcCntrlAxi is
    type RegType is record
       streamEn          : sl;
       streamPeriod      : slv(31 downto 0);
+      resetStateMachine : sl;
       sAxilWriteSlave   : AxiLiteWriteSlaveType;
       sAxilReadSlave    : AxiLiteReadSlaveType;
    end record RegType;
@@ -177,6 +178,7 @@ architecture RTL of SlowAdcCntrlAxi is
    constant REG_INIT_C : RegType := (
       streamEn          => '0',
       streamPeriod      => (others=>'0'),
+      resetStateMachine => '0',
       sAxilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C
    );
@@ -184,7 +186,7 @@ architecture RTL of SlowAdcCntrlAxi is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal resetStateMachine : sl := '0';
+
 
    attribute keep of state            : signal is "true";
    attribute keep of ref_clk          : signal is "true";
@@ -251,6 +253,7 @@ begin
       
       axiSlaveRegister(regCon, x"00", 0, v.streamEn);
       axiSlaveRegister(regCon, x"04", 0, v.streamPeriod);
+      axiSlaveRegister(regCon, x"08", 0, v.resetStateMachine);
       
       -- raw ADC data registers
       axiSlaveRegisterR(regCon, x"40", 0, adcDataSync(0));
@@ -273,9 +276,7 @@ begin
       axiSlaveRegisterR(regCon, x"98", 0, envDataSync(6));
       axiSlaveRegisterR(regCon, x"9C", 0, envDataSync(7));
       axiSlaveRegisterR(regCon, x"A0", 0, envDataSync(8));
-
-      axiSlaveRegister(regCon, x"F0", 0, resetStateMachine);
-      
+    
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
       
       if (axilRst = '1') then
@@ -502,10 +503,10 @@ begin
    end process;
    
    -- Readout loop FSM
-   fsm_cnt_p: process ( sysClk ) 
+   fsm_cnt_p: process ( sysClk, r ) 
    begin
       if rising_edge(sysClk) then
-         if sysClkRst = '1' or resetStateMachine = '1' then
+         if sysClkRst = '1' or r.resetStateMachine = '1' then
             state <= RESET after TPD_G;
          else
             state <= next_state after TPD_G;         
