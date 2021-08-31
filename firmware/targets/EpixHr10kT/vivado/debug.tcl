@@ -49,6 +49,11 @@ SetDebugCoreClk ${ilaName} {U_App/appClk}
 #######################
 ## Set the debug Probes
 #######################
+#Probe for the SlowADC
+ConfigProbe ${ilaName} {U_App/U_AdcCntrl/state}
+ConfigProbe ${ilaName} {U_App/U_AdcCntrl/ref_clk}
+ConfigProbe ${ilaName} {U_App/U_AdcCntrl/adcDrdy}
+ConfigProbe ${ilaName} {U_App/U_AdcCntrl/adcDin}
 #ConfigProbe ${ilaName} {U_Core/U_DdrMem/rstL}
 #ConfigProbe ${ilaName} {U_Core/U_DdrMem/coreRst[*]}
 #ConfigProbe ${ilaName} {U_Core/U_DdrMem/ddrRst}

@@ -75,6 +75,8 @@ end SlowAdcCntrlAxi;
 -- Define architecture
 architecture RTL of SlowAdcCntrlAxi is
 
+   attribute keep : string;
+
    constant r0_speed :     std_logic_vector(0 downto 0) := "0";      -- "0" - fosc/128, "1" - fosc/256
    constant r0_refhi :     std_logic_vector(0 downto 0) := "0";      -- "0" - Vref 1.25, "1" - Vref 2.5
    constant r0_bufen :     std_logic_vector(0 downto 0) := "0";      -- "0" - buffer disabled, "1" - buffer enabled
@@ -182,6 +184,14 @@ architecture RTL of SlowAdcCntrlAxi is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal resetStateMachine : sl := '0';
+
+   attribute keep of state            : signal is "true";
+   attribute keep of ref_clk          : signal is "true";
+   attribute keep of adcDrdy          : signal is "true";
+   attribute keep of adcDin           : signal is "true";
+     
+
 begin
    
    -----------------------------------------------------------------------------------------------------------------------
@@ -263,6 +273,8 @@ begin
       axiSlaveRegisterR(regCon, x"98", 0, envDataSync(6));
       axiSlaveRegisterR(regCon, x"9C", 0, envDataSync(7));
       axiSlaveRegisterR(regCon, x"A0", 0, envDataSync(8));
+
+      axiSlaveRegister(regCon, x"F0", 0, resetStateMachine);
       
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
       
@@ -493,7 +505,7 @@ begin
    fsm_cnt_p: process ( sysClk ) 
    begin
       if rising_edge(sysClk) then
-         if sysClkRst = '1' then
+         if sysClkRst = '1' or resetStateMachine = '1' then
             state <= RESET after TPD_G;
          else
             state <= next_state after TPD_G;         
