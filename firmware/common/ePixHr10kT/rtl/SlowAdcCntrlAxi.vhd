@@ -75,6 +75,8 @@ end SlowAdcCntrlAxi;
 -- Define architecture
 architecture RTL of SlowAdcCntrlAxi is
 
+   attribute keep : string;
+
    constant r0_speed :     std_logic_vector(0 downto 0) := "0";      -- "0" - fosc/128, "1" - fosc/256
    constant r0_refhi :     std_logic_vector(0 downto 0) := "0";      -- "0" - Vref 1.25, "1" - Vref 2.5
    constant r0_bufen :     std_logic_vector(0 downto 0) := "0";      -- "0" - buffer disabled, "1" - buffer enabled
@@ -168,6 +170,7 @@ architecture RTL of SlowAdcCntrlAxi is
    type RegType is record
       streamEn          : sl;
       streamPeriod      : slv(31 downto 0);
+      resetStateMachine : sl;
       sAxilWriteSlave   : AxiLiteWriteSlaveType;
       sAxilReadSlave    : AxiLiteReadSlaveType;
    end record RegType;
@@ -175,12 +178,21 @@ architecture RTL of SlowAdcCntrlAxi is
    constant REG_INIT_C : RegType := (
       streamEn          => '0',
       streamPeriod      => (others=>'0'),
+      resetStateMachine => '0',
       sAxilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C
    );
    
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+
+
+   attribute keep of state            : signal is "true";
+   attribute keep of ref_clk          : signal is "true";
+   attribute keep of adcDrdy          : signal is "true";
+   attribute keep of adcDin           : signal is "true";
+     
 
 begin
    
@@ -241,6 +253,7 @@ begin
       
       axiSlaveRegister(regCon, x"00", 0, v.streamEn);
       axiSlaveRegister(regCon, x"04", 0, v.streamPeriod);
+      axiSlaveRegister(regCon, x"08", 0, v.resetStateMachine);
       
       -- raw ADC data registers
       axiSlaveRegisterR(regCon, x"40", 0, adcDataSync(0));
@@ -263,7 +276,7 @@ begin
       axiSlaveRegisterR(regCon, x"98", 0, envDataSync(6));
       axiSlaveRegisterR(regCon, x"9C", 0, envDataSync(7));
       axiSlaveRegisterR(regCon, x"A0", 0, envDataSync(8));
-      
+    
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXIL_ERR_RESP_G);
       
       if (axilRst = '1') then
@@ -490,10 +503,10 @@ begin
    end process;
    
    -- Readout loop FSM
-   fsm_cnt_p: process ( sysClk ) 
+   fsm_cnt_p: process ( sysClk, r ) 
    begin
       if rising_edge(sysClk) then
-         if sysClkRst = '1' then
+         if sysClkRst = '1' or r.resetStateMachine = '1' then
             state <= RESET after TPD_G;
          else
             state <= next_state after TPD_G;         

@@ -956,8 +956,8 @@ begin
    )
    port map ( 
       -- Master system clock
-      sysClk            => sysClk,
-      sysClkRst         => sysRst,
+      sysClk            => appClk,
+      sysClkRst         => appRst,
       
       -- Trigger Control
       adcStart          => acqStart,
