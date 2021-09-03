@@ -3,5 +3,5 @@ export PRJ_VERSION = 0x03010000
 
 # Define release type
 ifndef RELEASE
-export RELEASE = all
+export RELEASE = epix_hr_single_10k
 endif
