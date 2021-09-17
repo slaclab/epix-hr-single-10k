@@ -6,11 +6,11 @@ ePixHr10kT:
     enable: True
     TriggerRegisters:
       enable: True
-      RunTriggerEnable: False
+      RunTriggerEnable: True
       RunTriggerDelay: 0
       DaqTriggerEnable: False
       DaqTriggerDelay: 0
-      AutoRunEn: True
-      AutoDaqEn: True
+      AutoRunEn: False
+      AutoDaqEn: False
       AutoTrigPeriod: 1000000
-      PgpTrigEn: False
+      PgpTrigEn: True

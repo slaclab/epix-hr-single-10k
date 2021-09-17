@@ -83,4 +83,4 @@ ePixHr10kT:
       rowCK2matrix_delay: 0x8
       ro_mode: 0x0
       rodis5: 0x0
-      pipoclk_delay: 0x9
+      pipoclk_delay: 0x7

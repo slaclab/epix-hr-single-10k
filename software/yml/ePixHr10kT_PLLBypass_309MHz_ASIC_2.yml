@@ -4,7 +4,7 @@ ePixHr10kT:
   InitAfterConfig: False
   EpixHR:
     enable: True
-    Hr10kTAsic0:
+    Hr10kTAsic2:
       enable: True
       shvc_DAC: 0x3d
       fastPP_enable: False
@@ -83,4 +83,4 @@ ePixHr10kT:
       rowCK2matrix_delay: 0x8
       ro_mode: 0x0
       rodis5: 0x0
-      pipoclk_delay: 0x9
+      pipoclk_delay: 0x7
