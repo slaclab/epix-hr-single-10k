@@ -13,7 +13,6 @@ setup(
         'epix_hr_single_10k.ePixAsics',
         'epix_hr_single_10k.ePixFpga',
         'epix_hr_single_10k.ePixViewer',
-        'epix_hr_single_10k.XilinxKcu1500Pgp3',
         'epix_hr_single_10k.surf',
         'epix_hr_single_10k.surf.devices',
         'epix_hr_single_10k.surf.devices.analog_devices',
@@ -42,14 +41,15 @@ setup(
         'epix_hr_single_10k.surf.protocols.rssi',
         'epix_hr_single_10k.surf.protocols.ssi',
         'epix_hr_single_10k.surf.xilinx',
+        'epix_hr_single_10k.epix_hr_core',
     ],
     package_dir = {
         'epix_hr_single_10k': 'software/python',
         'epix_hr_single_10k.surf': 'firmware/submodules/surf/python/surf',
+        'epix_hr_single_10k.epix_hr_core': 'firmware/submodules/epix-hr-core/python/epix_hr_core',
         'epix_hr_single_10k.axi-pcie-core': 'firmware/submodules/axi-pcie-core/python/axipcie',
         'epix_hr_single_10k.ePixAsics': 'software/python/ePixAsics',
         'epix_hr_single_10k.ePixFpga': 'software/python/ePixFpga',
         'epix_hr_single_10k.ePixViewer': 'software/python/ePixViewer',
-        'epix_hr_single_10k.XilinxKcu1500Pgp3': 'software/python/XilinxKcu1500Pgp3',
     }
 )
