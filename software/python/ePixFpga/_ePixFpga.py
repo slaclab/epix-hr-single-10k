@@ -149,7 +149,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_320MHz_ASIC_3.yml"
             self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
-        if arguments[0] == 3:
+        if arguments[0] == 11:
             self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_309MHz.yml"
             self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
             self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_320MHz.yml"
@@ -159,7 +159,27 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_309MHz_ASIC_3.yml"
             self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
-        if arguments[0] == 11:
+        if arguments[0] == 21:
+            self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_248MHz.yml"
+            self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
+            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_248MHz.yml"
+            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_0.yml"
+            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
+            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
+            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
+            self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+        if arguments[0] == 22:
+            self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_248MHz.yml"
+            self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
+            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_150us_248MHz.yml"
+            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_0.yml"
+            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
+            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
+            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
+            self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+        if arguments[0] == 31:
             self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_160MHz.yml"
             self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
             self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_160MHz.yml"
