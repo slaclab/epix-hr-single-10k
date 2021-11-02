@@ -93,6 +93,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--debug", 
+    type     = str,
+    required = False,
+    default  = False,
+    help     = "true for debug printout",
+)
+
+parser.add_argument(
     "--tcpPort", 
     type     = int,
     required = False,
@@ -107,6 +115,11 @@ if (args.verbose == 'False'):
     args.verbose = False
 else:
     args.verbose = True
+
+if (args.debug == 'False'):
+    args.debug = False
+else:
+    args.debug = True
     
     # Add PGP virtual channels
 if ( args.type == 'kcu1500' ):
@@ -244,21 +257,21 @@ class Board(pr.Root):
         self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 
-if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
-if (args.verbose): dbgData.setDebug(60, "DATA Verbose 0[{}]".format(0))
-if (args.verbose): pyrogue.streamTap(pgpL0Vc1, dbgData)
+if (args.debug): dbgData = rogue.interfaces.stream.Slave()
+if (args.debug): dbgData.setDebug(60, "DATA Debug 0[{}]".format(0))
+if (args.debug): pyrogue.streamTap(pgpL0Vc1, dbgData)
 
-if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
-if (args.verbose): dbgData.setDebug(60, "DATA Verbose 1[{}]".format(0))
-if (args.verbose): pyrogue.streamTap(pgpL1Vc1, dbgData)
+if (args.debug): dbgData = rogue.interfaces.stream.Slave()
+if (args.debug): dbgData.setDebug(60, "DATA Debug 1[{}]".format(0))
+if (args.debug): pyrogue.streamTap(pgpL1Vc1, dbgData)
 
-if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
-if (args.verbose): dbgData.setDebug(60, "DATA Verbose 2[{}]".format(0))
-if (args.verbose): pyrogue.streamTap(pgpL2Vc1, dbgData)
+if (args.debug): dbgData = rogue.interfaces.stream.Slave()
+if (args.debug): dbgData.setDebug(60, "DATA Debug 2[{}]".format(0))
+if (args.debug): pyrogue.streamTap(pgpL2Vc1, dbgData)
 
-if (args.verbose): dbgData = rogue.interfaces.stream.Slave()
-if (args.verbose): dbgData.setDebug(60, "DATA Verbose 3[{}]".format(0))
-if (args.verbose): pyrogue.streamTap(pgpL3Vc1, dbgData)
+if (args.debug): dbgData = rogue.interfaces.stream.Slave()
+if (args.debug): dbgData.setDebug(60, "DATA Debug 3[{}]".format(0))
+if (args.debug): pyrogue.streamTap(pgpL3Vc1, dbgData)
 
 #this command can fill up the hard drive /var/log
 #if (args.verbose): pgpL2Vc0.setDriverDebug(True)
@@ -286,21 +299,25 @@ with Board(guiTop, cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePix
     ePixHrBoard.onlineViewer0.eventReader.frameIndex = 0
     ePixHrBoard.onlineViewer0.setReadDelay(0)
     ePixHrBoard.onlineViewer0.setWindowTitle("ePix image viewer ASIC 0")
+    ePixHrBoard.onlineViewer0.eventReader.setDataDisplayParameters(0,0)
     pyrogue.streamTap(pgpL0Vc1, ePixHrBoard.onlineViewer0.eventReader)
     ePixHrBoard.onlineViewer1 = vi.Window(cameraType='ePixHr10kT', verbose=args.verbose)
     ePixHrBoard.onlineViewer1.eventReader.frameIndex = 0 
     ePixHrBoard.onlineViewer1.setReadDelay(0)
     ePixHrBoard.onlineViewer1.setWindowTitle("ePix image viewer ASIC 1")
+    ePixHrBoard.onlineViewer1.eventReader.setDataDisplayParameters(0,1)
     pyrogue.streamTap(pgpL1Vc1, ePixHrBoard.onlineViewer1.eventReader)
     ePixHrBoard.onlineViewer2 = vi.Window(cameraType='ePixHr10kT', verbose=args.verbose)
     ePixHrBoard.onlineViewer2.eventReader.frameIndex = 0
     ePixHrBoard.onlineViewer2.setReadDelay(0)
     ePixHrBoard.onlineViewer2.setWindowTitle("ePix image viewer ASIC 2")
+    ePixHrBoard.onlineViewer2.eventReader.setDataDisplayParameters(0,2)
     pyrogue.streamTap(pgpL2Vc1, ePixHrBoard.onlineViewer2.eventReader)
     ePixHrBoard.onlineViewer3 = vi.Window(cameraType='ePixHr10kT', verbose=args.verbose)
     ePixHrBoard.onlineViewer3.eventReader.frameIndex = 0
     ePixHrBoard.onlineViewer3.setReadDelay(0)
     ePixHrBoard.onlineViewer3.setWindowTitle("ePix image viewer ASIC 3")
+    ePixHrBoard.onlineViewer3.eventReader.setDataDisplayParameters(0,3)
     pyrogue.streamTap(pgpL3Vc1, ePixHrBoard.onlineViewer3.eventReader)
     if (args.type != 'dataFile'):
         pyrogue.streamTap(pgpL0Vc2, ePixHrBoard.onlineViewer0.eventReaderScope)# PseudoScope
