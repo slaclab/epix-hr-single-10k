@@ -23,7 +23,7 @@ ePixHr10kT:
       AcqWidth2: 0
       R0Polarity: False
       R0Delay: 100
-      R0Width: 23800
+      R0Width: 25800
       PPbePolarity: False
       PPbeDelay: 0
       PPbeWidth: 0

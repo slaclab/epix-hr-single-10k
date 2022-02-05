@@ -149,14 +149,54 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_320MHz_ASIC_3.yml"
             self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+        if arguments[0] == 3:
+            self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_320MHz.yml"
+            self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
+            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_320MHz.yml"
+            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_0.yml"
+            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
+            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
+            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
+            self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+        if arguments[0] == 4:
+            self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_320MHz.yml"
+            self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
+            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_248MHz.yml"
+            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_0.yml"
+            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
+            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
+            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
+            self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"                     
         if arguments[0] == 11:
             self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_309MHz.yml"
             self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
-            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_320MHz.yml"
-            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_309MHz_ASIC_0.yml"
-            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_309MHz_ASIC_1.yml"
-            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_309MHz_ASIC_2.yml"
-            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_309MHz_ASIC_3.yml"
+            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_248MHz.yml"
+            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_0.yml"
+            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
+            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
+            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
+            self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+        if arguments[0] == 12:
+            self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_280MHz.yml"
+            self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
+            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_248MHz.yml"
+            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_0.yml"
+            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
+            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
+            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
+            self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+        if arguments[0] == 13:
+            self.filenameMMCM              = "./yml/ePixHr10kT_MMCM_271MHz.yml"
+            self.filenamePowerSupply       = "./yml/ePixHr10kT_PowerSupply_Enable.yml"
+            self.filenameRegisterControl   = "./yml/ePixHr10kT_RegisterControl_24us_248MHz.yml"
+            self.filenameASIC0             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_0.yml"
+            self.filenameASIC1             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
+            self.filenameASIC2             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
+            self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
             self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 21:
@@ -189,12 +229,15 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC3             = "./yml/ePixHr10kT_PLLBypass_160MHz_ASIC_3.yml"
             self.filenamePacketReg         = "./yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = "./yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+
+        
         if arguments[0] != 0:
             self.fnInitAsicScript(dev,cmd,arg)
 
     def fnInitAsicScript(self, dev,cmd,arg):
         """SetTestBitmap command function"""       
         print("Init ASIC script started")
+        forcedDelay = 10
         delay = 1
         print("Loading MMCM configuration")
         self.MMCMRegisters.enable.set(True)
@@ -295,7 +338,7 @@ class EpixHR10kT(pr.Device):
 			#Pulse Sync Commented to check if works without sync
            # self.RegisterControl.SyncPolarity.set(True)
            # self.RegisterControl.SyncPolarity.set(False)
-			
+		
             if arg[1] != 0:      
                 self.Hr10kTAsic0.RSTreg.set(False)
             if arg[2] != 0:
@@ -305,6 +348,7 @@ class EpixHR10kT(pr.Device):
             if arg[4] != 0:
                 self.Hr10kTAsic3.RSTreg.set(False)
 
+        #time.sleep(forcedDelay) 
         # starting clock inside the ASIC
         self.RegisterControl.ClkSyncEn.set(True)
         

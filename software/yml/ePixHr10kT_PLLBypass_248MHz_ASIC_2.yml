@@ -32,7 +32,7 @@ ePixHr10kT:
       emph_bc: 0x0
       VRef_DAC: 0x35
       VRefLow: 0x3
-      trbit: False
+      trbit: True
       TpsMux: 0x0
       RoMonost: 0x3
       TpsGr: 0x3
