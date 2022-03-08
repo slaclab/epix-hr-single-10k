@@ -1,0 +1,45 @@
+ePixHr10kT:
+  enable: True
+  ForceWrite: False
+  InitAfterConfig: False
+  EpixHR:
+    enable: True
+    RegisterControl:
+      enable: True
+      GlblRstPolarity: True
+      ClkSyncEn: False
+      SyncPolarity: False
+      SyncDelay: 0
+      SyncWidth: 0
+      SR0Polarity: False
+      SR0Delay1: 1
+      SR0Width1: 10
+      ePixAdcSHPeriod: 1
+      ePixAdcSHOffset: 0
+      AcqPolarity: False
+      AcqDelay1: 1200
+      AcqWidth1: 2400
+      AcqDelay2: 0
+      AcqWidth2: 0
+      R0Polarity: False
+      R0Delay: 1
+      R0Width: 19200
+      PPbePolarity: False
+      PPbeDelay: 0
+      PPbeWidth: 0
+      PpmatPolarity: False
+      PpmatDelay: 0
+      PpmatWidth: 0
+      SaciSyncPolarity: False
+      SaciSyncDelay: 0
+      SaciSyncWidth: 0
+      ResetCounters: False
+      AsicPwrEnable: False
+      AsicPwrManual: False
+      AsicPwrManualDig: False
+      AsicPwrManualAna: False
+      AsicPwrManualIo: False
+      AsicPwrManualFpga: False
+      DebugSel_TG: deserClk
+      DebugSel_MPS: AsicSR0
+      StartupReq: True
