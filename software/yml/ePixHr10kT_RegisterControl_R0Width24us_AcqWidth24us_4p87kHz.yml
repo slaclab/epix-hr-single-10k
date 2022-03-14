@@ -13,7 +13,7 @@ ePixHr10kT:
       SyncWidth: 0
       SR0Polarity: False
       SR0Delay1: 10
-      SR0Width1: 16000
+      SR0Width1: 320
       ePixAdcSHPeriod: 1
       ePixAdcSHOffset: 0
       AcqPolarity: False
@@ -22,8 +22,8 @@ ePixHr10kT:
       AcqDelay2: 0
       AcqWidth2: 0
       R0Polarity: False
-      R0Delay: 100
-      R0Width: 19800
+      R0Delay: 1
+      R0Width: 20400
       PPbePolarity: False
       PPbeDelay: 0
       PPbeWidth: 0
@@ -41,7 +41,5 @@ ePixHr10kT:
       AsicPwrManualIo: False
       AsicPwrManualFpga: False
       DebugSel_TG: deserClk
-      DebugSel_MPS: AsicR0
+      DebugSel_MPS: AsicSR0
       StartupReq: True
-
-
