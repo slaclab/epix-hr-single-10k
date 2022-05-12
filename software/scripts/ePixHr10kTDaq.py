@@ -164,7 +164,7 @@ if ( args.type != 'dataFile' ):
 # Create and Connect SRP to VC1 to send commands
 srp = rogue.protocols.srp.SrpV3()
 if ( args.type != 'dataFile' ):
-    pyrogue.streamConnectBiDir(pgpL0Vc1,srp)
+    pyrogue.streamConnectBiDir(pgpL0Vc0,srp)
 
 #############################################
 # Microblaze console printout
