@@ -718,7 +718,7 @@ begin
    generic map (
       TPD_G            => TPD_G,
       SIMULATION_G     => SIMULATION_G,
-      EN_DEVICE_DNA_G  => false,        -- this is causing placement errors,
+      EN_DEVICE_DNA_G  => true,         -- if false this is causing placement errors,
                                         -- needs fixing.
       BUILD_INFO_G     => BUILD_INFO_G
    )
