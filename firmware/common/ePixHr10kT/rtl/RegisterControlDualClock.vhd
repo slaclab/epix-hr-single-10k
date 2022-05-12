@@ -30,6 +30,7 @@ use unisim.vcomponents.all;
 entity RegisterControlDualClock is
    generic (
       TPD_G             : time               := 1 ns;
+      SIMULATION_G      : boolean            := false;
       EN_DEVICE_DNA_G   : boolean            := true;
       CLK_PERIOD_G      : real               := 10.0e-9;
       BUILD_INFO_G      : BuildInfoType
@@ -169,6 +170,7 @@ architecture rtl of RegisterControlDualClock is
       asicAcqReg        : AsicAcqType;
       asicAcqReg2       : AsicAcqType2;
       asicAcqTimeCnt    : slv(31 downto 0);
+      asicRefClockFreq  : slv (31 downto 0);
       axiReadSlave      : AxiLiteReadSlaveType;
       axiWriteSlave     : AxiLiteWriteSlaveType;
    end record RegType;
@@ -181,6 +183,7 @@ architecture rtl of RegisterControlDualClock is
       asicAcqReg        => ASICACQ_TYPE_INIT_C,
       asicAcqReg2       => ASICACQ_TYPE2_INIT_C,
       asicAcqTimeCnt    => (others=>'0'),
+      asicRefClockFreq  => (others=>'0'),
       axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C
       );
@@ -218,6 +221,8 @@ architecture rtl of RegisterControlDualClock is
    signal axiReset : sl;
    
    constant BUILD_INFO_C       : BuildInfoRetType    := toBuildInfo(BUILD_INFO_G);
+
+   signal asicRefClockFreq : slv(31 downto 0);
    
    
 begin
@@ -227,7 +232,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiReset, axiWriteMaster, r, idValids, idValues, acqStart, saciReadoutAck) is
+   comb : process (axiReadMaster, axiReset, axiWriteMaster, r, idValids, idValues, acqStart, saciReadoutAck, asicRefClockFreq) is
       variable v           : RegType;
       variable regCon      : AxiLiteEndPointType;
       
@@ -291,6 +296,7 @@ begin
       axiSlaveRegister(regCon,  x"0264",  0, v.boardRegOut.requestStartupCal);
       axiSlaveRegister(regCon,  x"0264",  1, v.boardRegOut.startupAck);          -- set by Microblaze
       axiSlaveRegister(regCon,  x"0264",  2, v.boardRegOut.startupFail);         -- set by Microblaze
+      axiSlaveRegisterR(regCon, x"0268",  0, r.asicRefClockFreq);
 
       
       axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_OK_C);
@@ -382,6 +388,10 @@ begin
       if axiReset = '1' then
          v := REG_INIT_C;
       end if;
+
+      -- maps ASIC ref clock frequency. Multiply by 2 since ref clock is asic
+      -- rd clock divide by 2
+      v.asicRefClockFreq := asicRefClockFreq(30 downto 0) & '0';
 
       -- Register the variable for next clock cycle
       rin <= v;
@@ -694,6 +704,28 @@ begin
       clk         => axilClk,
       dataIn      => adcCardStartUp,
       risingEdge  => adcCardStartUpEdge
-   );
+      );
+
+   U_ClockFreqMon : entity surf.SyncClockFreq 
+   generic map(
+      TPD_G             => TPD_G,
+      USE_DSP_G         => "no",   -- "no" for no DSP implementation, "yes" to use DSP slices
+      REF_CLK_FREQ_G    => 100.0E+6,       -- Reference Clock frequency, units of Hz
+      REFRESH_RATE_G    => ite(SIMULATION_G, 1.0E+3, 1.0E+0),         -- Refresh rate, units of Hz
+      CLK_LOWER_LIMIT_G => 40.0E+6,       -- Lower Limit for clock lock, units of Hz
+      CLK_UPPER_LIMIT_G => 320.0E+6,       -- Lower Limit for clock lock, units of Hz
+      COMMON_CLK_G      => true,  -- Set to true if (locClk = refClk) to save resources else false
+      CNT_WIDTH_G       => 32)   -- Counters' width
+   port map(
+      -- Frequency Measurement and Monitoring Outputs (locClk domain)
+      freqOut     => asicRefClockFreq,
+      --freqUpdated : out sl;
+      --locked      : out sl;             -- '1' CLK_LOWER_LIMIT_G < clkIn < CLK_UPPER_LIMIT_G
+      --tooFast     : out sl;             -- '1' when clkIn > CLK_UPPER_LIMIT_G
+      --tooSlow     : out sl;             -- '1' when clkIn < CLK_LOWER_LIMIT_G
+      -- Clocks
+      clkIn       => sysClk,             -- Input clock to measure
+      locClk      => axilClk,             -- System clock
+      refClk      => axilClk);            -- Stable Reference Clock
    
 end rtl;

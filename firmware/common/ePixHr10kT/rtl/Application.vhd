@@ -717,6 +717,7 @@ begin
   U_RegControl : entity work.RegisterControlDualClock
    generic map (
       TPD_G            => TPD_G,
+      SIMULATION_G     => SIMULATION_G,
       EN_DEVICE_DNA_G  => false,        -- this is causing placement errors,
                                         -- needs fixing.
       BUILD_INFO_G     => BUILD_INFO_G

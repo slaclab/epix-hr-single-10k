@@ -600,7 +600,7 @@ begin  --
          TPD_G                => TPD_G,
          BUILD_INFO_G         => BUILD_INFO_G,
          ROGUE_SIM_EN_G       => true,
-         ROGUE_SIM_PORT_NUM_G => 13000
+         ROGUE_SIM_PORT_NUM_G => 11000
       )
       port map (
          ----------------------
