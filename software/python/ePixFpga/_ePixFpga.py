@@ -542,133 +542,6 @@ class EpixHR10kT(pr.Device):
         self.root.readBlocks()
         print("Fast ADC initialized")
 
-#######################################################
-#
-# PRBS Tx target
-#
-#######################################################
-
-class EpixHRGen1Prbs(pr.Device):
-    def __init__(self, **kwargs):
-        if 'description' not in kwargs:
-            kwargs['description'] = "HR Gen1 FPGA"
-      
-        trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
-        inChaEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
-        inChbEnum={0:'Off', 0:'Asic0TpsMux', 1:'Asic1TpsMux'}
-        HsDacEnum={0:'None', 1:'DAC A (SE)', 2:'DAC B (Diff)', 3:'DAC A & DAC B'}
-      
-        super(self.__class__, self).__init__(**kwargs)
-        self.add((
-            # core registers
-            axi.AxiVersion(offset=0x00000000),          
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane0', offset=0x05000000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane1', offset=0x05010000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False),
-            #pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False),
-            # app registers
-            MMCM7Registers(          name='MMCM7Registers',                    offset=0x80000000, enabled=False, expand=False),
-            TriggerRegisters(        name="TriggerRegisters",                  offset=0x81000000, expand=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs0PktRegisters',              offset=0x82000000, enabled=False, expand=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs1PktRegisters',              offset=0x83000000, enabled=False, expand=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs2PktRegisters',              offset=0x84000000, enabled=False, expand=False),
-            ssiPrbsTxRegisters(      name='ssiPrbs3PktRegisters',              offset=0x85000000, enabled=False, expand=False),
-            axi.AxiStreamMonAxiL(    name='AxiStreamMon',                      offset=0x86000000, numberLanes=4,enabled=False, expand=False),
-            axi.AxiMemTester(        name='AxiMemTester',                      offset=0x87000000, expand=False),
-            powerSupplyRegisters(    name='PowerSupply',                       offset=0x88000000, expand=False),            
-            HighSpeedDacRegisters(   name='HSDac',                             offset=0x89000000, expand=False,HsDacEnum=HsDacEnum),
-            #pr.MemoryDevice(         name='waveformMem',                       offset=0x8A000000, wordBitSize=16, stride=4, size=1024*4),
-            sDacRegisters(           name='SlowDacs'    ,                      offset=0x8B000000, enabled=False, expand=False),
-            OscilloscopeRegisters(   name='Oscilloscope',                      offset=0x8C000000, expand=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
-            MonAdcRegisters(         name='FastADCsDebug',                     offset=0x8D000000, enabled=False, expand=False),
-            #analog_devices.Ad9249ReadoutGroup(name = 'Ad9249Rdout[0].Adc[0]',  offset=0x8D000000, channels=4, enabled=False, expand=False),
-            analog_devices.Ad9249ConfigGroup(name='Ad9249Config_Adc_0',    offset=0x8E000000, enabled=False, expand=False),
-            SlowAdcRegisters(        name="SlowAdcRegisters",                  offset=0x8F000000, expand=False),
-            ))
-
-        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
-
-
-    def fnSetWaveform(self, dev,cmd,arg):
-        """SetTestBitmap command function"""
-        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename)[1] == '.csv':
-            waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
-            if waveform.shape == (1024,):
-                for x in range (0, 1024):
-                    self._rawWrite(offset = (0x8A000000 + x * 4),data =  int(waveform[x]))
-            else:
-                print('wrong csv file format')
-
-    def fnGetWaveform(self, dev,cmd,arg):
-        """GetTestBitmap command function"""
-        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename)[1] == '.csv':
-            readBack = np.zeros((1024),dtype='uint16')
-            for x in range (0, 1024):
-                readBack[x] = self._rawRead(offset = (0x8A000000 + x * 4))
-            np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
-
-
-
-
-
-
-#######################################################
-#
-# Fake data target
-#
-#######################################################
-class EpixHRGen1FD(pr.Device):
-    def __init__(self, **kwargs):
-        if 'description' not in kwargs:
-            kwargs['description'] = "HR Gen1 FPGA"
-      
-        trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'AsicPpbe', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
-        inChaEnum={0:'Off', 0:'Asic0TpsMux', 0:'Asic1TpsMux'}
-        inChbEnum={0:'Off', 0:'Asic0TpsMux', 0:'Asic1TpsMux'}
-        HsDacEnum={0:'None', 1:'DAC A', 2:'DAC B', 3:'DAC A & DAC B'}
-      
-        super(self.__class__, self).__init__(**kwargs)
-        self.add((
-            pgp.Pgp2bAxi(name='Pgp2bAxi_lane0', offset=0x05000000, enabled=True, expand=False,),
-            pgp.Pgp2bAxi(name='Pgp2bAxi_lane1', offset=0x05010000, enabled=True, expand=False,),
-            pgp.Pgp2bAxi(name='Pgp2bAxi_lane2', offset=0x05020000, enabled=True, expand=False,),
-            pgp.Pgp2bAxi(name='Pgp2bAxi_lane3', offset=0x05030000, enabled=True, expand=False,),
-            MMCM7Registers(name='MMCM7Registers',                   offset=0x80000000, enabled=False, expand=False),
-            EpixHRCoreFpgaRegisters(name="EpixHRCoreFpgaRegisters", offset=0x81000000),
-            TriggerRegisters(name="TriggerRegisters",               offset=0x82000000, expand=False),
-            AsicPktRegisters(name='Asic0PktRegisters',              offset=0x83000000, enabled=False, expand=False),
-            AsicPktRegisters(name='Asic1PktRegisters',              offset=0x84000000, enabled=False, expand=False),
-            AsicPktRegisters(name='Asic2PktRegisters',              offset=0x85000000, enabled=False, expand=False),
-            AsicPktRegisters(name='Asic3PktRegisters',              offset=0x86000000, enabled=False, expand=False),
-            axi.AxiStreamMonAxiL(name='AxiStreamMon',               offset=0x87000000, enabled=False, expand=False),
-            ))
-
-        self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
-        self.add(pr.LocalCommand(name='GetWaveform',description='Get test waveform for high speed DAC', function=self.fnGetWaveform))
-
-    def fnSetWaveform(self, dev,cmd,arg):
-        """SetTestBitmap command function"""
-        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename)[1] == '.csv':
-            waveform = np.genfromtxt(self.filename, delimiter=',', dtype='uint16')
-            if waveform.shape == (1024,):
-                for x in range (0, 1024):
-                    self.waveformMem.Mem[x].set(int(waveform[x]))
-
-            else:
-                print('wrong csv file format')
-
-    def fnGetWaveform(self, dev,cmd,arg):
-        """GetTestBitmap command function"""
-        self.filename = QtGui.QFileDialog.getOpenFileName(self.root.guiTop, 'Open File', '', 'csv file (*.csv);; Any (*.*)')
-        if os.path.splitext(self.filename)[1] == '.csv':
-            readBack = np.zeros((1024),dtype='uint16')
-            for x in range (0, 1024):
-                readBack[x] = self.waveformMem.Mem[x].get()
-            np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
       
 
 class EpixHRCoreFpgaRegisters(pr.Device):
@@ -896,21 +769,31 @@ class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
       self.add(pr.RemoteVariable(name='ClkSyncEn',       description='Enables clock to be available inside ASIC.',   offset=0x00000100, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SyncPolarity',    description='SyncPolarity',      offset=0x00000104, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SyncDelay',       description='SyncDelay',         offset=0x00000108, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='SyncDelay_us',    description='SyncDelay in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SyncDelay]))
       self.add(pr.RemoteVariable(name='SyncWidth',       description='SyncWidth',         offset=0x0000010C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='SR0Polarity',     description='SR0Polarity',       offset=0x00000110, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SR0Delay1',       description='SR0Delay1',         offset=0x00000114, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='SR0Delay_us',     description='SR0Delay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SR0Delay1]))
       self.add(pr.RemoteVariable(name='SR0Width1',       description='SR0Width1',         offset=0x00000118, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='SR0Width1_us',    description='SR0 width in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SR0Width1]))
       self.add(pr.RemoteVariable(name='ePixAdcSHPeriod', description='Period',            offset=0x0000011C, bitSize=16, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='ePixAdcSHOffset', description='Offset',            offset=0x00000120, bitSize=16, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      
+
+      self.add(pr.RemoteVariable(name='asicRefClockFreq',description='reference clock requency to the ASIC',     offset=0x00000268, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))      
       self.add(pr.RemoteVariable(name='AcqPolarity',     description='AcqPolarity',       offset=0x00000200, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='AcqDelay1',       description='AcqDelay',          offset=0x00000204, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='AcqDelay1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqDelay1, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqWidth1',       description='AcqWidth',          offset=0x00000208, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='AcqWidth1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqWidth1, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqDelay2',       description='AcqDelay',          offset=0x0000020C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='AcqDelay2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqDelay2, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqWidth2',       description='AcqWidth',          offset=0x00000210, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='AcqWidth2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqWidth2, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='R0Polarity',      description='Polarity',          offset=0x00000214, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='R0Delay',         description='Delay',             offset=0x00000218, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='R0Delay_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.R0Delay, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='R0Width',         description='Width',             offset=0x0000021C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
+      self.add(pr.LinkVariable(  name='R0Width_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.R0Width, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='PPbePolarity',    description='PPbePolarity',      offset=0x00000220, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='PPbeDelay',       description='PPbeDelay',         offset=0x00000224, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='PPbeWidth',       description='PPbeWidth',         offset=0x00000228, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
@@ -938,7 +821,7 @@ class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
          pr.RemoteVariable(name='StartupReq',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='StartupAck',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=1, base=pr.Bool, mode='RO'),
          pr.RemoteVariable(name='StartupFail',           description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=2, base=pr.Bool, mode='RO')))
-      
+
      
      
       #####################################
@@ -950,7 +833,24 @@ class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
       # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
       # A command can also be a call to a local function with local scope.
       # The command object and the arg are passed
-   
+
+   @staticmethod   
+   def timeConverter(var):
+      raw = var.dependencies[0].value()
+      freq = var.dependencies[1].value()
+      if freq == 0:
+          freq = 1
+      #base frequency is half of asic rd freq there 2 is needed
+      return (2*(1/freq) * raw * 1e+6)
+
+   @staticmethod   
+   def timeConverterAppClock(var):
+      raw = var.dependencies[0].value()
+      #freq #100MHz
+      #base frequency is half of asic rd freq there 2 is needed
+      return (raw * 1e-2)
+
+
    @staticmethod   
    def frequencyConverter(self):
       def func(dev, var):         

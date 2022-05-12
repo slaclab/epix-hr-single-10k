@@ -104,7 +104,7 @@ parser.add_argument(
     "--tcpPort", 
     type     = int,
     required = False,
-    default  = 13000,
+    default  = 11000,
     help     = "same port defined in the vhdl testbench",
 )  
 
@@ -134,7 +134,6 @@ if ( args.type == 'kcu1500' ):
     pgpL3Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(3*256)+1, True) # Data
 elif ( args.type == 'SIM' ):          
     print('Sim mode')
-    simPort = 11000
     rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
     pgpL0Vc0  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*0) # VC0
     pgpL0Vc1  = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*1) # VC1
@@ -165,7 +164,7 @@ if ( args.type != 'dataFile' ):
 # Create and Connect SRP to VC1 to send commands
 srp = rogue.protocols.srp.SrpV3()
 if ( args.type != 'dataFile' ):
-    pyrogue.streamConnectBiDir(pgpL0Vc0,srp)
+    pyrogue.streamConnectBiDir(pgpL0Vc1,srp)
 
 #############################################
 # Microblaze console printout
@@ -221,11 +220,21 @@ class MyRunControl(pr.RunControl):
 ##############################
 class Board(pr.Root):
     def __init__(self, guiTop, cmd, dataWriter, srp, **kwargs):
+
+        self._sim = (args.type == 'SIM')
+        if (self._sim):
+            # Set the timeout
+            kwargs['timeout'] = 100000000 # firmware simulation slow and timeout base on real time (not simulation time)
+
+        else:
+            # Set the timeout
+            kwargs['timeout'] = 5000000 # 5.0 seconds default
+        
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
         self.add(dataWriter)
         self.guiTop = guiTop
         self.cmd = cmd
-        self._sim = (args.type == 'SIM');
+
         
         # Create arrays to be filled
         self.dmaStream   = [None for x in range(4)]
@@ -250,10 +259,10 @@ class Board(pr.Root):
             self.onlineViewer3.show()
 
         # Add Devices
-        if ( args.type == 'kcu1500' ):
+        #if ( args.type == 'kcu1500' ):
             #coreMap = rogue.hardware.axi.AxiMemMap('/dev/datadev_0')
             # Add Devices
-            self.add(epixHr.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,))
+        self.add(epixHr.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,))
         self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 
