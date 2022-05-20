@@ -31,22 +31,25 @@ entity TrigControlAxi is
    );
    port (
       -- Trigger outputs
-      appClk        : in  sl;
-      appRst        : in  sl;
-      acqStart      : out sl;
-      dataSend      : out sl;
+      appClk          : in  sl;
+      appRst          : in  sl;
+      acqStart        : out sl;
+      dataSend        : out sl;
       
       -- External trigger inputs
-      runTrigger    : in  sl;
-      daqTrigger    : in  sl;
+      runTrigger      : in  sl;
+      daqTrigger      : in  sl;
       
       -- PGP clocks and reset
-      sysClk        : in  sl;
-      sysRst     : in  sl;
+      sysClk           : in  sl;
+      sysRst           : in  sl;
       -- Software trigger
-      ssiCmd        : in  SsiCmdMasterType;
+      ssiCmd           : in  SsiCmdMasterType;
       -- Fiber optic trigger (axilClk domain)
-      pgpTrigger    : in sl;
+      pgpTrigger       : in sl;
+      -- Timing Triggers
+      timingRunTrigger : in sl := '0';
+      timingDaqTrigger : in sl := '0';
     
       -- AXI lite slave port for register access
       axilClk           : in  sl;
@@ -68,6 +71,8 @@ architecture rtl of TrigControlAxi is
       pgpTrigEn         : sl;
       autoRunEn         : sl;
       autoDaqEn         : sl;
+      timingRunEn       : sl;
+      timingDaqEn       : sl;
       acqCountReset     : sl;
       runTriggerDelay   : slv(31 downto 0);
       daqTriggerDelay   : slv(31 downto 0);
@@ -80,6 +85,8 @@ architecture rtl of TrigControlAxi is
       pgpTrigEn         => '0',
       autoRunEn         => '0',
       autoDaqEn         => '0',
+      timingRunEn       => '0',
+      timingDaqEn       => '0',
       acqCountReset     => '0',
       runTriggerDelay   => (others=>'0'),
       daqTriggerDelay   => (others=>'0'),
@@ -203,8 +210,8 @@ begin
    --------------------------------------------------
    -- Combine with TTL triggers and look for edges --
    --------------------------------------------------
-   combinedRunTrig <= (coreSidebandRun and r.trig.pgpTrigEn) or (runTrigger and not r.trig.pgpTrigEn);
-   combinedDaqTrig <= (coreSidebandDaq and r.trig.pgpTrigEn) or (daqTrigger and not r.trig.pgpTrigEn);
+   combinedRunTrig <= (coreSidebandRun and r.trig.pgpTrigEn) or (runTrigger and not r.trig.pgpTrigEn) or (timingRunTrigger and not r.trig.timingRunEn);
+   combinedDaqTrig <= (coreSidebandDaq and r.trig.pgpTrigEn) or (daqTrigger and not r.trig.pgpTrigEn) or (timingDaqTrigger and not r.trig.timingDaqEn);
    
    --------------------------------
    -- Run Input
@@ -377,8 +384,10 @@ begin
       axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
       
       axiSlaveRegister (regCon, x"00", 0, v.trig.runTriggerEnable);
+      axiSlaveRegister (regCon, x"00", 1, v.trig.timingRunEn);
       axiSlaveRegister (regCon, x"04", 0, v.trig.runTriggerDelay);
       axiSlaveRegister (regCon, x"08", 0, v.trig.daqTriggerEnable);
+      axiSlaveRegister (regCon, x"08", 1, v.trig.timingDaqEn);
       axiSlaveRegister (regCon, x"0C", 0, v.trig.daqTriggerDelay);
       axiSlaveRegister (regCon, x"10", 0, v.trig.autoRunEn);
       axiSlaveRegister (regCon, x"14", 0, v.trig.autoDaqEn);
