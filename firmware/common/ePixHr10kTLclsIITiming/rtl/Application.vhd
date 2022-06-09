@@ -204,11 +204,13 @@ architecture mapping of Application is
    signal axilAsicReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
 
    --constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
-   signal imAxisMasters    : AxiStreamMasterArray(3 downto 0);
-   signal mAxisMastersPRBS : AxiStreamMasterArray(3 downto 0);
-   signal mAxisSlavesPRBS  : AxiStreamSlaveArray(3 downto 0);
-   signal mAxisMastersASIC : AxiStreamMasterArray(3 downto 0);
-   signal mAxisSlavesASIC  : AxiStreamSlaveArray(3 downto 0);
+   signal imAxisMasters    : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
+   signal dataAxisMasters  : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
+   signal dataAxisSlaves   : AxiStreamSlaveArray(NUMBER_OF_LANES_C-1 downto 0);
+   signal mAxisMastersPRBS : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
+   signal mAxisSlavesPRBS  : AxiStreamSlaveArray(NUMBER_OF_LANES_C-1 downto 0);
+   signal mAxisMastersASIC : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
+   signal mAxisSlavesASIC  : AxiStreamSlaveArray(NUMBER_OF_LANES_C-1 downto 0);
 
    -- Triggers and associated signals
    signal iDaqTrigger        : sl := '0';
@@ -1158,15 +1160,15 @@ begin
           sAxisSlaves(0)  => mAxisSlavesPRBS(i),          
           sAxisSlaves(1)  => mAxisSlavesASIC(i),
           -- Master
-          mAxisMaster  => imAxisMasters(i),
-          mAxisSlave   => mAxisSlaves(i));
+          mAxisMaster  => dataAxisMasters(i),
+          mAxisSlave   => dataAxisSlaves(i));
      end generate;
     end generate;
     
     PRBS_NOT_GEN : if (not PRBS_GEN_G) generate
           -- route streams
-          imAxisMasters   <= mAxisMastersASIC;
-          mAxisSlavesASIC <= mAxisSlaves;
+          dataAxisMasters   <= mAxisMastersASIC;
+          mAxisSlavesASIC   <= dataAxisSlaves;
           -- init unused axiLite
           mAxiWriteSlaves(PRBS0_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
           mAxiWriteSlaves(PRBS1_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
@@ -1249,32 +1251,32 @@ begin
      );
       
     
-   --------------------------------------------
-   --     ASICS LOOP                         --
-   --------------------------------------------   
-   G_ASICS : for i in 0 to NUMBER_OF_ASICS_C-1 generate
+   ------------------------------------------------
+   --     ASICS LOOP: COMBINES 2 ASICS PER LANE  --
+   ------------------------------------------------   
+   G_ASICS : for i in 0 to (NUMBER_OF_ASICS_C/2)-1 generate
 
      -------------------------------------------------------------------------------
      -- generate stream frames
      -------------------------------------------------------------------------------
-     U_Framers : entity work.DigitalAsicStreamAxi 
+     U_Framers : entity work.DigitalAsicStreamAxiV2 
        generic map(
          TPD_G               => TPD_G,
          VC_NO_G             => "0000",
          LANE_NO_G           => toSlv(i, 4),
          ASIC_NO_G           => toSlv(i, 3),
-         LANES_NO_G          => STREAMS_PER_ASIC_C,
+         LANES_NO_G          => STREAMS_PER_ASIC_C*2,
          AXIL_ERR_RESP_G     => AXI_RESP_DECERR_C
          )
        port map( 
          -- Deserialized data port
          deserClk          => deserClk,
          deserRst          => deserRst,
-         rxValid           => rxValid(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
-         rxData            => rxData(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
-         rxSof             => rxSof(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
-         rxEof             => rxEof(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
-         rxEofe            => rxEofe(i*STREAMS_PER_ASIC_C+STREAMS_PER_ASIC_C-1 downto i*STREAMS_PER_ASIC_C),
+         rxValid           => rxValid(i*2*STREAMS_PER_ASIC_C+2*STREAMS_PER_ASIC_C-1 downto i*2*STREAMS_PER_ASIC_C),
+         rxData            => rxData(i*2*STREAMS_PER_ASIC_C+2*STREAMS_PER_ASIC_C-1 downto i*2*STREAMS_PER_ASIC_C),
+         rxSof             => rxSof(i*2*STREAMS_PER_ASIC_C+2*STREAMS_PER_ASIC_C-1 downto i*2*STREAMS_PER_ASIC_C),
+         rxEof             => rxEof(i*2*STREAMS_PER_ASIC_C+2*STREAMS_PER_ASIC_C-1 downto i*2*STREAMS_PER_ASIC_C),
+         rxEofe            => rxEofe(i*2*STREAMS_PER_ASIC_C+2*STREAMS_PER_ASIC_C-1 downto i*2*STREAMS_PER_ASIC_C),
     
       
          -- AXI lite slave port for register access
@@ -1414,13 +1416,13 @@ begin
          -- Trigger Interface
          triggerClk           => appClk,
          triggerRst           => appRst,
-         triggerData          => iTriggerData,
+         triggerData          => iTriggerData,--NUM_DETECTORS_G
          -- Event streams
          eventClk             => appClk,
          eventRst             => appRst,
-         eventAxisMasters(0)  => eventRealAxisMaster,
-         eventAxisSlaves(0)   => eventRealAxisSlave,
-         eventAxisCtrl(0)     => eventRealAxisCtrl
+         eventAxisMasters(1)  => eventRealAxisMaster,--NUM_DETECTORS_G
+         eventAxisSlaves(1)   => eventRealAxisSlave,--NUM_DETECTORS_G
+         eventAxisCtrl(1)     => eventRealAxisCtrl--NUM_DETECTORS_G
       );
 
    eventRealAxisCtrl.overflow    <= AXI_STREAM_CTRL_INIT_C.overflow;
@@ -1479,13 +1481,13 @@ begin
          axilWriteSlave             => mAxiWriteSlaves(EVENT_LANE_0_INDEX_C+i),
          -- Inbound Master AXIS Interfaces
          sAxisMasters(0)            => eventRealAxisMasterArray(i),
-         sAxisMasters(1 downto 1)   => sAxisMasters(i), -- images, TBD
+         sAxisMasters(1)            => dataAxisMasters(i), -- images, TBD
          -- Inbound Slave AXIS Interfaces
          sAxisSlaves(0)             => eventRealAxisSlaveArray(i),
-         sAxisSlaves(1 downto 1)    => sAxisSlaves(i), -- images, TBD
+         sAxisSlaves(1)             => dataAxisSlaves(i), -- images, TBD
          -- Outbound AXIS
-         mAxisMaster                => dataTxMaster(i), --to core
-         mAxisSlave                 => dataTxSlave(i)   --to core
+         mAxisMaster                => imAxisMasters(i), --to core
+         mAxisSlave                 => mAxisSlaves(i)   --to core
          );
 
   

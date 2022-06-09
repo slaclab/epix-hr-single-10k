@@ -24,9 +24,9 @@ package AppPkg is
 
 
    constant NUMBER_OF_ASICS_C : natural := 4;   
-   constant NUMBER_OF_LANES_C : natural := 4;   
+   constant NUMBER_OF_LANES_C : natural := 3;   
    
-   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 27;
+   constant HR_FD_NUM_AXI_MASTER_SLOTS_C  : natural := 25;
    constant HR_FD_NUM_AXI_SLAVE_SLOTS_C   : natural := 1;
    
    constant PLLREGS_AXI_INDEX_C            : natural := 0;
@@ -34,28 +34,26 @@ package AppPkg is
    constant PRBS0_AXI_INDEX_C              : natural := 2;
    constant PRBS1_AXI_INDEX_C              : natural := 3;
    constant PRBS2_AXI_INDEX_C              : natural := 4;
-   constant PRBS3_AXI_INDEX_C              : natural := 5;
-   constant AXI_STREAM_MON_INDEX_C         : natural := 6;
-   constant DDR_MEM_INDEX_C                : natural := 7;
-   constant SACIREGS_AXI_INDEX_C           : natural := 8;
-   constant POWER_MODULE_INDEX_C           : natural := 9;
-   constant DAC8812_REG_AXI_INDEX_C        : natural := 10;
-   constant DACWFMEM_REG_AXI_INDEX_C       : natural := 11;
-   constant DAC_MODULE_INDEX_C             : natural := 12;
-   constant SCOPE_REG_AXI_INDEX_C          : natural := 13;
-   constant ADC_RD_AXI_INDEX_C             : natural := 14;   
-   constant ADC_CFG_AXI_INDEX_C            : natural := 15;   
-   constant MONADC_REG_AXI_INDEX_C         : natural := 16;
-   constant ASIC_READOUT_AXI_INDEX_C       : natural := 17;
-   constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 18;
-   constant DIG_ASIC1_STREAM_AXI_INDEX_C   : natural := 19;
-   constant DIG_ASIC2_STREAM_AXI_INDEX_C   : natural := 20;
-   constant DIG_ASIC3_STREAM_AXI_INDEX_C   : natural := 21;
-   constant APP_REG_AXI_INDEX_C            : natural := 22;
-   constant TIMING_INDEX_C                 : natural := 23;
-   constant EVENT_LANE_0_INDEX_C           : natural := 24;
-   constant EVENT_LANE_1_INDEX_C           : natural := 25;
-   constant EVENT_LANE_2_INDEX_C           : natural := 26;
+   constant AXI_STREAM_MON_INDEX_C         : natural := 5;
+   constant DDR_MEM_INDEX_C                : natural := 6;
+   constant SACIREGS_AXI_INDEX_C           : natural := 7;
+   constant POWER_MODULE_INDEX_C           : natural := 8;
+   constant DAC8812_REG_AXI_INDEX_C        : natural := 9;
+   constant DACWFMEM_REG_AXI_INDEX_C       : natural := 10;
+   constant DAC_MODULE_INDEX_C             : natural := 11;
+   constant SCOPE_REG_AXI_INDEX_C          : natural := 12;
+   constant ADC_RD_AXI_INDEX_C             : natural := 13;   
+   constant ADC_CFG_AXI_INDEX_C            : natural := 14;   
+   constant MONADC_REG_AXI_INDEX_C         : natural := 15;
+   constant ASIC_READOUT_AXI_INDEX_C       : natural := 16;
+   constant DIG_ASIC0_STREAM_AXI_INDEX_C   : natural := 17;
+   constant DIG_ASIC1_STREAM_AXI_INDEX_C   : natural := 18;
+   constant DIG_ASIC_PRE_PROC_C            : natural := 19;
+   constant APP_REG_AXI_INDEX_C            : natural := 20;
+   constant TIMING_INDEX_C                 : natural := 21;
+   constant EVENT_LANE_0_INDEX_C           : natural := 22;
+   constant EVENT_LANE_1_INDEX_C           : natural := 23;
+   constant EVENT_LANE_2_INDEX_C           : natural := 24;
 
    
    constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"80000000";--0
@@ -63,7 +61,7 @@ package AppPkg is
    constant PRBS0_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"82000000";--2
    constant PRBS1_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"83000000";--3
    constant PRBS2_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"84000000";--4
-   constant PRBS3_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"85000000";--5
+-- constant PRBS3_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"85000000";--5
    constant AXI_STREAM_MON_BASE_ADDR_C      : slv(31 downto 0) := X"86000000";--6
    constant DDR_MEM_BASE_ADDR_C             : slv(31 downto 0) := X"87000000";--7
    constant SACIREGS_BASE_ADDR_C            : slv(31 downto 0) := X"88000000";--8
@@ -78,13 +76,12 @@ package AppPkg is
    constant ASIC_READOUT_AXI_ADDR_C         : slv(31 downto 0) := X"94000000";--17
    constant DIG_ASIC0_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95000000";--18
    constant DIG_ASIC1_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95100000";--19
-   constant DIG_ASIC2_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95200000";--20
-   constant DIG_ASIC3_STREAM_AXI_ADDR_C     : slv(31 downto 0) := X"95300000";--21
-   constant APP_REG_AXI_ADDR_C              : slv(31 downto 0) := X"96000000";--22
-   constant TIMING_INDEX_C                  : slv(31 downto 0) := X"97000000";--23
-   constant EVENT_LANE_0_INDEX_C            : slv(31 downto 0) := X"98000000";--24
-   constant EVENT_LANE_1_INDEX_C            : slv(31 downto 0) := X"99000000";--25
-   constant EVENT_LANE_2_INDEX_C            : slv(31 downto 0) := X"9A000000";--26
+   constant DIG_ASIC_PRE_PROC_C             : slv(31 downto 0) := X"95200000";--20
+   constant APP_REG_AXI_ADDR_C              : slv(31 downto 0) := X"96000000";--21
+   constant TIMING_INDEX_C                  : slv(31 downto 0) := X"97000000";--22
+   constant EVENT_LANE_0_INDEX_C            : slv(31 downto 0) := X"98000000";--23
+   constant EVENT_LANE_1_INDEX_C            : slv(31 downto 0) := X"99000000";--24
+   constant EVENT_LANE_2_INDEX_C            : slv(31 downto 0) := X"9A000000";--25
    
    constant HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(HR_FD_NUM_AXI_MASTER_SLOTS_C-1 downto 0) := (
       PLLREGS_AXI_INDEX_C       => (
@@ -105,10 +102,6 @@ package AppPkg is
          connectivity         => x"FFFF"),
       PRBS2_AXI_INDEX_C        => ( 
          baseAddr             => PRBS2_AXI_BASE_ADDR_C,
-         addrBits             => 24,
-         connectivity         => x"FFFF"),
-      PRBS3_AXI_INDEX_C        => ( 
-         baseAddr             => PRBS3_AXI_BASE_ADDR_C,
          addrBits             => 24,
          connectivity         => x"FFFF"),
       AXI_STREAM_MON_INDEX_C   => ( 
@@ -167,12 +160,8 @@ package AppPkg is
          baseAddr             => DIG_ASIC1_STREAM_AXI_ADDR_C,
          addrBits             => 20,
          connectivity         => x"FFFF"),
-      DIG_ASIC2_STREAM_AXI_INDEX_C       => ( 
-         baseAddr             => DIG_ASIC2_STREAM_AXI_ADDR_C,
-         addrBits             => 20,
-         connectivity         => x"FFFF"),
-      DIG_ASIC3_STREAM_AXI_INDEX_C       => ( 
-         baseAddr             => DIG_ASIC3_STREAM_AXI_ADDR_C,
+      DIG_ASIC_PRE_PROC_C       => ( 
+         baseAddr             => DIG_ASIC_PRE_PROC_C,
          addrBits             => 20,
          connectivity         => x"FFFF"),
       APP_REG_AXI_INDEX_C                => ( 
@@ -187,11 +176,11 @@ package AppPkg is
          baseAddr             => EVENT_LANE_0_INDEX_C,
          addrBits             => 24,
          connectivity         => x"FFFF"),
-      EVENT_LANE_2_INDEX_C               => ( 
+      EVENT_LANE_1_INDEX_C               => ( 
          baseAddr             => EVENT_LANE_1_INDEX_C,
          addrBits             => 24,
          connectivity         => x"FFFF"),
-      EVENT_LANE_1_INDEX_C               => ( 
+      EVENT_LANE_2_INDEX_C               => ( 
          baseAddr             => EVENT_LANE_2_INDEX_C,
          addrBits             => 24,
          connectivity         => x"FFFF")
