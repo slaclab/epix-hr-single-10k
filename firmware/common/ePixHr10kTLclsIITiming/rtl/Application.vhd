@@ -334,8 +334,8 @@ architecture mapping of Application is
    signal txUserRst       : sl;
    signal useMiniTpg      : sl;
    -- timing status
-   signal v1LinkUp        : sl;
-   signal v2LinkUp        : sl;
+   signal timingV1linkUp  : sl;
+   signal timingv2LinkUp  : sl;
    -- trigger trigger data
    signal iTriggerData        : TriggerEventDataArray(1 downto 0);
    signal timingRunTrigger: sl;
@@ -1179,11 +1179,9 @@ begin
           mAxiWriteSlaves(PRBS0_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
           mAxiWriteSlaves(PRBS1_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
           mAxiWriteSlaves(PRBS2_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
-          mAxiWriteSlaves(PRBS3_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
           mAxiReadSlaves(PRBS0_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
           mAxiReadSlaves(PRBS1_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
           mAxiReadSlaves(PRBS2_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
-          mAxiReadSlaves(PRBS3_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
     end generate;
   
    --
@@ -1398,9 +1396,9 @@ begin
       generic map (
          TPD_G                => TPD_G,
          SIMULATION_G         => SIMULATION_G,
-         AXI_BASE_ADDR_G      => AXI_CONFIG_C(TIMING_INDEX_C).baseAddr,
+         AXI_BASE_ADDR_G      => HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C(TIMING_INDEX_C).baseAddr,
          DMA_AXIS_CONFIG_G    => ssiAxiStreamConfig(8),
-         LCLS_TIMING_TYPE_G   => "LCLSII",
+         LCLS_II_TIMING_TYPE_G=> True,
          NUM_DETECTORS_G      => 2
       )
       port map (
@@ -1439,7 +1437,7 @@ begin
 
    eventRealAxisCtrl.overflow    <= AXI_STREAM_CTRL_INIT_C.overflow;
    eventRealAxisCtrl.idle        <= AXI_STREAM_CTRL_INIT_C.idle;
-   eventRealAxisCtrl.pause       <= axisRawPause or axisIntPause or axisProcPause;
+   eventRealAxisCtrl.pause       <= '0'; --axisRawPause or axisIntPause or axisProcPause;
 
    timingRunTrigger <= iTriggerData(0).valid and iTriggerData(0).l0Accept;
    timingDaqTrigger <= iTriggerData(1).valid and iTriggerData(1).l0Accept;
@@ -1465,22 +1463,26 @@ begin
       mAxisMasters => eventRealAxisMasterArray,
       mAxisSlaves  => eventRealAxisSlaveArray);
 
-  -------------------------------------------------
+   -------------------------------------------------
    -- EventBuilder Modules (3 modules, one per lane)
    -------------------------------------------------
-   --ADD FOR GENERATE
-   U_EventBuilder : entity surf.AxiStreamBatcherEventBuilder
-      generic map (
+
+   ------------------------------------------------
+   --     Three event builders                   --
+   ------------------------------------------------   
+   G_EventBuilders : for i in 0 to 2 generate
+     U_EventBuilder : entity surf.AxiStreamBatcherEventBuilder
+       generic map (
          TPD_G          => TPD_G,
          NUM_SLAVES_G   => 2,
          MODE_G         => "ROUTED",
          TDEST_ROUTES_G => (
-            0           => "0000000-",  --,
-            1           => "00000010"),
+           0           => "0000000-",  --,
+           1           => "00000010"),
          TRANS_TDEST_G  => X"01",
          AXIS_CONFIG_G  => ssiAxiStreamConfig(8)
-      )
-      port map (
+         )
+       port map (
          -- Clock and Reset
          axisClk                    => appClk,
          axisRst                    => appRst,
@@ -1499,6 +1501,6 @@ begin
          mAxisMaster                => imAxisMasters(i), --to core
          mAxisSlave                 => mAxisSlaves(i)   --to core
          );
-
+    end generate;
   
 end mapping;
