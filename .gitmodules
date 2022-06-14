@@ -10,3 +10,9 @@
 [submodule "firmware/submodules/axi-pcie-core"]
 	path = firmware/submodules/axi-pcie-core
 	url = git@github.com:slaclab/axi-pcie-core
+[submodule "firmware/submodules/l2si-core"]
+	path = firmware/submodules/l2si-core
+	url = git@github.com:slaclab/l2si-core.git
+[submodule "firmware/submodules/lcls-timing-core"]
+	path = firmware/submodules/lcls-timing-core
+	url = git@github.com:slaclab/lcls-timing-core.git
