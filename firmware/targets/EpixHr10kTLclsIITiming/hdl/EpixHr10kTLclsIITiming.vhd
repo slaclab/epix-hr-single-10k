@@ -310,7 +310,7 @@ begin
    U_Core : entity epix_hr_core.EpixHrCore
       generic map (
          TPD_G                => TPD_G,
-         NUM_LANE_G           => PGP_NUM_LANE_C,
+         NUM_LANES_G           => PGP_NUM_LANE_C,
          RATE_G               => "6.25Gbps",
          BUILD_INFO_G         => BUILD_INFO_G,
          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,

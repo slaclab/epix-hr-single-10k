@@ -29,6 +29,12 @@ use surf.SsiCmdMasterPkg.all;
 use surf.Ad9249Pkg.all;
 use surf.Code8b10bPkg.all;
 
+library lcls_timing_core;
+use lcls_timing_core.TimingPkg.all;
+
+library l2si_core;
+use l2si_core.L2SiPkg.all;
+
 library epix_hr_core;
 use epix_hr_core.EpixHrCorePkg.all;
 
@@ -1297,11 +1303,17 @@ begin
          acqNo             => boardConfig.acqCnt,
       
          -- start of readout strobe
-         startRdout        => iAsicSR0
+         startRdout        => dataSend
          );       
    end generate;
 
-
+   
+   -------------------------------------------------------
+   -- Image pre-processing place holder                 --
+   -------------------------------------------------------
+     mAxisMastersASIC(2) <= AXI_STREAM_MASTER_INIT_C;
+     mAxisSlavesASIC(2)  <= AXI_STREAM_SLAVE_FORCE_C;
+    
    -------------------------------------------------------
    -- AXI stream monitoring                             --
    -------------------------------------------------------
@@ -1431,9 +1443,6 @@ begin
 
    timingRunTrigger <= iTriggerData(0).valid and iTriggerData(0).l0Accept;
    timingDaqTrigger <= iTriggerData(1).valid and iTriggerData(1).l0Accept;
-  
-   
-
 
    -------------------------------------------------
    -- AxiStream repeater
@@ -1455,7 +1464,8 @@ begin
       -- Masters
       mAxisMasters => eventRealAxisMasterArray,
       mAxisSlaves  => eventRealAxisSlaveArray);
-   -------------------------------------------------
+
+  -------------------------------------------------
    -- EventBuilder Modules (3 modules, one per lane)
    -------------------------------------------------
    --ADD FOR GENERATE

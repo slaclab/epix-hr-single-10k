@@ -71,7 +71,7 @@ entity RegisterControlDualClock is
       useMiniTpg     : out sl;
       -- timing status
       v1LinkUp       : in  sl;
-      v2LinkUp       : in  sl;
+      v2LinkUp       : in  sl
    );
 end RegisterControlDualClock;
 
@@ -196,6 +196,11 @@ architecture rtl of RegisterControlDualClock is
       asicAcqReg2       => ASICACQ_TYPE2_INIT_C,
       asicAcqTimeCnt    => (others=>'0'),
       asicRefClockFreq  => (others=>'0'),
+      rxUserRst         => '0',
+      txUserRst         => '0',
+      useMiniTpg        => '0',
+      v1LinkUp          => '0',
+      v2LinkUp          => '0',
       axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C
       );
