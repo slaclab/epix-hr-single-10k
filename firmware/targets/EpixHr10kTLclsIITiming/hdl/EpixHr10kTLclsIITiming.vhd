@@ -156,8 +156,6 @@ end EpixHr10kTLclsIITiming;
 
 architecture top_level of EpixHr10kTLclsIITiming is
 
-   constant PGP_NUM_LANE_C : integer := 3;
-
    -- System Clock and Reset
    signal sysClk          : sl;
    signal sysRst          : sl;
@@ -167,8 +165,8 @@ architecture top_level of EpixHr10kTLclsIITiming is
    signal axilWriteMaster : AxiLiteWriteMasterType;
    signal axilWriteSlave  : AxiLiteWriteSlaveType;
    -- AXI Stream, one per QSFP lane (sysClk domain)
-   signal axisMasters     : AxiStreamMasterArray(PGP_NUM_LANE_C-1 downto 0);
-   signal axisSlaves      : AxiStreamSlaveArray(PGP_NUM_LANE_C-1 downto 0);
+   signal axisMasters     : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
+   signal axisSlaves      : AxiStreamSlaveArray(NUMBER_OF_LANES_C-1 downto 0);
    -- Auxiliary AXI Stream, (sysClk domain)
    signal sAuxAxisMasters : AxiStreamMasterArray(1 downto 0);
    signal sAuxAxisSlaves  : AxiStreamSlaveArray(1 downto 0);
@@ -310,7 +308,7 @@ begin
    U_Core : entity epix_hr_core.EpixHrCore
       generic map (
          TPD_G                => TPD_G,
-         NUM_LANES_G           => PGP_NUM_LANE_C,
+         NUM_LANES_G           => NUMBER_OF_LANES_C,
          RATE_G               => "6.25Gbps",
          BUILD_INFO_G         => BUILD_INFO_G,
          ROGUE_SIM_EN_G       => ROGUE_SIM_EN_G,
@@ -354,10 +352,10 @@ begin
          snIoCarrier      => snIoCarrier,
          snCarrierOut     => asicDM,
          -- QSFP Ports
-         qsfpRxP          => qsfpRxP(PGP_NUM_LANE_C-1 downto 0),
-         qsfpRxN          => qsfpRxN(PGP_NUM_LANE_C-1 downto 0),
-         qsfpTxP          => qsfpTxP(PGP_NUM_LANE_C-1 downto 0),
-         qsfpTxN          => qsfpTxN(PGP_NUM_LANE_C-1 downto 0),
+         qsfpRxP          => qsfpRxP(NUMBER_OF_LANES_C-1 downto 0),
+         qsfpRxN          => qsfpRxN(NUMBER_OF_LANES_C-1 downto 0),
+         qsfpTxP          => qsfpTxP(NUMBER_OF_LANES_C-1 downto 0),
+         qsfpTxN          => qsfpTxN(NUMBER_OF_LANES_C-1 downto 0),
          qsfpClkP         => qsfpClkP,
          qsfpClkN         => qsfpClkN,
          qsfpLpMode       => qsfpLpMode,

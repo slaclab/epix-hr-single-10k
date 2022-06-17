@@ -68,8 +68,8 @@ entity Application is
       sAxilWriteMaster : in    AxiLiteWriteMasterType;
       sAxilWriteSlave  : out   AxiLiteWriteSlaveType;
       -- AXI Stream, one per QSFP lane (sysClk domain)
-      mAxisMasters     : out   AxiStreamMasterArray(3 downto 0);
-      mAxisSlaves      : in    AxiStreamSlaveArray(3 downto 0);
+      mAxisMasters     : out   AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
+      mAxisSlaves      : in    AxiStreamSlaveArray(NUMBER_OF_LANES_C-1 downto 0);
       -- Auxiliary AXI Stream, (sysClk domain)
       -- 0 is pseudo scope, 1 is slow adc monitoring
       sAuxAxisMasters  : out   AxiStreamMasterArray(1 downto 0);
@@ -341,11 +341,11 @@ architecture mapping of Application is
    signal timingRunTrigger: sl;
    signal timingDaqTrigger: sl;
    -- timing event bus
-   signal eventRealAxisMaster       : AxiStreamMasterType;
+   signal eventRealAxisMaster       : AxiStreamMasterArray(1 downto 0);
    signal eventRealAxisMasterArray  : AxiStreamMasterArray(2 downto 0);
-   signal eventRealAxisSlave        : AxiStreamSlaveType;
+   signal eventRealAxisSlave        : AxiStreamSlaveArray(1 downto 0);
    signal eventRealAxisSlaveArray   : AxiStreamSlaveArray(2 downto 0);
-   signal eventRealAxisCtrl         : AxiStreamCtrlType;
+   signal eventRealAxisCtrl         : AxiStreamCtrlArray(1 downto 0);
    
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
@@ -1320,7 +1320,7 @@ begin
       TPD_G           => 1 ns,
       COMMON_CLK_G    => false,  -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G => 156.25E+6,  -- units of Hz
-      AXIS_NUM_SLOTS_G=> 4,
+      AXIS_NUM_SLOTS_G=> NUMBER_OF_LANES_C,
       AXIS_CONFIG_G   => COMM_AXIS_CONFIG_C)
    port map(
       -- AXIS Stream Interface
@@ -1430,17 +1430,20 @@ begin
          -- Event streams
          eventClk             => appClk,
          eventRst             => appRst,
-         eventAxisMasters(1)  => eventRealAxisMaster,--NUM_DETECTORS_G
-         eventAxisSlaves(1)   => eventRealAxisSlave,--NUM_DETECTORS_G
-         eventAxisCtrl(1)     => eventRealAxisCtrl--NUM_DETECTORS_G
+         eventAxisMasters     => eventRealAxisMaster,--NUM_DETECTORS_G
+         eventAxisSlaves      => eventRealAxisSlave,--NUM_DETECTORS_G
+         eventAxisCtrl        => eventRealAxisCtrl--NUM_DETECTORS_G
       );
 
-   eventRealAxisCtrl.overflow    <= AXI_STREAM_CTRL_INIT_C.overflow;
-   eventRealAxisCtrl.idle        <= AXI_STREAM_CTRL_INIT_C.idle;
-   eventRealAxisCtrl.pause       <= '0'; --axisRawPause or axisIntPause or axisProcPause;
-
-   timingRunTrigger <= iTriggerData(0).valid and iTriggerData(0).l0Accept;
-   timingDaqTrigger <= iTriggerData(1).valid and iTriggerData(1).l0Accept;
+   eventRealAxisCtrl(1).overflow    <= AXI_STREAM_CTRL_INIT_C.overflow;
+   eventRealAxisCtrl(1).idle        <= AXI_STREAM_CTRL_INIT_C.idle;
+   eventRealAxisCtrl(1).pause       <= '0'; --axisRawPause or axisIntPause or axisProcPause;
+   --
+   eventRealAxisSlave(0) <= AXI_STREAM_SLAVE_INIT_C;
+   eventRealAxisCtrl(0)  <= AXI_STREAM_CTRL_INIT_C;
+   --
+   timingRunTrigger      <= iTriggerData(0).valid and iTriggerData(0).l0Accept;
+   timingDaqTrigger      <= iTriggerData(1).valid and iTriggerData(1).l0Accept;
 
    -------------------------------------------------
    -- AxiStream repeater
@@ -1457,8 +1460,8 @@ begin
       axisClk      => appClk,
       axisRst      => appRst,
       -- Slave
-      sAxisMaster  => eventRealAxisMaster,
-      sAxisSlave   => eventRealAxisSlave,
+      sAxisMaster  => eventRealAxisMaster(1),
+      sAxisSlave   => eventRealAxisSlave(1),
       -- Masters
       mAxisMasters => eventRealAxisMasterArray,
       mAxisSlaves  => eventRealAxisSlaveArray);

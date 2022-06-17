@@ -2,7 +2,7 @@
 -- File       : TimingRxTop.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-04
--- Last update: 2022-05-20
+-- Last update: 2022-06-17
 -------------------------------------------------------------------------------
 -- Description: Wave8 System Core
 -------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ architecture top_level of TimingRxTop is
    signal timingRxRstTmp : sl;
    signal gtRxData       : slv(15 downto 0);
    signal rxData         : slv(15 downto 0);
-   signal gtRxDataK      : slv(11 downto 0);
+   signal gtRxDataK      : slv(1 downto 0);
    signal rxDataK        : slv(1 downto 0);
    signal gtRxDispErr    : slv(1 downto 0);
    signal rxDispErr      : slv(1 downto 0);
@@ -147,6 +147,8 @@ architecture top_level of TimingRxTop is
    signal txControl      : TimingPhyControlType;
 
    signal gtRefClkDiv2   : sl;
+   signal refClk         : sl;
+   signal refClkDiv2     : sl;
 
 begin
 
@@ -199,7 +201,11 @@ begin
    -- LCLSI timing uses global clock
    ---------------------
    IBUF_LCLS2 : if (LCLS_II_TIMING_TYPE_G) generate
-     U_IBUFDS_GTE2 : IBUFDS_GTE2
+     U_IBUFDS_GTE3 : IBUFDS_GTE3
+       generic map (
+               REFCLK_EN_TX_PATH  => '0',
+               REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
+               REFCLK_ICNTL_RX    => "00")
        port map (
          I     => gtRefClkP,
          IB    => gtRefClkN,
@@ -207,7 +213,27 @@ begin
          ODIV2 => gtRefClkDiv2,
          O     => gtRefClkIn
          );
-     end generate;
+   end generate;
+
+   U_BUFG_GT : BUFG_GT
+            port map (
+               I       => gtRefClkDiv2,
+               CE      => '1',
+               CEMASK  => '1',
+               CLR     => '0',
+               CLRMASK => '1',
+               DIV     => "000",        -- Divide by 1
+               O       => refClk);
+
+   U_refClkDiv2 : BUFGCE_DIV
+         generic map (
+            BUFGCE_DIVIDE => 2)
+         port map (
+            I   => refClk,
+            CE  => '1',
+            CLR => '0',
+            O   => refClkDiv2);
+
 
    IBUF_LCLS1 : if (not LCLS_II_TIMING_TYPE_G) generate
      U_IBUFGDS : IBUFGDS
@@ -227,7 +253,7 @@ begin
        port map (
          O  => gtRxClk,              -- 1-bit output: Clock output
          I0 => gtRxOutClk,           -- 1-bit input: Clock input (S=0)
-         I1 => gtRefClkDiv2,         -- 1-bit input: Clock input (S=1)
+         I1 => refClkDiv2,         -- 1-bit input: Clock input (S=1)
          S  => useMiniTpg);          -- 1-bit input: Clock select
      --
      U_TXCLK : BUFGMUX
@@ -236,7 +262,7 @@ begin
        port map (
          O  => gtTxClk,           -- 1-bit output: Clock output
          I0 => gtTxOutClk,        -- 1-bit input: Clock input (S=0)
-         I1 => gtRefClkDiv2,         -- 1-bit input: Clock input (S=1)
+         I1 => refClkDiv2,         -- 1-bit input: Clock input (S=1)
          S  => useMiniTpg);          -- 1-bit input: Clock select
      --
 
@@ -245,9 +271,15 @@ begin
        U_LCLS2_GT : entity lcls_timing_core.TimingGtCoreWrapper
          generic map (
            TPD_G             => TPD_G,
-           REFCLK_G          => true,
-           CPLL_REFCLK_SEL_G => "001",
-           GT_CONFIG_G       => ite(not LCLS_II_TIMING_TYPE_G, false, true)  -- V1 = false, V2 = true
+           DISABLE_TIME_GT_G => false,
+           EXTREF_G          => false,
+           AXIL_BASE_ADDR_G  => AXI_BASE_ADDR_G,
+           ADDR_BITS_G       => 24,
+           GTH_DRP_OFFSET_G  => x"00400000"
+       
+           --REFCLK_G          => true,
+           --CPLL_REFCLK_SEL_G => "001",
+           --GT_CONFIG_G       => ite(not LCLS_II_TIMING_TYPE_G, false, true)  -- V1 = false, V2 = true
            )
          port map (
            -- AXI-Lite Port
@@ -257,29 +289,41 @@ begin
            axilReadSlave   => axilReadSlaves(RX_PHY0_INDEX_C),
            axilWriteMaster => axilWriteMasters(RX_PHY0_INDEX_C),
            axilWriteSlave  => axilWriteSlaves(RX_PHY0_INDEX_C),
-           -- GT Ports
+
+           stableClk       => axilClk,
+           stableRst       => axilRst,
+           -- GTH Ports
+           gtRefClk        => gtRefClkIn,
+           gtRefClkDiv2    => gtRefClkDiv2,
            gtRxP           => gtRxP,
            gtRxN           => gtRxN,
            gtTxP           => gtTxP,
            gtTxN           => gtTxN,
-           gtRefClkIn      => gtRefClkIn,
-           stableClk       => axilClk,
-           stableRst       => axilRst,
+
+           gtgRefClk       => '0',
+           cpllRefClkSel   => "001", -- Set for "111" for gtgRefClk
+
            -- Rx ports
            rxControl       => rxControl,
            rxStatus        => gtRxStatus,
-           rxOutClk        => gtRxOutClk,
+           rxUsrClkActive  => '1',
+           rxCdrStable     => open,
+           rxUsrClk        => timingRxClk,
+
            rxData          => gtRxData,
            rxDataK         => gtRxDataK,
            rxDispErr       => gtRxDispErr,
            rxDecErr        => gtRxDecErr,
+           rxOutClk        => gtRxOutClk,
            -- Tx Ports
            txControl       => txControl,
            txStatus        => open,
-           txOutClk        => gtTxOutClk,
-           txOutRst        => open,
+           txUsrClk        => gtTxOutClk,
+           txUsrClkActive  => '1',
            txData          => temTimingTxPhy.data,
            txDataK         => temTimingTxPhy.dataK,
+           txOutClk        => gtTxOutClk,
+           
            -- Misc.
            loopback        => "000"
            );
