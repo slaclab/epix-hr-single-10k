@@ -271,8 +271,8 @@ class Board(pr.Root):
 
         
         # Viewer gui
-        self.onlineViewers = [None for lane in range(4)]
-        for viewerNum in range(4):
+        self.onlineViewers = [None for lane in range(3)]
+        for viewerNum in range(3):
             self.onlineViewers[viewerNum] = vi.Window(cameraType='ePixHr10kT', verbose=self.args.verbose)
             self.onlineViewers[viewerNum].eventReader.frameIndex = 0
             self.onlineViewers[viewerNum].setReadDelay(0)
@@ -295,19 +295,15 @@ class Board(pr.Root):
         @self.command()
         def DisplayViewer2():
             self.onlineViewers[2].show()
-        @self.command()
-        def DisplayViewer3():
-            self.onlineViewers[3].show()
-
         
         if (self.args.start_viewer == 'False'):
-            for viewerNum in range(4):
+            for viewerNum in range(3):
                 self.onlineViewers[viewerNum].hide()
 
 
         # Add Devices
         if ( self.args.type == 'kcu1500' ):
-            self.add(epixHr.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,))
+            self.add(epixHr.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,numberOfLanes=3))
         self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 

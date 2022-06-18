@@ -28,10 +28,15 @@ import surf.protocols.ssp as ssp
 import surf.devices.analog_devices as analog_devices
 import surf.devices.micron as micron
 import surf.misc
+import surf.protocols.batcher       as batcher
 import surf
+import LclsTimingCore
+import l2si_core
 import epix_hr_core as epixHr
 import numpy as np
 import time
+
+
 
 try:
     from PyQt5.QtWidgets import *
@@ -81,20 +86,26 @@ class EpixHR10kT(pr.Device):
             epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
             epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False),
             #When using fw without timing, Register control class changes
-            EPixHr10kTAppCoreRegLCLS(         name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
-            powerSupplyRegisters(             name='PowerSupply',              offset=0x89000000, expand=False, enabled=False),            
-            HighSpeedDacRegisters(            name='HSDac',                    offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
-            pr.MemoryDevice(                  name='waveformMem',              offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
-            sDacRegisters(                    name='SlowDacs'    ,             offset=0x8C000000, expand=False, enabled=False),
-            OscilloscopeRegisters(            name='Oscilloscope',             offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
-            MonAdcRegisters(                  name='FastADCsDebug',            offset=0x8E000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup( name='Ad9249Config_Adc_0',       offset=0x8F000000, expand=False, enabled=False),
-            SlowAdcRegisters(                 name="SlowAdcRegisters",         offset=0x90000000, expand=False, enabled=False),
-            ssp.SspLowSpeedDecoderReg(        name="SspLowSpeedDecoderReg",    offset=0x94010000, expand=False, enabled=False, numberLanes=24),
-            DigitalAsicStreamAxi(             name="PacketRegisters0",         offset=0x95000000, expand=False, enabled=False, numberLanes=6), 
-            DigitalAsicStreamAxi(             name="PacketRegisters1",         offset=0x95100000, expand=False, enabled=False, numberLanes=6), 
-            DigitalAsicStreamAxi(             name="PacketRegisters2",         offset=0x95200000, expand=False, enabled=False, numberLanes=6), 
-            DigitalAsicStreamAxi(             name="PacketRegisters3",         offset=0x95300000, expand=False, enabled=False, numberLanes=6)
+            EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
+            powerSupplyRegisters(                name='PowerSupply',              offset=0x89000000, expand=False, enabled=False),            
+            HighSpeedDacRegisters(               name='HSDac',                    offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
+            pr.MemoryDevice(                     name='waveformMem',              offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
+            sDacRegisters(                       name='SlowDacs'    ,             offset=0x8C000000, expand=False, enabled=False),
+            OscilloscopeRegisters(               name='Oscilloscope',             offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
+            MonAdcRegisters(                     name='FastADCsDebug',            offset=0x8E000000, expand=False, enabled=False),
+            analog_devices.Ad9249ConfigGroup(    name='Ad9249Config_Adc_0',       offset=0x8F000000, expand=False, enabled=False),
+            SlowAdcRegisters(                    name="SlowAdcRegisters",         offset=0x90000000, expand=False, enabled=False),
+            ssp.SspLowSpeedDecoderReg(           name="SspLowSpeedDecoderReg",    offset=0x94010000, expand=False, enabled=False, numberLanes=24),
+            DigitalAsicStreamAxi(                name="PacketRegisters0",         offset=0x95000000, expand=False, enabled=False, numberLanes=12), 
+            DigitalAsicStreamAxi(                name="PacketRegisters1",         offset=0x95100000, expand=False, enabled=False, numberLanes=12),
+            # TimingCore
+            LclsTimingCore.TimingFrameRx(                                         offset=0x97100000, expand=False, enabled=False),
+            # XPM Mini Core
+            l2si_core.XpmMiniWrapper(                                             offset=0x97200000, expand=False, enabled=False),
+            l2si_core.TriggerEventManager(                                        offset=0x97300000, numDetectors=2, enLclsI=False, enLclsII=True, expand=False),
+            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder0",     offset=0x98000000, expand=False, numberSlaves = 2),
+            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder1",     offset=0x99000000, expand=False, numberSlaves = 2),
+            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder2",     offset=0x9A000000, expand=False, numberSlaves = 2)
         ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
@@ -941,7 +952,7 @@ class EPixHr10kTAppCoreRegLCLS(pr.Device):
       self.add((
          pr.RemoteVariable(name='StartupReq',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='StartupAck',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=1, base=pr.Bool, mode='RO'),
-         pr.RemoteVariable(name='StartupFail',           description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=2, base=pr.Bool, mode='RO'))
+         pr.RemoteVariable(name='StartupFail',           description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=2, base=pr.Bool, mode='RO')))
       self.add((
          pr.RemoteVariable(name='rxUserRst',             description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='txUserRst',             description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=1, base=pr.Bool, mode='RW'),
@@ -1052,7 +1063,7 @@ class TriggerRegisters(pr.Device):
       self.add(pr.RemoteVariable(name='TimingRunTriggerEnable',description='RunTriggerEnable',  offset=0x00000000, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='RunTriggerDelay',       description='RunTriggerDelay',   offset=0x00000004, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='DaqTriggerEnable',      description='DaqTriggerEnable',  offset=0x00000008, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
-      self.add(pr.RemoteVariable(name='TimingRunTriggerEnable',description='DaqTriggerEnable',  offset=0x00000008, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
+      self.add(pr.RemoteVariable(name='TimingDaqTriggerEnable',description='DaqTriggerEnable',  offset=0x00000008, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='DaqTriggerDelay',       description='DaqTriggerDelay',   offset=0x0000000C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='AutoRunEn',             description='AutoRunEn',         offset=0x00000010, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='AutoDaqEn',             description='AutoDaqEn',         offset=0x00000014, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
