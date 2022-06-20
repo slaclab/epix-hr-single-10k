@@ -61,7 +61,7 @@ architecture arch of ePixHr10kT_full_tb is
   --file definitions
   constant DATA_BITS   : natural := 16;
   constant DEPTH_C     : natural := 1024;
-  constant FILENAME_C  : string  := "/afs/slac.stanford.edu/u/re/ddoering/localGit/epix-hr-dev/firmware/targets/EpixHr10kT/tb/sin.csv";
+  constant FILENAME_C  : string  := "$PROJ_DIR/tb/sin.csv";
   --simulation constants to select data type
   constant CH_ID       : natural := 0;
   constant CH_WF       : natural := 1;
