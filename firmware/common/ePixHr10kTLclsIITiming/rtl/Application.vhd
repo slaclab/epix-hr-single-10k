@@ -500,6 +500,7 @@ begin
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10101" else
       pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
       acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
+      dataSend          when boardConfig.epixhrDbgSel1 = "11000" else
       '0';   
 
    connMps    <= not connMpsMux;        -- required because the board has a
@@ -512,8 +513,8 @@ begin
       iSaciClk          when boardConfig.epixhrDbgSel2 = "00100" else
       iSaciCmd          when boardConfig.epixhrDbgSel2 = "00101" else
       asicSaciRsp       when boardConfig.epixhrDbgSel2 = "00110" else
-      iSaciSelL(0)      when boardConfig.epixhrDbgSel2 = "00111" else
-      iSaciSelL(1)      when boardConfig.epixhrDbgSel2 = "01000" else
+      iSaciSelL(2)      when boardConfig.epixhrDbgSel2 = "00111" else
+      iSaciSelL(3)      when boardConfig.epixhrDbgSel2 = "01000" else
       asicRdClk         when boardConfig.epixhrDbgSel2 = "01001" else
       deserClk          when boardConfig.epixhrDbgSel2 = "01010" else
       WFdacDin_i        when boardConfig.epixhrDbgSel2 = "01011" else
@@ -529,6 +530,7 @@ begin
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10101" else
       pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
       acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
+      dataSend          when boardConfig.epixhrDbgSel1 = "11000" else
       '0';
 
   smaTxP          <= '0';
