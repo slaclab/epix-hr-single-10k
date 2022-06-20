@@ -181,7 +181,9 @@ architecture arch of ePixHr10kT_full_tb is
       signal qsfpTxP       : slv(3 downto 0);
       signal qsfpTxN       : slv(3 downto 0);
       signal qsfpClkP      : sl := '1';
-      signal qsfpClkN      : sl;
+      signal qsfpClkN      : sl := '0';
+      signal qsfpTimingClkP: sl := '1';
+      signal qsfpTimingClkN: sl := '0';
       signal qsfpLpMode    : sl;
       signal qsfpModSel    : sl;
       signal qsfpInitL     : sl;
@@ -227,13 +229,15 @@ architecture arch of ePixHr10kT_full_tb is
   signal axilWriteMaster : AxiLiteWriteMasterType;
   signal axilWriteSlave  : AxiLiteWriteSlaveType;
   -- AXI Stream, one per QSFP lane (sysClk domain)
-  signal axisMasters     : AxiStreamMasterArray(3 downto 0);
-  signal axisSlaves      : AxiStreamSlaveArray(3 downto 0);
+  signal axisMasters     : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
+  signal axisSlaves      : AxiStreamSlaveArray(NUMBER_OF_LANES_C-1 downto 0);
   -- Auxiliary AXI Stream, (sysClk domain)
   signal sAuxAxisMasters : AxiStreamMasterArray(1 downto 0);
   signal sAuxAxisSlaves  : AxiStreamSlaveArray(1 downto 0);
   -- ssi commands (Lane and Vc 0)
   signal ssiCmd          : SsiCmdMasterType;
+  -- Trigger (axilClk domain)
+  signal pgpTrigger      : sl;
   -- DDR's AXI Memory Interface (sysClk domain)
   signal axiReadMaster   : AxiReadMasterType;
   signal axiReadSlave    : AxiReadSlaveType;
@@ -285,6 +289,10 @@ begin  --
   -- clock generation
   qsfpClkP  <= not qsfpClkP after 3.2 ns;
   qsfpClkN  <= not qsfpClkP;
+  -- clock generation 371.428571MHz
+  qsfpTimingClkP  <= not qsfpTimingClkP after 2.692308 ns;
+  qsfpTimingClkN  <= not qsfpTimingClkP;
+  --
   ddrClkP  <= not ddrCkP after 3.2 ns;
   ddrClkN  <= not ddrCkP;
   fClkN <= not fClkP;
@@ -512,6 +520,8 @@ begin  --
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
          ssiCmd           => ssiCmd,
+         -- Trigger (sysClk domain)
+         pgpTrigger       => pgpTrigger,
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          mAxiReadMaster   => axiReadMaster,
@@ -583,6 +593,13 @@ begin  --
          spareHpN         => spareHpN,
          spareHrP         => spareHrP,
          spareHrN         => spareHrN,
+         --timing GTH ports
+         gtTimingRefClkP  => qsfpTimingClkP,
+         gtTimingRefClkN  => qsfpTimingClkN,
+         gtTimingRxP      => qsfpRxP(3),
+         gtTimingRxN      => qsfpRxN(3),
+         gtTimingTxP      => qsfpTxP(3),
+         gtTimingTxN      => qsfpTxN(3),
          -- GTH Ports
          gtRxP            => gtRxP,
          gtRxN            => gtRxN,
@@ -598,6 +615,7 @@ begin  --
   U_Core : entity epix_hr_core.EpixHrCore
       generic map (
          TPD_G                => TPD_G,
+         NUM_LANES_G          => NUMBER_OF_LANES_C,
          BUILD_INFO_G         => BUILD_INFO_G,
          ROGUE_SIM_EN_G       => true,
          ROGUE_SIM_PORT_NUM_G => 11000
@@ -622,6 +640,9 @@ begin  --
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
          ssiCmd           => ssiCmd,
+         -- Trigger (sysClk domain)
+         pgpTrigger       => pgpTrigger,
+
          -- DDR's AXI Memory Interface (sysClk domain)
          -- DDR Address Range = [0x00000000:0x3FFFFFFF]
          sAxiReadMaster   => axiReadMaster,
@@ -636,10 +657,10 @@ begin  --
          -- Board IDs Ports
          snIoAdcCard      => snIoAdcCard,
          -- QSFP Ports
-         qsfpRxP          => qsfpRxP,
-         qsfpRxN          => qsfpRxN,
-         qsfpTxP          => qsfpTxP,
-         qsfpTxN          => qsfpTxN,
+         qsfpRxP          => qsfpRxP(NUMBER_OF_LANES_C-1 downto 0),
+         qsfpRxN          => qsfpRxN(NUMBER_OF_LANES_C-1 downto 0),
+         qsfpTxP          => qsfpTxP(NUMBER_OF_LANES_C-1 downto 0),
+         qsfpTxN          => qsfpTxN(NUMBER_OF_LANES_C-1 downto 0),
          qsfpClkP         => qsfpClkP,
          qsfpClkN         => qsfpClkN,
          qsfpLpMode       => qsfpLpMode,
