@@ -14,4 +14,4 @@ source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
 
 set simTbOutDir ${OUT_DIR}/${PROJECT}_project.sim/sim_1/behav
 
-exec echo export PROJ_DIR = ${PROJ_DIR} >> ${simTbOutDir}/setup_env.sh
+exec echo export PROJ_DIR=${PROJ_DIR} >> ${simTbOutDir}/setup_env.sh
