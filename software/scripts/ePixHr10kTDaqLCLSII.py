@@ -97,7 +97,7 @@ parser.add_argument(
     "--tcpPort", 
     type     = int,
     required = False,
-    default  = 13000,
+    default  = 11000,
     help     = "same port defined in the vhdl testbench",
 )  
 
