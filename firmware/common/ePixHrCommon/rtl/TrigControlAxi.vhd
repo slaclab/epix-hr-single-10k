@@ -210,8 +210,8 @@ begin
    --------------------------------------------------
    -- Combine with TTL triggers and look for edges --
    --------------------------------------------------
-   combinedRunTrig <= (coreSidebandRun and r.trig.pgpTrigEn) or (runTrigger and not r.trig.pgpTrigEn) or (timingRunTrigger and not r.trig.timingRunEn);
-   combinedDaqTrig <= (coreSidebandDaq and r.trig.pgpTrigEn) or (daqTrigger and not r.trig.pgpTrigEn) or (timingDaqTrigger and not r.trig.timingDaqEn);
+   combinedRunTrig <= (coreSidebandRun and r.trig.pgpTrigEn) or (runTrigger and not r.trig.pgpTrigEn) or (timingRunTrigger and r.trig.timingRunEn);
+   combinedDaqTrig <= (coreSidebandDaq and r.trig.pgpTrigEn) or (daqTrigger and not r.trig.pgpTrigEn) or (timingDaqTrigger and r.trig.timingDaqEn);
    
    --------------------------------
    -- Run Input
