@@ -77,6 +77,7 @@ architecture arch of ePixHr10kT_full_tb is
     variable TempWordSlv  : slv(16 - 1 downto 0);
     variable Result       : ram_t    := (others => (others => '0'));
   begin
+    report FileName severity note;
     for i in 0 to DEPTH_C - 1 loop
       exit when endfile(FileHandle);
       readline(FileHandle, CurrentLine);
@@ -104,10 +105,10 @@ architecture arch of ePixHr10kT_full_tb is
       signal syncDigDcDc   : sl;
       signal syncAnaDcDc   : sl;
       signal syncDcDc      : slv(6 downto 0);
-      signal daqTg         : sl;
+      signal daqTg         : sl := '0';
       signal connTgOut     : sl;
       signal connMps       : sl;
-      signal connRun       : sl;
+      signal connRun       : sl := '0';
       -- Fast ADC Ports
       signal adcSpiClk     : sl;
       signal adcSpiData    : sl;
@@ -261,6 +262,20 @@ architecture arch of ePixHr10kT_full_tb is
   signal EncSof      : sl := '0';
   signal EncEof      : sl := '0';
 
+  --test decoder
+  -- Framing Output
+  signal decValidOut : sl  := '0';
+  signal decDataOut  : slv(15 downto 0);
+  signal decErrorOut : sl  := '0';
+  signal decSof      : sl  := '0';
+  signal decEof      : sl  := '0';
+  signal decEofe     : sl  := '0';
+  -- Decoder Monitoring
+  signal decIdleCode : sl  := '0';
+  signal decValidDec : sl  := '0';
+  signal decCodeError: sl  := '0';
+  signal decDispError: sl  := '0';
+
   signal asicSimClk : sl;
   signal asicSimRst : sl;
   signal dClkP      : sl := '1'; -- Data clock
@@ -371,7 +386,8 @@ begin  --
   EncValid_Proc: process  
   begin
     wait until fClkP = '1';
-    EncValidIn <= asicSR0;
+    EncValidIn  <= asicSR0;
+    EncReadyOut <= asicSR0;
   end process;  
   
 -------------------------------------------------------------------------------
@@ -437,6 +453,34 @@ begin  --
       readyOut => EncReadyOut,
       dataOut  => EncDataOut);
 
+
+  U_test_decoder: entity surf.SspDecoder8b10b
+   generic map(
+      TPD_G                => TPD_G,
+      RST_POLARITY_G       => '1',
+      RST_ASYNC_G          => false,
+      BRK_FRAME_ON_ERROR_G => true)
+   port map(
+      -- Clock and Reset
+      clk            => fClkP,
+      rst            => sysRst,
+      -- Encoded Input
+      --validIn        : in  sl := '1';
+      --gearboxAligned : in  sl := '1';
+      dataIn         => EncDataOut,
+      -- Framing Output
+      validOut       => decValidOut,
+      dataOut        => decDataOut,
+      errorOut       => decErrorOut,
+      sof            => decSof,
+      eof            => decEof,
+      eofe           => decEofe,
+      -- Decoder Monitoring
+      idleCode       => decIdleCode,
+      validDec       => decValidDec,
+      codeError      => decCodeError,
+      dispError      => decDispError);
+
   serData1_20b <= EncDataOut_d(0);
   serData1_10b <= serData1_20b(19 downto 10) when fClkP = '1' else serData1_20b(9 downto 0);
   serData2_20b <= EncDataOut_d(7);
@@ -487,8 +531,8 @@ begin  --
       variable retVarN : std_logic_vector(24-1 downto 0);
    begin
       for i in 0 to 24-1 loop
-        retVarP(i) := serialDataOut2d(i);
-        retVarN(i) := not serialDataOut2d(i);
+        retVarP(i) := serialDataOut2d(0);
+        retVarN(i) := not serialDataOut2d(0);
       end loop;
       asicDataP <= retVarP;
       asicDataN <= retVarN;

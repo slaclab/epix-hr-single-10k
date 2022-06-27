@@ -10,8 +10,8 @@
 
 # Setup environment
 #source /afs/slac.stanford.edu/g/reseng/rogue/anaconda/rogue_pre-release.sh
-source /afs/slac/g/reseng/rogue/v5.13.0/setup_rogue.sh
-conda activate rogue_v5.13.0
+source /afs/slac/g/reseng/rogue/v5.14.0/setup_rogue.sh
+conda activate rogue_v5.14.0
 #source /afs/slac.stanford.edu/g/reseng/vol26/anaconda/miniconda3/etc/profile.d/conda.sh
 #conda activate rogue_v5.10.0
 #conda activate rogue_ePixHR
