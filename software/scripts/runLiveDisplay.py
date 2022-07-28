@@ -1,3 +1,24 @@
+#!/usr/bin/env python
+#-----------------------------------------------------------------------------
+# Title      : Script for running live display
+#-----------------------------------------------------------------------------
+# File       : runLiveDisplay.py
+# Author     : Jaeyoung (Daniel) Lee
+# Created    : 2022-07-28
+# Last update: 2022-07-28
+#-----------------------------------------------------------------------------
+# Description:
+# Script for running live display
+#-----------------------------------------------------------------------------
+# This file is part of the ePix rogue. It is subject to 
+# the license terms in the LICENSE.txt file found in the top-level directory 
+# of this distribution and at: 
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+# No part of the ePix rogue, including this file, may be 
+# copied, modified, propagated, or distributed except according to the terms 
+# contained in the LICENSE.txt file.
+#-----------------------------------------------------------------------------
+
 import setupLibPaths
 import argparse
 import pyrogue.pydm
