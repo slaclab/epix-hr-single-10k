@@ -26,21 +26,19 @@ import pyrogue.gui
 import rogue.hardware.pgp
 import rogue.protocols
 import pyrogue.pydm
+import subprocess
+import os
 import surf
 import surf.axi
 import surf.protocols.ssi
 import epix_hr_core as epixHr
-
+import ePixLiveDisplay
+import ePixLiveDisplay.dataReceivers
 
 import threading
-import signal
-import atexit
-import yaml
 import time
 import argparse
-import sys
 #import testBridge
-import ePixViewer as vi
 import ePixFpga as fpga
 
 
@@ -51,7 +49,6 @@ try:
 except ImportError:
     import PyQt4.QtCore    
     import PyQt4.QtGui     
-
 
 # Set the argument parser
 parser = argparse.ArgumentParser()
@@ -220,10 +217,9 @@ class MyRunControl(pr.RunControl):
 # Set base
 ##############################
 class Board(pr.Root):
-    def __init__(self, guiTop, cmd, dataWriter, srp, **kwargs):
+    def __init__(self, cmd, dataWriter, srp, **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
         self.add(dataWriter)
-        self.guiTop = guiTop
         self.cmd = cmd
         self._sim = (args.type == 'SIM');
         
@@ -235,19 +231,50 @@ class Board(pr.Root):
         @self.command()
         def Trigger():
             self.cmd.sendCmd(0, 0)
-        
+        fifo0 = rogue.interfaces.stream.Fifo(100, 0, True)
+        fifo1 = rogue.interfaces.stream.Fifo(100, 0, True)
+        fifo2 = rogue.interfaces.stream.Fifo(100, 0, True)
+        fifo3 = rogue.interfaces.stream.Fifo(100, 0, True)
+        fifo4 = rogue.interfaces.stream.Fifo(100, 0, True)
+        fifo5 = rogue.interfaces.stream.Fifo(100, 0, True)
+        for i in range(4):
+            self.add(ePixLiveDisplay.dataReceivers.DataReceiverEpixHrSingle10kT(name = f"DataReceiver{i}"))
+        self.add(ePixLiveDisplay.dataReceivers.DataReceiverEnvMonitoring(name = "DataReceiverEnvMonitoring"))
+        self.add(ePixLiveDisplay.dataReceivers.DataReceiverPseudoScope(name = "DataReceiverPseudoScope"))
+        self.addInterface(pgpL0Vc1, pgpL1Vc1, pgpL2Vc1, pgpL3Vc1, pgpL0Vc2, pgpL0Vc3, fifo0, fifo1, fifo2, fifo3, fifo4, fifo5, srp)
+        pgpL0Vc1 >> fifo0 >> self.DataReceiver0
+        pgpL1Vc1 >> fifo1 >> self.DataReceiver1
+        pgpL2Vc1 >> fifo2 >> self.DataReceiver2
+        pgpL3Vc1 >> fifo3 >> self.DataReceiver3
+        pgpL0Vc3 >> fifo4 >> self.DataReceiverEnvMonitoring
+        pgpL0Vc2 >> fifo5 >> self.DataReceiverPseudoScope
+
+        def launchViewer(typ, dataReceiver):
+            scriptPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'runNewEnvGUI.py')
+            subprocess.Popen([
+                'python', scriptPath, 
+                typ,
+                '--dataReceiver', f'rogue://0/root.{dataReceiver}',
+                '--serverList', f'localhost:{self.serverPort}'])
+
         @self.command()
         def DisplayViewer0():
-            self.onlineViewer0.show()
+            launchViewer('image', self.DataReceiver0.name)
         @self.command()
         def DisplayViewer1():
-            self.onlineViewer1.show()
+            launchViewer('image', self.DataReceiver1.name)
         @self.command()
         def DisplayViewer2():
-            self.onlineViewer2.show()
+            launchViewer('image', self.DataReceiver2.name)
         @self.command()
         def DisplayViewer3():
-            self.onlineViewer3.show()
+            launchViewer('image', self.DataReceiver3.name)
+        @self.command()
+        def DisplayViewerEnvMonitoring():
+            launchViewer('monitor', self.DataReceiverEnvMonitoring.name)
+        @self.command()
+        def DisplayViewerPseudoScope():
+            launchViewer('pseudoscope', self.DataReceiverPseudoScope.name)
 
         # Add Devices
         if ( args.type == 'kcu1500' ):
@@ -257,20 +284,22 @@ class Board(pr.Root):
         self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 
+
+
 if (args.debug): dbgData = rogue.interfaces.stream.Slave()
-if (args.debug): dbgData.setDebug(60, "DATA Debug 0[{}]".format(0))
+if (args.debug): dbgData.setDebug(1, "DATA Debug 0[{}]".format(0))
 if (args.debug): pyrogue.streamTap(pgpL0Vc1, dbgData)
 
 if (args.debug): dbgData = rogue.interfaces.stream.Slave()
-if (args.debug): dbgData.setDebug(60, "DATA Debug 1[{}]".format(0))
+if (args.debug): dbgData.setDebug(1, "DATA Debug 1[{}]".format(0))
 if (args.debug): pyrogue.streamTap(pgpL1Vc1, dbgData)
 
 if (args.debug): dbgData = rogue.interfaces.stream.Slave()
-if (args.debug): dbgData.setDebug(60, "DATA Debug 2[{}]".format(0))
+if (args.debug): dbgData.setDebug(1, "DATA Debug 2[{}]".format(0))
 if (args.debug): pyrogue.streamTap(pgpL2Vc1, dbgData)
 
 if (args.debug): dbgData = rogue.interfaces.stream.Slave()
-if (args.debug): dbgData.setDebug(60, "DATA Debug 3[{}]".format(0))
+if (args.debug): dbgData.setDebug(1, "DATA Debug 3[{}]".format(0))
 if (args.debug): pyrogue.streamTap(pgpL3Vc1, dbgData)
 
 #this command can fill up the hard drive /var/log
@@ -283,9 +312,9 @@ else:
     timeout = 1.0
     
     # Create GUI
-appTop = QApplication(sys.argv)
-guiTop = pyrogue.gui.GuiTop(group='ePixHr10kT')
-with Board(guiTop, cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
+#appTop = QApplication(sys.argv)
+#guiTop = pyrogue.gui.GuiTop(group='ePixHr10kT')
+with Board(cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
 
     #if ( args.type == 'dataFile' or args.type == 'SIM' ):
     #    ePixHrBoard.start(pollEn=False,timeout=5.0 ,pyroGroup=None)
@@ -295,6 +324,7 @@ with Board(guiTop, cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePix
     #    guiTop.resize(800,800)
 
     # Viewer gui
+    '''
     ePixHrBoard.onlineViewer0 = vi.Window(cameraType='ePixHr10kT', verbose=args.verbose)
     ePixHrBoard.onlineViewer0.eventReader.frameIndex = 0
     ePixHrBoard.onlineViewer0.setReadDelay(0)
@@ -328,7 +358,7 @@ with Board(guiTop, cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePix
         ePixHrBoard.onlineViewer1.hide()
         ePixHrBoard.onlineViewer2.hide()
         ePixHrBoard.onlineViewer3.hide()
-
+'''
 
     if ( args.type == 'dataFile' or args.type == 'SIM'):
         print("Simulation mode does not initialize monitoring ADC")
@@ -351,8 +381,6 @@ with Board(guiTop, cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePix
         ePixHrBoard.readBlocks()
         ePixHrBoard.EpixHR.Ad9249Config_Adc_0.enable.set(False)
         ePixHrBoard.readBlocks()
-
-
 
     pyrogue.pydm.runPyDM(
         root  = ePixHrBoard,
