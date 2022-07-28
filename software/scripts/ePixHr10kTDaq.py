@@ -250,7 +250,7 @@ class Board(pr.Root):
         pgpL0Vc2 >> fifo5 >> self.DataReceiverPseudoScope
 
         def launchViewer(typ, dataReceiver):
-            scriptPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'runNewEnvGUI.py')
+            scriptPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'runLiveDisplay.py')
             subprocess.Popen([
                 'python', scriptPath, 
                 typ,
