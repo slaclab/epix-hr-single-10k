@@ -9,5 +9,6 @@
 #-----------------------------------------------------------------------------
 from ePixViewer._ePixViewer import *
 from ePixViewer.imgProcessing import *
+from ePixViewer.Cameras import *
 
 
