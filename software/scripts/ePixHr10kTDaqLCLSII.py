@@ -220,17 +220,17 @@ class Board(pr.Root):
         self.simPort = simPort
 
         # Create arrays to be filled
-        self.dmaStreams = [None for lane in range(4)]
+        self.dmaStreams = [None for lane in range(3)]
         self.dmaCtrlStreams = [None for lane in range(3)]
-        self._dbg       = [DataDebug(name='DataDebug',enPrint=False) for lane in range(4)]
-        self.unbatchers = [rogue.protocols.batcher.SplitterV1() for lane in range(4)]
-        self.dataFilter = [rogue.interfaces.stream.Filter(False, dataCh+3) for dataCh in range(4)]
+        self._dbg       = [DataDebug(name='DataDebug',enPrint=False) for lane in range(3)]
+        self.unbatchers = [rogue.protocols.batcher.SplitterV1() for lane in range(3)]
+        self.dataFilter = [rogue.interfaces.stream.Filter(False, dataCh+3) for dataCh in range(3)]
 
         
         # Add PGP virtual channels
         if ( self.args.type == 'kcu1500' ):
             # Connect the streams
-            for lane in range(4):
+            for lane in range(3):
                 self.dmaStreams[lane] = rogue.hardware.axi.AxiStreamDma(dev,(0x100*lane)+dataVc,1)
                 self.dmaStreams[lane] >> self.unbatchers[lane] >> self._dbg[lane]
             # connect
@@ -244,7 +244,7 @@ class Board(pr.Root):
             
             rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
             # Connect the streams
-            for lane in range(4):
+            for lane in range(3):
                 self.dmaStreams[lane] = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*lane)+2*1) # VC1
                 self.dmaStreams[lane] >> self.unbatchers[lane] >> self._dbg[lane]
             # connect
@@ -257,7 +257,7 @@ class Board(pr.Root):
 
         # Add data stream to file as channel 1 File writer
         self.add(pyrogue.utilities.fileio.StreamWriter(name='dataWriter'))
-        for lane in range(4):
+        for lane in range(3):
             pyrogue.streamConnect(self.dmaStreams[lane], self.dataWriter.getChannel(0x10*lane + 0x01))
 
 
