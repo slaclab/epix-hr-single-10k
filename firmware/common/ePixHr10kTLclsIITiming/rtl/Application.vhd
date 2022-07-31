@@ -1426,12 +1426,12 @@ begin
          mAxilWriteMaster     => mAxiWriteMasters(TIMING_INDEX_C),
          mAxilWriteSlave      => mAxiWriteSlaves(TIMING_INDEX_C),
          -- Trigger Interface
-         triggerClk           => appClk,
-         triggerRst           => appRst,
+         triggerClk           => sysClk,
+         triggerRst           => sysRst,
          triggerData          => iTriggerData,--NUM_DETECTORS_G
          -- Event streams
-         eventClk             => appClk,
-         eventRst             => appRst,
+         eventClk             => sysClk,
+         eventRst             => sysRst,
          eventAxisMasters     => eventRealAxisMaster,--NUM_DETECTORS_G
          eventAxisSlaves      => eventRealAxisSlave,--NUM_DETECTORS_G
          eventAxisCtrl        => eventRealAxisCtrl--NUM_DETECTORS_G
@@ -1459,8 +1459,8 @@ begin
       OUTPUT_PIPE_STAGES_G => 0)
    port map(
       -- Clock and reset
-      axisClk      => appClk,
-      axisRst      => appRst,
+      axisClk      => sysClk,
+      axisRst      => sysRst,
       -- Slave
       sAxisMaster  => eventRealAxisMaster(1),
       sAxisSlave   => eventRealAxisSlave(1),
@@ -1489,8 +1489,8 @@ begin
          )
        port map (
          -- Clock and Reset
-         axisClk                    => appClk,
-         axisRst                    => appRst,
+         axisClk                    => sysClk,
+         axisRst                    => sysRst,
          -- AXI-Lite Interface (axisClk domain)
          axilReadMaster             => mAxiReadMasters(EVENT_LANE_0_INDEX_C+i),
          axilReadSlave              => mAxiReadSlaves(EVENT_LANE_0_INDEX_C+i),
