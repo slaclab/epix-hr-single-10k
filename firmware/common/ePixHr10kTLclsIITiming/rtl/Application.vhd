@@ -1525,10 +1525,10 @@ begin
          axisClk                    => sysClk,
          axisRst                    => sysRst,
          -- AXI-Lite Interface (axisClk domain)
-         axilReadMaster             => axilBatcherReadMasters(i),
-         axilReadSlave              => axilBatcherReadSlaves(i),
-         axilWriteMaster            => axilBatcherWriteMasters(i),
-         axilWriteSlave             => axilBatcherWriteSlaves(i),
+         axilReadMaster             => axilBatcherReadMaster(i),
+         axilReadSlave              => axilBatcherReadSlave(i),
+         axilWriteMaster            => axilBatcherWriteMaster(i),
+         axilWriteSlave             => axilBatcherWriteSlave(i),
          -- Inbound Master AXIS Interfaces
          sAxisMasters(0)            => eventRealAxisMasterArray(i),
          sAxisMasters(1)            => dataAxisMasters(i), -- images, TBD
