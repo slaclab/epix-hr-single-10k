@@ -208,6 +208,11 @@ architecture mapping of Application is
    signal axilAsicWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
    signal axilAsicReadMasters  : AxiLiteReadMasterArray(1 downto 0);
    signal axilAsicReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
+   -- AXI-Lite batcher
+   signal axilBatcherReadMaster  : AxiLiteReadMasterArray(2 downto 0);
+   signal axilBatcherReadSlave   : AxiLiteReadSlaveArray(2 downto 0);
+   signal axilBatcherWriteMaster : AxiLiteWriteMasterArray(2 downto 0);
+   signal axilBatcherWriteSlave  : AxiLiteWriteSlaveArray(2 downto 0);
 
    --constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters    : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
@@ -1475,7 +1480,35 @@ begin
    ------------------------------------------------
    --     Three event builders                   --
    ------------------------------------------------   
-   G_EventBuilders : for i in 0 to 2 generate
+  G_EventBuilders : for i in 0 to 2 generate
+
+    ---------------------------------------------
+    -- AXI Lite Async - cross clock domain     --
+    ---------------------------------------------
+    U_AxiLiteAsync : entity surf.AxiLiteAsync 
+      generic map(
+        TPD_G            => 1 ns,
+        AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
+        COMMON_CLK_G     => false,
+        NUM_ADDR_BITS_G  => 32,
+        PIPE_STAGES_G    => 0)
+      port map(
+        -- Slave Port
+        sAxiClk         => appClk,
+        sAxiClkRst      => appRst,
+        sAxiReadMaster  => mAxiReadMasters(EVENT_LANE_0_INDEX_C+i),
+        sAxiReadSlave   => mAxiReadSlaves(EVENT_LANE_0_INDEX_C+i),
+        sAxiWriteMaster => mAxiWriteMasters(EVENT_LANE_0_INDEX_C+i),
+        sAxiWriteSlave  => mAxiWriteSlaves(EVENT_LANE_0_INDEX_C+i),
+        -- Master Port
+        mAxiClk         => sysClk,
+        mAxiClkRst      => sysRst,
+        mAxiReadMaster  => axilBatcherReadMaster(i),
+        mAxiReadSlave   => axilBatcherReadSlave(i),
+        mAxiWriteMaster => axilBatcherWriteMaster(i),
+        mAxiWriteSlave  => axilBatcherWriteSlave(i)
+     );
+   
      U_EventBuilder : entity surf.AxiStreamBatcherEventBuilder
        generic map (
          TPD_G          => TPD_G,
@@ -1492,10 +1525,10 @@ begin
          axisClk                    => sysClk,
          axisRst                    => sysRst,
          -- AXI-Lite Interface (axisClk domain)
-         axilReadMaster             => mAxiReadMasters(EVENT_LANE_0_INDEX_C+i),
-         axilReadSlave              => mAxiReadSlaves(EVENT_LANE_0_INDEX_C+i),
-         axilWriteMaster            => mAxiWriteMasters(EVENT_LANE_0_INDEX_C+i),
-         axilWriteSlave             => mAxiWriteSlaves(EVENT_LANE_0_INDEX_C+i),
+         axilReadMaster             => axilBatcherReadMasters(i),
+         axilReadSlave              => axilBatcherReadSlaves(i),
+         axilWriteMaster            => axilBatcherWriteMasters(i),
+         axilWriteSlave             => axilBatcherWriteSlaves(i),
          -- Inbound Master AXIS Interfaces
          sAxisMasters(0)            => eventRealAxisMasterArray(i),
          sAxisMasters(1)            => dataAxisMasters(i), -- images, TBD
