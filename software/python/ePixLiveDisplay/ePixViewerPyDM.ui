@@ -475,7 +475,7 @@
        <widget class="PyDMLabel" name="PyDMLabel_24">
         <property name="geometry">
          <rect>
-          <x>670</x>
+          <x>620</x>
           <y>0</y>
           <width>171</width>
           <height>21</height>
@@ -560,9 +560,9 @@
        <widget class="PyDMLabel" name="PyDMLabel_5">
         <property name="geometry">
          <rect>
-          <x>730</x>
-          <y>20</y>
-          <width>67</width>
+          <x>780</x>
+          <y>0</y>
+          <width>81</width>
           <height>21</height>
          </rect>
         </property>
