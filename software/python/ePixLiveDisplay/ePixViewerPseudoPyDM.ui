@@ -19,7 +19,7 @@
      <x>10</x>
      <y>10</y>
      <width>1101</width>
-     <height>555</height>
+     <height>881</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -84,8 +84,20 @@
           <x>0</x>
           <y>130</y>
           <width>1091</width>
-          <height>391</height>
+          <height>350</height>
          </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>300</height>
+         </size>
         </property>
         <property name="toolTip">
          <string/>
@@ -105,37 +117,49 @@
          </stringlist>
         </property>
        </widget>
+       <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot_2">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>490</y>
+          <width>1099</width>
+          <height>350</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="yAxes">
+         <stringlist>
+          <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
+         </stringlist>
+        </property>
+        <property name="showLegend">
+         <bool>true</bool>
+        </property>
+        <property name="curves">
+         <stringlist>
+          <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.FFTYA&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.FFTXA&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel A&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+          <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.FFTYB&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.FFTXB&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel B&quot;, &quot;color&quot;: &quot;red&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+         </stringlist>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
    </layout>
-  </widget>
-  <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>577</y>
-     <width>1091</width>
-     <height>351</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string/>
-   </property>
-   <property name="yAxes">
-    <stringlist>
-     <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
-    </stringlist>
-   </property>
-   <property name="showLegend">
-    <bool>true</bool>
-   </property>
-   <property name="curves">
-    <stringlist>
-     <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.FFTYA&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.FFTXA&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel A&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-     <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.FFTYB&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.FFTXB&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel B&quot;, &quot;color&quot;: &quot;red&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-    </stringlist>
-   </property>
   </widget>
   <widget class="SimpleDebugTree" name="SimpleDebugTree">
    <property name="geometry">
