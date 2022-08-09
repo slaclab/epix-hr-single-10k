@@ -27,7 +27,7 @@ ePixHr10kT:
       PPbePolarity: False
       PPbeDelay: 0
       PPbeWidth: 0
-      PpmatPolarity: False
+      PpmatPolarity: True
       PpmatDelay: 0
       PpmatWidth: 0
       SaciSyncPolarity: False
