@@ -789,7 +789,7 @@ begin
    generic map (
       AXIL_CLK_PERIOD_G  => 10.0E-9, -- In units of seconds
       AXIL_TIMEOUT_G     => 1.0E-3,  -- In units of seconds
-      SACI_CLK_PERIOD_G  => 1.00E-6, -- In units of seconds
+      SACI_CLK_PERIOD_G  => 1.00E-5, -- In units of seconds
       SACI_CLK_FREERUN_G => false,
       SACI_RSP_BUSSED_G  => true,
       SACI_NUM_CHIPS_G   => NUMBER_OF_ASICS_C)
