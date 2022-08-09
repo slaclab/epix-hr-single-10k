@@ -52,7 +52,6 @@ entity RegisterControlDualClock is
       asicR0         : out sl;
       asicAcq        : out sl;
       asicPPbe       : out sl;
-      asicPpmat      : out sl;
       saciReadoutReq : out sl;
       saciReadoutAck : in  sl;
       errInhibit     : out sl;
@@ -63,6 +62,7 @@ entity RegisterControlDualClock is
       asicSR0        : out sl;
       asicClkSyncEn  : out sl;
       asicGlblRst    : out sl;
+      asicPpmat      : out sl; --reused as RoLogicRst
       asicSync       : out sl
    );
 end RegisterControlDualClock;
@@ -134,6 +134,8 @@ architecture rtl of RegisterControlDualClock is
       ClkSyncEnLatched  : sl;
       GlblRst           : sl;
       GlblRstPolarity   : sl;
+      RoLogicRst        : sl;
+      RoLogicRstLatched : sl;
       Sync              : sl;
       SyncPolarity      : sl;
       SyncDelay         : slv(31 downto 0);
@@ -152,6 +154,8 @@ architecture rtl of RegisterControlDualClock is
       ClkSyncEnLatched  => '0',
       GlblRst           => '1',
       GlblRstPolarity   => '1',
+      RoLogicRst        => '0',
+      RoLogicRstLatched => '0',
       Sync              => '0',
       SyncPolarity      => '0',
       SyncDelay         => (others=>'0'),
@@ -254,6 +258,7 @@ begin
       -- Register used in the sys clock domain
       axiSlaveRegister(regCon,  x"0100",  0, v.asicAcqReg2.GlblRstPolarity);
       axiSlaveRegister(regCon,  x"0100",  1, v.asicAcqReg2.ClkSyncEn);
+      axiSlaveRegister(regCon,  x"0100",  2, v.asicAcqReg2.RoLogicRst);
       axiSlaveRegister(regCon,  x"0104",  0, v.asicAcqReg2.SyncPolarity);
       axiSlaveRegister(regCon,  x"0108",  0, v.asicAcqReg2.SyncDelay);
       axiSlaveRegister(regCon,  x"010C",  0, v.asicAcqReg2.SyncWidth);
@@ -394,7 +399,7 @@ begin
       boardConfig    <= r.boardRegOut;
       saciReadoutReq <= r.asicAcqReg.saciSync;
       asicPPbe       <= r.asicAcqReg.PPbe;
-      asicPpmat      <= r.asicAcqReg.Ppmat;
+      --asicPpmat      <= r.asicAcqReg.Ppmat;
       asicR0         <= r.asicAcqReg.Start;
       asicAcq        <= r.asicAcqReg.Acq;
 
@@ -531,6 +536,16 @@ begin
          dataIn  => r.asicAcqReg2.ClkSyncEn,
          dataOut => asicAcqReg2Synced.ClkSyncEn);
 
+   SynchronizerRoLogicRst : entity surf.Synchronizer
+       generic map(
+         TPD_G          => TPD_G,
+         STAGES_G       => 2)
+       port map(
+         clk     => sysClk,
+         rst     => sysRst,
+         dataIn  => r.asicAcqReg2.RoLogicRst,
+         dataOut => asicAcqReg2Synced.RoLogicRst);
+
    -----------------------------------------------
    -- System clock combinatorial logic
    -----------------------------------------------  
@@ -585,8 +600,9 @@ begin
         
          -- global reset changes in sync with SHCnt per ASIC designers recomendation
          if r_sys.asicAcqReg2.ePixAdcSHCnt = 0 then
-           v.asicAcqReg2.GlblRst := asicAcqReg2Synced.GlblRstPolarity;
-           v.asicAcqReg2.ClkSyncEnLatched := asicAcqReg2Synced.ClkSyncEn;
+           v.asicAcqReg2.GlblRst           := asicAcqReg2Synced.GlblRstPolarity;
+           v.asicAcqReg2.ClkSyncEnLatched  := asicAcqReg2Synced.ClkSyncEn;
+           v.asicAcqReg2.RoLogicRstLatched := asicAcqReg2Synced.RoLogicRst;
          end if;
          
         
@@ -629,6 +645,7 @@ begin
       asicSR0        <= r_sys.asicAcqReg2.SR0;
       asicClkSyncEn  <= r_sys.asicAcqReg2.ClkSyncEnLatched;
       asicGlblRst    <= r_sys.asicAcqReg2.GlblRst;
+      asicPpmat      <= r_sys.asicAcqReg2.RoLogicRstLatched;
       asicSync       <= r_sys.asicAcqReg2.Sync;
      
    end process comb2;
