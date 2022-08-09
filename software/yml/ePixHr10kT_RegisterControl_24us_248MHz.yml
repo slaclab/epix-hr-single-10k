@@ -8,6 +8,7 @@ ePixHr10kT:
       enable: True
       GlblRstPolarity: True
       ClkSyncEn: False
+      RoLogicRst: True
       SyncPolarity: False
       SyncDelay: 0
       SyncWidth: 0
