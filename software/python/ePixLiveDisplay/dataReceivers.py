@@ -24,6 +24,7 @@ import pyrogue as pr
 import numpy as np
 import sys
 import collections
+import time
 from copy import copy
 
 class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
@@ -33,11 +34,15 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
         # Queue for histogram
         self.ImageQueue = collections.deque(maxlen = 30)
         # Queue for automatic contrast
+        self.NoiseQueue = collections.deque(maxlen = 1000)
+        # Queue for noise color map
         self.numDarkCol = 0
         self.DarkImg = []
         self.oldApplyDark = False
         self.x = 0
         self.y = 0
+        self.start = time.time()
+        self.colormap = []
         self.add(pr.LocalVariable(
             name = "PixelData",
             value = 0,
@@ -140,6 +145,16 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
             mode = "RO",
             description = "Count of descramble errors to be displayed"
         ))
+        self.add(pr.LocalVariable(
+            name = "NoiseColormap",
+            value = False,
+            description = "Whether to show noise colormap or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "NoiseColormapReady",
+            value = False,
+            description = "Whether NoiseColormap is ready or not"
+        ))
 
     def descramble(self, frame):
         # Function to descramble raw frames into numpy arrays
@@ -161,6 +176,12 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
         return quadrant0sq
 
     def process(self, frame):
+        if time.time() - self.start > 1 and self.NoiseQueue:
+            self.start = time.time()
+            self.colormap = np.std(np.array(self.NoiseQueue), 0)
+            print(len(self.NoiseQueue))
+        if len(self.colormap):
+            self.NoiseColormapReady.set(True, write = True)
         with self.root.updateGroup():
             imgDesc = self.descramble(frame)
             imgView = copy(imgDesc)
@@ -184,6 +205,7 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
             if self.ApplyDark.get() is not self.oldApplyDark:
                 self.Queue = []
                 self.ImageQueue = []
+                self.NoiseQueue = []
                 self.oldApplyDark = self.ApplyDark.get()
             if self.ApplyDark.get():
                 imgView = np.intc(imgView) - self.AvgDark.get()
@@ -198,6 +220,8 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
                 self.y = int(self.X.get())
                 self.x = int(self.Y.get())
 
+                if self.NoiseColormap.get():
+                    imgView = copy(self.colormap)
                 # Showing crosshair:
                 crossHairVal = -sys.maxsize - 1
                 for i in range(self.x - 10, self.x + 10):
@@ -214,17 +238,22 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
             
             # Setting data for timeplot and horizontal/vertical plots:
             if self.x >= 0 and self.x < 146 and self.y >= 0 and self.y < 192:
-                self.PixelData.set(int(imgRaw[self.x][self.y]), write = True)
+                temp = imgRaw
+                if self.NoiseColormap.get():
+                    temp = self.colormap
+                self.PixelData.set(int(temp[self.x][self.y]), write = True)
                 if self.PlotHorizontal.get():
-                    self.Horizontal.set(imgRaw[self.x], write = True)
+                    self.Horizontal.set(temp[self.x], write = True)
                 else:
                     self.Horizontal.set(np.zeros(1), write = True)
                 if self.PlotVertical.get():
-                    self.Vertical.set(imgRaw[:,self.y], write = True)
+                    self.Vertical.set(temp[:,self.y], write = True)
                 else:
                     self.Vertical.set(np.zeros(1), write = True)
                 self.Queue.append(imgRaw[self.x][self.y])
                 self.ImageQueue.append(imgRaw)
+
+            self.NoiseQueue.append(imgRaw)
 
             # Histogram generation & automatic contrast processing:
             array = np.array(self.Queue)
@@ -248,6 +277,9 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
                 else:
                     self.MaxPixVal.set(int(mean + multiplier * rms), write = True)
                     self.MinPixVal.set(int(mean - multiplier * rms), write = True)
+                if self.NoiseColormap.get():
+                    self.MaxPixVal.set(50, write = True)
+                    self.MinPixVal.set(0, write = True)
             self.Updated.set(True, write = True)
 
 class DataReceiverEnvMonitoring(pr.DataReceiver):
