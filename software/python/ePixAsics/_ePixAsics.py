@@ -1509,7 +1509,7 @@ class EpixHr10kTV2Asic(pr.Device):
 
 #################################################################################################################
 #
-#  ASIC epix 10kT V2 HR 
+#  ASIC epix 10kT V3 HR 
 #
 #################################################################################################################
 class EpixHr10kTV3Asic(pr.Device):
@@ -1801,7 +1801,7 @@ class EpixHr10kTV3Asic(pr.Device):
                     if matrixCfg.shape == (146, 192):
                         self.CmdPrepForRead() #0000
                         self.PrepareMultiConfig() #8000
-                        for x in range (0, 145):
+                        for x in range (0, 145):                            
                             for y in range (0, 192):
                                 bankToWrite = int(y/48);
                                 if (bankToWrite == 0):
@@ -1814,9 +1814,17 @@ class EpixHr10kTV3Asic(pr.Device):
                                     colToWrite = 0x380 + y%48;
                                 else:
                                     print('unexpected bank number')
-                                self.RowCounter.set(x) #6011
-                                self.ColCounter.set(colToWrite) #6013
-                                self.WritePixelData.set(int(matrixCfg[x][y])) #5000
+                                for reapeat in range (0, 1):
+                                    self.RowCounter.set(x) #6011
+                                    self.ColCounter.set(colToWrite) #6013
+                                    for reapeat2 in range (0, 1):
+                                        self.WritePixelData.get() #5000
+                                        self.WritePixelData.get() #5000
+                                        self.WritePixelData.get() #5000
+                                        self.WritePixelData.get() #5000
+                                        ti.sleep(1.0 / float(1000))
+                                        self.WritePixelData.set(int(matrixCfg[x][y])) #5000
+
                         self.CmdPrepForRead()
 
                     else:
@@ -1880,7 +1888,7 @@ class EpixHr10kTV3Asic(pr.Device):
             for i in range (0, 48):
                 self.PrepareMultiConfig()
                 self.ColCounter.set(i)
-                self.WriteColData.set(0)
+                self.WriteColData.set(arg)
             self.CmdPrepForRead()
         else:
             print("Warning: ASIC enable is set to False!")          

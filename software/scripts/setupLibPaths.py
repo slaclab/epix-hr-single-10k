@@ -9,9 +9,13 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 import pyrogue as pr
+import os
 
-pr.addLibraryPath('../../firmware/submodules/axi-pcie-core/python')
-pr.addLibraryPath('../../firmware/submodules/epix-hr-core/python')
-pr.addLibraryPath('../../firmware/submodules/surf/python')
+top_level = os.path.realpath(__file__).split('software')[0]
+
+pr.addLibraryPath(top_level + 'firmware/submodules/axi-pcie-core/python')
+pr.addLibraryPath(top_level + 'firmware/submodules/epix-hr-core/python')
+pr.addLibraryPath(top_level + 'firmware/submodules/surf/python')
+pr.addLibraryPath(top_level + 'firmware/python')
 #pr.addLibraryPath('../../firmware/common/python')
-pr.addLibraryPath('../python')
+pr.addLibraryPath(top_level + 'software/python')

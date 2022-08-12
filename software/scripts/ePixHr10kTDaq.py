@@ -17,6 +17,8 @@
 # copied, modified, propagated, or distributed except according to the terms 
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
+import os
+top_level=f'{os.getcwd()}/'# point to the software folder
 import setupLibPaths
 import pyrogue as pr
 import pyrogue.utilities.prbs
@@ -220,12 +222,13 @@ class MyRunControl(pr.RunControl):
 # Set base
 ##############################
 class Board(pr.Root):
-    def __init__(self, guiTop, cmd, dataWriter, srp, **kwargs):
+    def __init__(self, guiTop, cmd, dataWriter, srp, top_level, **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
         self.add(dataWriter)
         self.guiTop = guiTop
         self.cmd = cmd
         self._sim = (args.type == 'SIM');
+        self.top_level = top_level
         
         # Create arrays to be filled
         self.dmaStream   = [None for x in range(4)]
@@ -285,7 +288,7 @@ else:
     # Create GUI
 appTop = QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='ePixHr10kT')
-with Board(guiTop, cmd, dataWriter, srp, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
+with Board(guiTop, cmd, dataWriter, srp, top_level, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
 
     #if ( args.type == 'dataFile' or args.type == 'SIM' ):
     #    ePixHrBoard.start(pollEn=False,timeout=5.0 ,pyroGroup=None)
