@@ -27,6 +27,407 @@ import collections
 import time
 from copy import copy
 
+class DataReceiverBase(pr.DataReceiver):
+    def __init__(self, length, width, **kwargs):
+        super().__init__(**kwargs)
+        self.length = length
+        self.width = width
+        self.Queue = collections.deque(maxlen = 50000)
+        # Queue for histogram
+        self.ImageQueue = collections.deque(maxlen = 30)
+        # Queue for automatic contrast
+        self.NoiseQueue = collections.deque(maxlen = 1000)
+        # Queue for noise color map
+        self.numDarkCol = 0
+        self.DarkImg = []
+        self.oldApplyDark = False
+        self.x = 0
+        self.y = 0
+        self.start = time.time()
+        self.colormap = []
+        self.add(pr.LocalVariable(
+            name = "PixelData",
+            value = 0,
+            mode = "RO",
+            description = "Scalar pixel value for timeplot"
+        ))
+        self.add(pr.LocalVariable(
+            name = "X",
+            value = 0,
+            description = "Cursor coordinate"
+        ))
+        self.add(pr.LocalVariable(
+            name = "Y",
+            value = 0,
+            description = "Cursor coordinate"
+        ))
+        self.add(pr.LocalVariable(
+            name = "NumDarkReq",
+            value = 0,
+            description = "Number of dark requested"
+        ))
+        self.add(pr.LocalVariable(
+            name = "NumDarkCol",
+            value = 0,
+            description = "Number of dark collected"
+        ))
+        self.add(pr.LocalVariable(
+            name = "ApplyDark",
+            value = False,
+            description = "Whether to apply dark or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "DarkReady",
+            value = False,
+            description = "Whether dark is ready or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "CollectDark",
+            value = False,
+            description = "Whether user wants to collect dark or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "AvgDark",
+            value = np.empty([1,1]),
+            description = "Average of darks collected,"
+        ))
+        self.add(pr.LocalVariable(
+            name = "ShowDark",
+            value = False,
+            description = "Whether to show dark or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "MaxPixVal",
+            value = 12000,
+            description = "Maximum contrast"
+        ))
+        self.add(pr.LocalVariable(
+            name = "MinPixVal",
+            value = 10000,
+            description = "Minimum contrast"
+        ))
+        self.add(pr.LocalVariable(
+            name = "Histogram",
+            value = [],
+            description = "Vector data for histogram's y-axis"
+        ))
+        self.add(pr.LocalVariable(
+            name = "Bins",
+            value = [],
+            description = "Vector data for histogram's bins"
+        ))
+        self.add(pr.LocalVariable(
+            name = "PlotHorizontal",
+            value = False,
+            description = "Whether to plot horizontal rows or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "PlotVertical",
+            value = False,
+            description = "Whether to plot vertical columns or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "Horizontal",
+            value = [],
+            description = "Vector data for horizontal row pixel values"
+        ))
+        self.add(pr.LocalVariable(
+            name = "Vertical",
+            value = [],
+            description = "Vector data for vertical column pixel values"
+        ))
+        self.add(pr.LocalVariable(
+            name = "AutoCon",
+            value = False,
+            description = "Whether to have auto contrast or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "DescError",
+            value = 0,
+            mode = "RO",
+            description = "Count of descramble errors to be displayed"
+        ))
+        self.add(pr.LocalVariable(
+            name = "NoiseColormap",
+            value = False,
+            description = "Whether to show noise colormap or not"
+        ))
+        self.add(pr.LocalVariable(
+            name = "NoiseColormapReady",
+            value = False,
+            description = "Whether NoiseColormap is ready or not"
+        ))
+
+    def descramble(self, frame):
+        return frame
+
+    def process(self, frame):
+        if time.time() - self.start > 1 and self.NoiseQueue:
+            self.start = time.time()
+            self.colormap = np.std(np.array(self.NoiseQueue), 0)
+        if len(self.colormap):
+            self.NoiseColormapReady.set(True, write = True)
+        with self.root.updateGroup():
+            imgDesc = self.descramble(frame)
+            imgView = copy(imgDesc)
+            imgRaw = copy(imgDesc)
+
+            # Dark collecting process:
+            if self.CollectDark.get():
+                if self.DarkReady.get():
+                    self.AvgDark.set(np.empty([1,1]), write = True)
+                    self.DarkImg = []
+                    self.DarkReady.set(False, write = True)
+                    self.numDarkCol = 0
+                if self.NumDarkReq.get() is not self.numDarkCol:
+                    self.DarkImg.append(imgRaw)
+                    self.numDarkCol += 1
+                else:
+                    self.AvgDark.set(np.mean(np.array(np.intc(self.DarkImg)),axis=0), write = True)
+                    self.DarkReady.set(True, write = True)
+                    print("\n*****Dark ready*****\n")
+                    self.CollectDark.set(False, write = True)
+            if self.ApplyDark.get() is not self.oldApplyDark:
+                self.Queue = []
+                self.ImageQueue = []
+                self.NoiseQueue = []
+                self.oldApplyDark = self.ApplyDark.get()
+            if self.ApplyDark.get():
+                imgView = np.intc(imgView) - self.AvgDark.get()
+                imgRaw = np.intc(imgRaw) - self.AvgDark.get()
+            if self.ShowDark.get():
+                self.Data.set(self.AvgDark.get(), write = True)
+            else:
+                if int(self.X.get()) is not self.y or int(self.Y.get()) is not self.x:
+                    self.Queue = []
+
+                # Switch x and y due to PyDMImageViewer row-coloumn switching:
+                self.y = int(self.X.get())
+                self.x = int(self.Y.get())
+
+                if self.NoiseColormap.get():
+                    imgView = copy(self.colormap)
+                # Showing crosshair:
+                crossHairVal = -sys.maxsize - 1
+                for i in range(self.x - 10, self.x + 10):
+                    if i >= 0 and i < self.length and self.x > 0 and self.x < self.length and self.y - 1 > 0 and self.y + 1 < self.width:
+                        imgView[i][self.y] = crossHairVal
+                        imgView[i][self.y-1] = crossHairVal
+                        imgView[i][self.y+1] = crossHairVal
+                for i in range(self.y - 10, self.y + 10):
+                    if i >= 0 and i < self.width and self.y > 0 and self.y < self.width and self.x - 1 > 0 and self.x + 1 < self.length:
+                        imgView[self.x][i] = crossHairVal
+                        imgView[self.x-1][i] = crossHairVal
+                        imgView[self.x+1][i] = crossHairVal
+                self.Data.set(imgView, write = True)
+            
+            # Setting data for timeplot and horizontal/vertical plots:
+            if self.x >= 0 and self.x < self.length and self.y >= 0 and self.y < self.width:
+                temp = imgRaw
+                if self.NoiseColormap.get():
+                    temp = self.colormap
+                self.PixelData.set(int(temp[self.x][self.y]), write = True)
+                if self.PlotHorizontal.get():
+                    self.Horizontal.set(temp[self.x], write = True)
+                else:
+                    self.Horizontal.set(np.zeros(1), write = True)
+                if self.PlotVertical.get():
+                    self.Vertical.set(temp[:,self.y], write = True)
+                else:
+                    self.Vertical.set(np.zeros(1), write = True)
+                self.Queue.append(imgRaw[self.x][self.y])
+                self.ImageQueue.append(imgRaw)
+
+            self.NoiseQueue.append(imgRaw)
+
+            # Histogram generation & automatic contrast processing:
+            array = np.array(self.Queue)
+            imgArray = np.array(self.ImageQueue)
+            mean = imgArray.mean()
+            rms = imgArray.std()
+            low = np.int32(array.min())
+            high = np.int32(array.max())
+            binsA = np.arange(low - 10, high + 10, 1)
+            histogram, bins = np.histogram(array, bins=binsA)
+            bins = np.delete(bins, len(bins) - 1, 0)
+            self.Histogram.set(histogram, write = True)
+            self.Bins.set(bins, write = True)
+            if self.AutoCon.get():
+                multiplier = 2
+                if self.ApplyDark.get():
+                    multiplier = 10
+                if self.ShowDark.get():
+                    self.MaxPixVal.set(int(self.AvgDark.get().mean() + multiplier * self.AvgDark.get().std()), write = True)
+                    self.MinPixVal.set(int(self.AvgDark.get().mean() - multiplier * self.AvgDark.get().std()), write = True)
+                else:
+                    self.MaxPixVal.set(int(mean + multiplier * rms), write = True)
+                    self.MinPixVal.set(int(mean - multiplier * rms), write = True)
+                if self.NoiseColormap.get():
+                    self.MaxPixVal.set(50, write = True)
+                    self.MinPixVal.set(0, write = True)
+            self.Updated.set(True, write = True)
+
+class DataReceiverEpixHrSingle10kT(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(146, 192, **kwargs)
+    
+    def descramble(self, frame):
+        # Function to descramble raw frames into numpy arrays
+        img = frame.getNumpy(0, frame.getPayload()).view(np.uint16)
+        quadrant0 = img[6:28038]
+        adcImg = quadrant0.reshape(-1,6)
+        for i in range(0,6):
+            if len(adcImg[0:adcImg.shape[0],i]) == 4672:
+                adcImg2 = adcImg[0:adcImg.shape[0],i].reshape(-1,32)
+                adcImg2[1:,30] = adcImg2[0:adcImg2.shape[0]-1,30]
+                adcImg2[1:,31] = adcImg2[0:adcImg2.shape[0]-1,31]
+                if i == 0:
+                    quadrant0sq = adcImg2
+                else:
+                    quadrant0sq = np.concatenate((quadrant0sq,adcImg2),1)
+            else:
+                self.DescError.set(self.DescError.get() + 1, write = True)
+                raise Exception("*****Descramble error*****")
+        return quadrant0sq
+
+class DataReceiverEpix100a(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(708, 768, **kwargs)
+    
+    def descramble(self, frame):
+        imgDescBA = self._descrambleEPix100aImageAsByteArray(frame)
+        imgDesc = np.frombuffer(imgDescBA,dtype='int16')
+        imgDesc = imgDesc.reshape(self.sensorHeight, self.sensorWidth)
+        return imgDesc
+
+class DataReceiverEpix100p(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(706, 768, **kwargs)
+    
+    def descramble(self, frame):
+        for j in range(0,32):
+            frame.pop(0)
+        imgBot = frame[(0*1536):(1*1536)] 
+        imgTop = frame[(1*1536):(2*1536)] 
+        for j in range(2,706):
+            if (j%2):
+                imgBot.extend(frame[(j*1536):((j+1)*1536)])
+            else:
+                imgTop.extend(frame[(j*1536):((j+1)*1536)]) 
+        imgDesc = imgBot
+        imgDesc.extend(imgTop)
+        imgDesc = np.array(imgDesc,dtype='uint8')
+        return imgDesc
+
+class DataReceiverTixel48x48(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(96, 96, **kwargs)
+    
+    def descramble(self, frame):
+        if (len(frame)==4):
+            quadrant0 = np.frombuffer(frame[0,4:],dtype='uint16')
+            quadrant0sq = quadrant0.reshape(48,48)
+            quadrant1 = np.frombuffer(frame[1,4:],dtype='uint16')
+            quadrant1sq = quadrant1.reshape(48,48)
+            quadrant2 = np.frombuffer(frame[2,4:],dtype='uint16')
+            quadrant2sq = quadrant2.reshape(48,48)
+            quadrant3 = np.frombuffer(frame[3,4:],dtype='uint16')
+            quadrant3sq = quadrant3.reshape(48,48)
+            imgTop = np.concatenate((quadrant0sq, quadrant1sq),1)
+            imgBot = np.concatenate((quadrant2sq, quadrant3sq),1)
+            imgDesc = np.concatenate((imgTop, imgBot),0)
+        else:
+            imgDesc = np.zeros((48*2,48*2), dtype='uint16')
+        imgDesc = np.where((imgDesc & 0x1) == 1 , imgDesc, 0)
+        return imgDesc
+
+class DataReceiverCpix2(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(96, 96, **kwargs)
+    
+    def descramble(self, frame):
+        if (len(frame)==4):
+            quadrant0 = np.frombuffer(frame[0,4:],dtype='uint16')
+            quadrant0sq = quadrant0.reshape(48,48)
+            quadrant1 = np.frombuffer(frame[1,4:],dtype='uint16')
+            quadrant1sq = quadrant1.reshape(48,48)
+            quadrant2 = np.frombuffer(frame[2,4:],dtype='uint16')
+            quadrant2sq = quadrant2.reshape(48,48)
+            quadrant3 = np.frombuffer(frame[3,4:],dtype='uint16')
+            quadrant3sq = quadrant3.reshape(48,48)
+            imgTop = np.concatenate((quadrant0sq, quadrant1sq),1)
+            imgBot = np.concatenate((quadrant2sq, quadrant3sq),1)
+            imgDesc = np.concatenate((imgTop, imgBot),0)
+        else:
+            imgDesc = np.zeros((48*2,48*2), dtype='uint16')
+        return imgDesc
+
+class DataReceiverEpixM32Array(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(64, 64, **kwargs)
+    
+    def descramble(self, frame):
+        if (len(frame)==2):
+            quadrant0 = np.frombuffer(frame[0,4:],dtype='uint16')
+            quadrant0sq = quadrant0.reshape(64,32)
+            quadrant1 = np.frombuffer(frame[1,4:],dtype='uint16')
+            quadrant1sq = quadrant1.reshape(64,32)
+            imgTop = quadrant0sq
+            imgBot = quadrant1sq
+            imgDesc = np.concatenate((imgTop, imgBot),1)
+        else:
+            imgDesc = np.zeros((64,64), dtype='uint16')
+        return imgDesc
+
+class DataReceiverAdc32x32(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(32, 64, **kwargs)
+    
+    def descramble(self, frame):
+        if (len(frame)==2):
+            quadrant0 = np.frombuffer(frame[0,4:],dtype='uint16')
+            quadrant0sq = quadrant0.reshape(32,32)
+            quadrant1 = np.frombuffer(frame[1,4:],dtype='uint16')
+            quadrant1sq = quadrant1.reshape(32,32)
+            imgTop = quadrant0sq
+            imgBot = quadrant1sq
+            imgDesc = np.concatenate((imgTop, imgBot),1)
+        else:
+            imgDesc = np.zeros((32,64), dtype='uint16')
+        return imgDesc
+
+class DataReceiverCryo64xN(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(64, 64, **kwargs)
+    
+    def descramble(self, frame):
+        if (type(frame != 'numpy.ndarray')):
+            img = np.frombuffer(frame,dtype='uint16')
+        samples = int((img.shape[0]-6)/64)
+        if (samples) != ((img.shape[0]-6)/64):
+            imgDesc = np.zeros((64,64), dtype='uint16')
+            return imgDesc
+        img2 = img[6:].reshape(samples,64)
+        imgDesc = np.append(img2[:,0:64:2].transpose(), img2[:,1:64:2].transpose()).reshape(64,samples)
+        return imgDesc
+
+class DataReceiverEpixHrEpixM(DataReceiverBase):
+    def __init__(self, **kwargs):
+        super().__init__(64, 64, **kwargs)
+    
+    def descramble(self, frame):
+        if (type(frame != 'numpy.ndarray')):
+            img = np.frombuffer(frame,dtype='uint16')
+        samples = int((img.shape[0]-6)/64)
+
+        if (samples) != ((img.shape[0]-6)/64):
+            imgDesc = np.zeros((64,64), dtype='uint16')
+            return imgDesc
+        img2 = img[6:].reshape(samples,64)
+        imgDesc = np.append(img2[:,0:64:2].transpose(), img2[:,1:64:2].transpose()).reshape(64,samples)
+        return np.transpose(imgDesc)
+
+'''
 class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -86,7 +487,7 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
         ))
         self.add(pr.LocalVariable(
             name = "AvgDark",
-            value = np.empty([146,192]),
+            value = np.empty([1,1]),
             description = "Average of darks collected,"
         ))
         self.add(pr.LocalVariable(
@@ -179,7 +580,6 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
         if time.time() - self.start > 1 and self.NoiseQueue:
             self.start = time.time()
             self.colormap = np.std(np.array(self.NoiseQueue), 0)
-            print(len(self.NoiseQueue))
         if len(self.colormap):
             self.NoiseColormapReady.set(True, write = True)
         with self.root.updateGroup():
@@ -190,7 +590,7 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
             # Dark collecting process:
             if self.CollectDark.get():
                 if self.DarkReady.get():
-                    self.AvgDark.set(np.empty([146,192]), write = True)
+                    self.AvgDark.set(np.empty([1,1]), write = True)
                     self.DarkImg = []
                     self.DarkReady.set(False, write = True)
                     self.numDarkCol = 0
@@ -225,19 +625,19 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
                 # Showing crosshair:
                 crossHairVal = -sys.maxsize - 1
                 for i in range(self.x - 10, self.x + 10):
-                    if i >= 0 and i < 146 and self.x > 0 and self.x < 146 and self.y - 1 > 0 and self.y + 1 < 192:
+                    if i >= 0 and i < self.length and self.x > 0 and self.x < self.length and self.y - 1 > 0 and self.y + 1 < self.width:
                         imgView[i][self.y] = crossHairVal
                         imgView[i][self.y-1] = crossHairVal
                         imgView[i][self.y+1] = crossHairVal
                 for i in range(self.y - 10, self.y + 10):
-                    if i >= 0 and i < 192 and self.y > 0 and self.y < 192 and self.x - 1 > 0 and self.x + 1 < 146:
+                    if i >= 0 and i < self.width and self.y > 0 and self.y < self.width and self.x - 1 > 0 and self.x + 1 < self.length:
                         imgView[self.x][i] = crossHairVal
                         imgView[self.x-1][i] = crossHairVal
                         imgView[self.x+1][i] = crossHairVal
                 self.Data.set(imgView, write = True)
             
             # Setting data for timeplot and horizontal/vertical plots:
-            if self.x >= 0 and self.x < 146 and self.y >= 0 and self.y < 192:
+            if self.x >= 0 and self.x < self.length and self.y >= 0 and self.y < self.width:
                 temp = imgRaw
                 if self.NoiseColormap.get():
                     temp = self.colormap
@@ -281,7 +681,7 @@ class DataReceiverEpixHrSingle10kT(pr.DataReceiver):
                     self.MaxPixVal.set(50, write = True)
                     self.MinPixVal.set(0, write = True)
             self.Updated.set(True, write = True)
-
+'''
 class DataReceiverEnvMonitoring(pr.DataReceiver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
