@@ -6,167 +6,149 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1116</width>
-    <height>582</height>
+    <width>1427</width>
+    <height>744</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Env. Monitoring</string>
   </property>
-  <widget class="QWidget" name="gridLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>1101</width>
-     <height>555</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="PyDMTabWidget" name="PyDMTabWidget">
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="whatsThis">
-       <string/>
-      </property>
-      <property name="alarmChannels">
-       <stringlist>
-        <string></string>
-       </stringlist>
-      </property>
-      <widget class="QWidget" name="tab">
-       <attribute name="title">
-        <string>Environment Monitoring</string>
-       </attribute>
-       <widget class="QWidget" name="gridLayoutWidget_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>333</width>
-          <height>104</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="2" column="1">
-          <widget class="QCheckBox" name="checkBox_7">
-           <property name="text">
-            <string>Vcc_a (mV)</string>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="PyDMTabWidget" name="PyDMTabWidget">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="whatsThis">
+        <string/>
+       </property>
+       <property name="alarmChannels">
+        <stringlist>
+         <string></string>
+        </stringlist>
+       </property>
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>Environment Monitoring</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="1" column="0" colspan="3">
+          <widget class="PyDMTimePlot" name="PyDMTimePlot">
+           <property name="toolTip">
+            <string/>
            </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="checkBox">
-           <property name="text">
-            <string>Strong back temp.</string>
+           <property name="xLabels">
+            <stringlist/>
            </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QCheckBox" name="checkBox_8">
-           <property name="text">
-            <string>Vcc_d (mV)</string>
+           <property name="showLegend">
+            <bool>true</bool>
            </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="checkBox_3">
-           <property name="text">
-            <string>Relative Hum.</string>
+           <property name="maxRedrawRate" stdset="0">
+            <number>100000</number>
            </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="checkBox_6">
-           <property name="text">
-            <string>Guard ring current (uA)</string>
+           <property name="updateMode" stdset="0">
+            <enum>PyDMTimePlot::AtFixedRate</enum>
            </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="checkBox_2">
-           <property name="text">
-            <string>Ambient temp.</string>
+           <property name="timeSpan">
+            <double>60.000000000000000</double>
+           </property>
+           <property name="updateInterval">
+            <double>0.001000000000000</double>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QCheckBox" name="checkBox_5">
+          <widget class="QLabel" name="label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
-            <string>ASIC (D.) current (mA)</string>
+            <string>Timeplot Timespan (s):</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QCheckBox" name="checkBox_4">
-           <property name="text">
-            <string>ASIC (A.) current (mA)</string>
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="2" column="1">
+            <widget class="QCheckBox" name="checkBox_7">
+             <property name="text">
+              <string>Vcc_a (mV)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBox">
+             <property name="text">
+              <string>Strong back temp.</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QCheckBox" name="checkBox_8">
+             <property name="text">
+              <string>Vcc_d (mV)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="checkBox_3">
+             <property name="text">
+              <string>Relative Hum.</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QCheckBox" name="checkBox_6">
+             <property name="text">
+              <string>Guard ring current (uA)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox_2">
+             <property name="text">
+              <string>Ambient temp.</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QCheckBox" name="checkBox_5">
+             <property name="text">
+              <string>ASIC (D.) current (mA)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="checkBox_4">
+             <property name="text">
+              <string>ASIC (A.) current (mA)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
-       <widget class="PyDMTimePlot" name="PyDMTimePlot">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>110</y>
-          <width>1091</width>
-          <height>411</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="xLabels">
-         <stringlist/>
-        </property>
-        <property name="showLegend">
-         <bool>true</bool>
-        </property>
-        <property name="maxRedrawRate" stdset="0">
-         <number>100000</number>
-        </property>
-        <property name="updateMode" stdset="0">
-         <enum>PyDMTimePlot::AtFixedRate</enum>
-        </property>
-        <property name="timeSpan">
-         <double>60.000000000000000</double>
-        </property>
-        <property name="updateInterval">
-         <double>0.001000000000000</double>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label">
-        <property name="geometry">
-         <rect>
-          <x>360</x>
-          <y>10</y>
-          <width>141</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Timeplot Timespan (s):</string>
-        </property>
-       </widget>
-       <widget class="QLineEdit" name="lineEdit">
-        <property name="geometry">
-         <rect>
-          <x>510</x>
-          <y>10</y>
-          <width>113</width>
-          <height>23</height>
-         </rect>
-        </property>
-       </widget>
       </widget>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
   <customwidget>

@@ -6,177 +6,165 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1618</width>
-    <height>946</height>
+    <width>1715</width>
+    <height>1042</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Pseudoscope</string>
   </property>
-  <widget class="QWidget" name="gridLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>1101</width>
-     <height>881</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="PyDMTabWidget" name="PyDMTabWidget">
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="whatsThis">
-       <string/>
-      </property>
-      <property name="alarmChannels">
-       <stringlist>
-        <string></string>
-       </stringlist>
-      </property>
-      <widget class="QWidget" name="tab">
-       <attribute name="title">
-        <string>Pseudoscope</string>
-       </attribute>
-       <widget class="QWidget" name="gridLayoutWidget_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>333</width>
-          <height>122</height>
-         </rect>
+  <layout class="QGridLayout" name="gridLayout_4">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="PyDMTabWidget" name="PyDMTabWidget">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="whatsThis">
+        <string/>
+       </property>
+       <property name="alarmChannels">
+        <stringlist>
+         <string></string>
+        </stringlist>
+       </property>
+       <widget class="QWidget" name="tab">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <layout class="QGridLayout" name="gridLayout_2">
+        <attribute name="title">
+         <string>Pseudoscope</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="1" column="0">
+            <widget class="PyDMCheckbox" name="PyDMCheckbox_4">
+             <property name="toolTip">
+              <string/>
+             </property>
+             <property name="text">
+              <string>Channel B</string>
+             </property>
+             <property name="channel" stdset="0">
+              <string>${dataReceiver}.ShowChannelBData</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="PyDMCheckbox" name="PyDMCheckbox_3">
+             <property name="toolTip">
+              <string/>
+             </property>
+             <property name="text">
+              <string>Channel A</string>
+             </property>
+             <property name="channel" stdset="0">
+              <string>${dataReceiver}.ShowChannelAData</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
          <item row="1" column="0">
-          <widget class="PyDMCheckbox" name="PyDMCheckbox_4">
+          <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>300</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string/>
            </property>
-           <property name="text">
-            <string>Channel B</string>
+           <property name="yAxes">
+            <stringlist>
+             <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
+            </stringlist>
            </property>
-           <property name="channel" stdset="0">
-            <string>${dataReceiver}.ShowChannelBData</string>
+           <property name="showLegend">
+            <bool>true</bool>
+           </property>
+           <property name="curves">
+            <stringlist>
+             <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.ChannelAData&quot;, &quot;x_channel&quot;: null, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel A&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+             <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.ChannelBData&quot;, &quot;x_channel&quot;: null, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel B&quot;, &quot;color&quot;: &quot;red&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+            </stringlist>
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="PyDMCheckbox" name="PyDMCheckbox_3">
+         <item row="2" column="0">
+          <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>300</height>
+            </size>
+           </property>
            <property name="toolTip">
             <string/>
            </property>
-           <property name="text">
-            <string>Channel A</string>
+           <property name="yAxes">
+            <stringlist>
+             <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
+            </stringlist>
            </property>
-           <property name="channel" stdset="0">
-            <string>${dataReceiver}.ShowChannelAData</string>
+           <property name="showLegend">
+            <bool>true</bool>
+           </property>
+           <property name="curves">
+            <stringlist>
+             <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.FFTYA&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.FFTXA&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel A&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+             <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.FFTYB&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.FFTXB&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel B&quot;, &quot;color&quot;: &quot;red&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+            </stringlist>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
-       <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>130</y>
-          <width>1091</width>
-          <height>350</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>300</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="yAxes">
-         <stringlist>
-          <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
-         </stringlist>
-        </property>
-        <property name="showLegend">
-         <bool>true</bool>
-        </property>
-        <property name="curves">
-         <stringlist>
-          <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.ChannelAData&quot;, &quot;x_channel&quot;: null, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel A&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-          <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.ChannelBData&quot;, &quot;x_channel&quot;: null, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel B&quot;, &quot;color&quot;: &quot;red&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-         </stringlist>
-        </property>
-       </widget>
-       <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>490</y>
-          <width>1099</width>
-          <height>350</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>300</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="yAxes">
-         <stringlist>
-          <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
-         </stringlist>
-        </property>
-        <property name="showLegend">
-         <bool>true</bool>
-        </property>
-        <property name="curves">
-         <stringlist>
-          <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.FFTYA&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.FFTXA&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel A&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-          <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.FFTYB&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.FFTXB&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Channel B&quot;, &quot;color&quot;: &quot;red&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-         </stringlist>
-        </property>
-       </widget>
       </widget>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="SimpleDebugTree" name="SimpleDebugTree">
-   <property name="geometry">
-    <rect>
-     <x>1130</x>
-     <y>60</y>
-     <width>471</width>
-     <height>331</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string/>
-   </property>
-   <property name="channel" stdset="0">
-    <string>rogue://0/root.EpixHR.Oscilloscope</string>
-   </property>
-  </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="1">
+    <widget class="SimpleDebugTree" name="SimpleDebugTree">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>500</width>
+       <height>1000</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string>rogue://0/root.EpixHR.Oscilloscope</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
   <customwidget>
