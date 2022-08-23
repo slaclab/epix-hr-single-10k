@@ -6,664 +6,667 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1680</width>
+    <width>1831</width>
     <height>984</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>823</width>
-    <height>0</height>
+    <width>1761</width>
+    <height>984</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>ePixViewer</string>
   </property>
-  <widget class="QWidget" name="gridLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>30</y>
-     <width>1654</width>
-     <height>931</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0" rowspan="5">
-     <widget class="PyDMImageView" name="PyDMImageView">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>768</width>
-        <height>584</height>
-       </size>
-      </property>
-      <property name="mouseTracking">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="alarmSensitiveContent" stdset="0">
-       <bool>false</bool>
-      </property>
-      <property name="alarmSensitiveBorder" stdset="0">
-       <bool>true</bool>
-      </property>
-      <property name="channel" stdset="0">
-       <string/>
-      </property>
-      <property name="colorMapMin" stdset="0">
-       <double>10000.000000000000000</double>
-      </property>
-      <property name="colorMapMax" stdset="0">
-       <double>12000.000000000000000</double>
-      </property>
-      <property name="colorMap" stdset="0">
-       <enum>PyDMImageView::Monochrome</enum>
-      </property>
-      <property name="autoDownsample" stdset="0">
-       <bool>true</bool>
-      </property>
-      <property name="imageWidth" stdset="0">
-       <number>0</number>
-      </property>
-      <property name="normalizeData" stdset="0">
-       <bool>false</bool>
-      </property>
-      <property name="readingOrder" stdset="0">
-       <enum>PyDMImageView::Clike</enum>
-      </property>
-      <property name="imageChannel" stdset="0">
-       <string>${dataReceiver}.Data</string>
-      </property>
-      <property name="widthChannel" stdset="0">
-       <string/>
-      </property>
-      <property name="maxRedrawRate" stdset="0">
-       <number>30</number>
-      </property>
-      <property name="showAxes" stdset="0">
-       <bool>false</bool>
-      </property>
-      <property name="scaleXAxis" stdset="0">
-       <double>1.000000000000000</double>
-      </property>
-      <property name="scaleYAxis" stdset="0">
-       <double>1.000000000000000</double>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1" colspan="2">
-     <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>823</width>
-        <height>230</height>
-       </size>
-      </property>
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="yAxes">
-       <stringlist>
-        <string>{&quot;name&quot;: &quot;Counts&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
-       </stringlist>
-      </property>
-      <property name="title" stdset="0">
-       <string>Histogram</string>
-      </property>
-      <property name="xLabels">
-       <stringlist>
-        <string>Pixel Values</string>
-       </stringlist>
-      </property>
-      <property name="curves">
-       <stringlist>
-        <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.Histogram&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.Bins&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: &quot;s&quot;, &quot;symbolSize&quot;: 1, &quot;yAxisName&quot;: &quot;Counts&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-       </stringlist>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1" colspan="2">
-     <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot_3">
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="yAxes">
-       <stringlist>
-        <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
-       </stringlist>
-      </property>
-      <property name="xLabels">
-       <stringlist>
-        <string>Pixel Locations</string>
-       </stringlist>
-      </property>
-      <property name="showLegend">
-       <bool>true</bool>
-      </property>
-      <property name="curves">
-       <stringlist>
-        <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.Horizontal&quot;, &quot;x_channel&quot;: null, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Horizontal Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-        <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.Vertical&quot;, &quot;x_channel&quot;: null, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Vertical Counts&quot;, &quot;color&quot;: &quot;red&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-       </stringlist>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1" rowspan="2" colspan="2">
-     <widget class="PyDMTimePlot" name="PyDMTimePlot">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>823</width>
-        <height>230</height>
-       </size>
-      </property>
-      <property name="mouseTracking">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="yAxes">
-       <stringlist>
-        <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: 10500.0, &quot;maxRange&quot;: 10600.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
-       </stringlist>
-      </property>
-      <property name="showLegend">
-       <bool>false</bool>
-      </property>
-      <property name="maxRedrawRate" stdset="0">
-       <number>100000</number>
-      </property>
-      <property name="curves">
-       <stringlist>
-        <string>{&quot;channel&quot;: &quot;${dataReceiver}.PixelData&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Time Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;}</string>
-       </stringlist>
-      </property>
-      <property name="bufferSize">
-       <number>60000</number>
-      </property>
-      <property name="updatesAsynchronously">
-       <bool>false</bool>
-      </property>
-      <property name="updateMode" stdset="0">
-       <enum>PyDMTimePlot::OnValueChange</enum>
-      </property>
-      <property name="timeSpan">
-       <double>60.000000000000000</double>
-      </property>
-      <property name="updateInterval">
-       <double>0.001000000000000</double>
-      </property>
-      <property name="autoRangeY">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1" colspan="2">
-     <widget class="PyDMTabWidget" name="PyDMTabWidget">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>823</width>
-        <height>150</height>
-       </size>
-      </property>
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="whatsThis">
-       <string/>
-      </property>
-      <property name="currentIndex">
-       <number>0</number>
-      </property>
-      <property name="alarmChannels">
-       <stringlist>
-        <string></string>
-       </stringlist>
-      </property>
-      <widget class="QWidget" name="tab_5">
-       <attribute name="title">
-        <string>Main</string>
-       </attribute>
-       <widget class="PyDMLineEdit" name="PyDMLineEdit_2">
-        <property name="geometry">
-         <rect>
-          <x>161</x>
-          <y>29</y>
-          <width>103</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.X</string>
-        </property>
-       </widget>
-       <widget class="PyDMLineEdit" name="PyDMLineEdit">
-        <property name="geometry">
-         <rect>
-          <x>161</x>
-          <y>0</y>
-          <width>103</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.NumDarkReq</string>
-        </property>
-       </widget>
-       <widget class="PyDMLabel" name="PyDMLabel_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>29</y>
-          <width>155</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Pixel Information</string>
-        </property>
-       </widget>
-       <widget class="PyDMLineEdit" name="PyDMLineEdit_6">
-        <property name="geometry">
-         <rect>
-          <x>270</x>
-          <y>29</y>
-          <width>103</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.Y</string>
-        </property>
-       </widget>
-       <widget class="PyDMLabel" name="PyDMLabel_4">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>60</y>
-          <width>155</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Contrast (min, max)</string>
-        </property>
-       </widget>
-       <widget class="PyDMLineEdit" name="PyDMLineEdit_4">
-        <property name="geometry">
-         <rect>
-          <x>161</x>
-          <y>60</y>
-          <width>103</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.MinPixVal</string>
-        </property>
-       </widget>
-       <widget class="PyDMLabel" name="PyDMLabel">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>155</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Number of Dark Images</string>
-        </property>
-       </widget>
-       <widget class="PyDMLineEdit" name="PyDMLineEdit_5">
-        <property name="geometry">
-         <rect>
-          <x>270</x>
-          <y>60</y>
-          <width>103</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.MaxPixVal</string>
-        </property>
-       </widget>
-       <widget class="PyDMPushButton" name="PyDMPushButton_2">
-        <property name="geometry">
-         <rect>
-          <x>270</x>
-          <y>0</y>
-          <width>103</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Collect Dark</string>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.CollectDark</string>
-        </property>
-        <property name="pressValue" stdset="0">
-         <string>1</string>
-        </property>
-       </widget>
-       <widget class="PyDMCheckbox" name="PyDMCheckbox_15">
-        <property name="geometry">
-         <rect>
-          <x>490</x>
-          <y>0</y>
-          <width>91</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Apply Dark</string>
-        </property>
-        <property name="rules" stdset="0">
-         <string>[{&quot;name&quot;: &quot;DarkReady&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;True&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;${dataReceiver}.DarkReady&quot;, &quot;trigger&quot;: true}]}]</string>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.ApplyDark</string>
-        </property>
-       </widget>
-       <widget class="PyDMCheckbox" name="PyDMCheckbox_16">
-        <property name="geometry">
-         <rect>
-          <x>380</x>
-          <y>0</y>
-          <width>91</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Show Dark</string>
-        </property>
-        <property name="rules" stdset="0">
-         <string>[{&quot;name&quot;: &quot;DarkReady&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;True&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;${dataReceiver}.DarkReady&quot;, &quot;trigger&quot;: true}]}]</string>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.ShowDark</string>
-        </property>
-       </widget>
-       <widget class="PyDMCheckbox" name="PyDMCheckbox_17">
-        <property name="geometry">
-         <rect>
-          <x>380</x>
-          <y>60</y>
-          <width>141</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Automatic Contrast</string>
-        </property>
-        <property name="rules" stdset="0">
-         <string>[]</string>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.AutoCon</string>
-        </property>
-       </widget>
-       <widget class="PyDMLabel" name="PyDMLabel_24">
-        <property name="geometry">
-         <rect>
-          <x>620</x>
-          <y>0</y>
-          <width>171</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Descramble Error Counts:</string>
-        </property>
-       </widget>
-       <widget class="PyDMCheckbox" name="PyDMCheckbox_4">
-        <property name="geometry">
-         <rect>
-          <x>540</x>
-          <y>50</y>
-          <width>142</width>
-          <height>39</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Plot Horizontal Line</string>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.PlotHorizontal</string>
-        </property>
-       </widget>
-       <widget class="PyDMCheckbox" name="PyDMCheckbox_3">
-        <property name="geometry">
-         <rect>
-          <x>700</x>
-          <y>50</y>
-          <width>274</width>
-          <height>39</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Plot Vertical Line</string>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.PlotVertical</string>
-        </property>
-       </widget>
-       <widget class="PyDMLabel" name="PyDMLabel_3">
-        <property name="geometry">
-         <rect>
-          <x>460</x>
-          <y>30</y>
-          <width>67</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.PixelData</string>
-        </property>
-       </widget>
-       <widget class="PyDMLabel" name="PyDMLabel_5">
-        <property name="geometry">
-         <rect>
-          <x>780</x>
-          <y>0</y>
-          <width>81</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="channel" stdset="0">
-         <string>${dataReceiver}.DescError</string>
-        </property>
-       </widget>
-       <widget class="PyDMLabel" name="PyDMLabel_6">
-        <property name="geometry">
-         <rect>
-          <x>380</x>
-          <y>30</y>
-          <width>81</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string/>
-        </property>
-        <property name="text">
-         <string>Pixel Value:</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton">
-        <property name="geometry">
-         <rect>
-          <x>510</x>
-          <y>30</y>
-          <width>101</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Reset Timeplot</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label">
-        <property name="geometry">
-         <rect>
-          <x>620</x>
-          <y>30</y>
-          <width>141</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Timeplot Timespan (s):</string>
-        </property>
-       </widget>
-       <widget class="QLineEdit" name="lineEdit">
-        <property name="geometry">
-         <rect>
-          <x>770</x>
-          <y>30</y>
-          <width>81</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0" rowspan="5">
+      <widget class="PyDMImageView" name="PyDMImageView">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>768</width>
+         <height>964</height>
+        </size>
+       </property>
+       <property name="mouseTracking">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="alarmSensitiveContent" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="alarmSensitiveBorder" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="channel" stdset="0">
+        <string/>
+       </property>
+       <property name="colorMapMin" stdset="0">
+        <double>10000.000000000000000</double>
+       </property>
+       <property name="colorMapMax" stdset="0">
+        <double>12000.000000000000000</double>
+       </property>
+       <property name="colorMap" stdset="0">
+        <enum>PyDMImageView::Monochrome</enum>
+       </property>
+       <property name="autoDownsample" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="imageWidth" stdset="0">
+        <number>0</number>
+       </property>
+       <property name="normalizeData" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="readingOrder" stdset="0">
+        <enum>PyDMImageView::Clike</enum>
+       </property>
+       <property name="imageChannel" stdset="0">
+        <string>${dataReceiver}.Data</string>
+       </property>
+       <property name="widthChannel" stdset="0">
+        <string/>
+       </property>
+       <property name="maxRedrawRate" stdset="0">
+        <number>30</number>
+       </property>
+       <property name="showAxes" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="scaleXAxis" stdset="0">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="scaleYAxis" stdset="0">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" colspan="2">
+      <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>823</width>
+         <height>230</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="yAxes">
+        <stringlist>
+         <string>{&quot;name&quot;: &quot;Counts&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
+        </stringlist>
+       </property>
+       <property name="title" stdset="0">
+        <string>Histogram</string>
+       </property>
+       <property name="xLabels">
+        <stringlist>
+         <string>Pixel Values</string>
+        </stringlist>
+       </property>
+       <property name="curves">
+        <stringlist>
+         <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.Histogram&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.Bins&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: &quot;s&quot;, &quot;symbolSize&quot;: 1, &quot;yAxisName&quot;: &quot;Counts&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1" colspan="2">
+      <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot_3">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>823</width>
+         <height>230</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="yAxes">
+        <stringlist>
+         <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
+        </stringlist>
+       </property>
+       <property name="xLabels">
+        <stringlist>
+         <string>Pixel Locations</string>
+        </stringlist>
+       </property>
+       <property name="showLegend">
+        <bool>true</bool>
+       </property>
+       <property name="curves">
+        <stringlist>
+         <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.Horizontal&quot;, &quot;x_channel&quot;: null, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Horizontal Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+         <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.Vertical&quot;, &quot;x_channel&quot;: null, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Vertical Counts&quot;, &quot;color&quot;: &quot;red&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" rowspan="2" colspan="2">
+      <widget class="PyDMTimePlot" name="PyDMTimePlot">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>823</width>
+         <height>230</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="yAxes">
+        <stringlist>
+         <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: 10500.0, &quot;maxRange&quot;: 10600.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
+        </stringlist>
+       </property>
+       <property name="showLegend">
+        <bool>false</bool>
+       </property>
+       <property name="maxRedrawRate" stdset="0">
+        <number>100000</number>
+       </property>
+       <property name="curves">
+        <stringlist>
+         <string>{&quot;channel&quot;: &quot;${dataReceiver}.PixelData&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Time Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;}</string>
+        </stringlist>
+       </property>
+       <property name="bufferSize">
+        <number>60000</number>
+       </property>
+       <property name="updatesAsynchronously">
+        <bool>false</bool>
+       </property>
+       <property name="updateMode" stdset="0">
+        <enum>PyDMTimePlot::OnValueChange</enum>
+       </property>
+       <property name="timeSpan">
+        <double>60.000000000000000</double>
+       </property>
+       <property name="updateInterval">
+        <double>0.001000000000000</double>
+       </property>
+       <property name="autoRangeY">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" colspan="2">
+      <widget class="PyDMTabWidget" name="PyDMTabWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>900</width>
+         <height>150</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="whatsThis">
+        <string/>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <property name="alarmChannels">
+        <stringlist>
+         <string></string>
+        </stringlist>
+       </property>
+       <widget class="QWidget" name="tab_5">
+        <attribute name="title">
+         <string>Main</string>
+        </attribute>
+        <widget class="PyDMLineEdit" name="PyDMLineEdit_2">
+         <property name="geometry">
+          <rect>
+           <x>161</x>
+           <y>29</y>
+           <width>103</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.X</string>
+         </property>
+        </widget>
+        <widget class="PyDMLineEdit" name="PyDMLineEdit">
+         <property name="geometry">
+          <rect>
+           <x>161</x>
+           <y>0</y>
+           <width>103</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.NumDarkReq</string>
+         </property>
+        </widget>
+        <widget class="PyDMLabel" name="PyDMLabel_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>29</y>
+           <width>155</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Pixel Information</string>
+         </property>
+        </widget>
+        <widget class="PyDMLineEdit" name="PyDMLineEdit_6">
+         <property name="geometry">
+          <rect>
+           <x>270</x>
+           <y>29</y>
+           <width>103</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.Y</string>
+         </property>
+        </widget>
+        <widget class="PyDMLabel" name="PyDMLabel_4">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>60</y>
+           <width>155</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Contrast (min, max)</string>
+         </property>
+        </widget>
+        <widget class="PyDMLineEdit" name="PyDMLineEdit_4">
+         <property name="geometry">
+          <rect>
+           <x>161</x>
+           <y>60</y>
+           <width>103</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.MinPixVal</string>
+         </property>
+        </widget>
+        <widget class="PyDMLabel" name="PyDMLabel">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>155</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Number of Dark Images</string>
+         </property>
+        </widget>
+        <widget class="PyDMLineEdit" name="PyDMLineEdit_5">
+         <property name="geometry">
+          <rect>
+           <x>270</x>
+           <y>60</y>
+           <width>103</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.MaxPixVal</string>
+         </property>
+        </widget>
+        <widget class="PyDMPushButton" name="PyDMPushButton_2">
+         <property name="geometry">
+          <rect>
+           <x>270</x>
+           <y>0</y>
+           <width>103</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Collect Dark</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.CollectDark</string>
+         </property>
+         <property name="pressValue" stdset="0">
+          <string>1</string>
+         </property>
+        </widget>
+        <widget class="PyDMCheckbox" name="PyDMCheckbox_15">
+         <property name="geometry">
+          <rect>
+           <x>490</x>
+           <y>0</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Apply Dark</string>
+         </property>
+         <property name="rules" stdset="0">
+          <string>[{&quot;name&quot;: &quot;DarkReady&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;True&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;${dataReceiver}.DarkReady&quot;, &quot;trigger&quot;: true}]}]</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.ApplyDark</string>
+         </property>
+        </widget>
+        <widget class="PyDMCheckbox" name="PyDMCheckbox_16">
+         <property name="geometry">
+          <rect>
+           <x>380</x>
+           <y>0</y>
+           <width>91</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Show Dark</string>
+         </property>
+         <property name="rules" stdset="0">
+          <string>[{&quot;name&quot;: &quot;DarkReady&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;True&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;${dataReceiver}.DarkReady&quot;, &quot;trigger&quot;: true}]}]</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.ShowDark</string>
+         </property>
+        </widget>
+        <widget class="PyDMCheckbox" name="PyDMCheckbox_17">
+         <property name="geometry">
+          <rect>
+           <x>380</x>
+           <y>60</y>
+           <width>141</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Automatic Contrast</string>
+         </property>
+         <property name="rules" stdset="0">
+          <string>[]</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.AutoCon</string>
+         </property>
+        </widget>
+        <widget class="PyDMLabel" name="PyDMLabel_24">
+         <property name="geometry">
+          <rect>
+           <x>620</x>
+           <y>0</y>
+           <width>171</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Descramble Error Counts:</string>
+         </property>
+        </widget>
+        <widget class="PyDMCheckbox" name="PyDMCheckbox_4">
+         <property name="geometry">
+          <rect>
+           <x>540</x>
+           <y>50</y>
+           <width>142</width>
+           <height>39</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Plot Horizontal Line</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.PlotHorizontal</string>
+         </property>
+        </widget>
+        <widget class="PyDMCheckbox" name="PyDMCheckbox_3">
+         <property name="geometry">
+          <rect>
+           <x>700</x>
+           <y>50</y>
+           <width>274</width>
+           <height>39</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Plot Vertical Line</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.PlotVertical</string>
+         </property>
+        </widget>
+        <widget class="PyDMLabel" name="PyDMLabel_3">
+         <property name="geometry">
+          <rect>
+           <x>460</x>
+           <y>30</y>
+           <width>67</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.PixelData</string>
+         </property>
+        </widget>
+        <widget class="PyDMLabel" name="PyDMLabel_5">
+         <property name="geometry">
+          <rect>
+           <x>780</x>
+           <y>0</y>
+           <width>81</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.DescError</string>
+         </property>
+        </widget>
+        <widget class="PyDMLabel" name="PyDMLabel_6">
+         <property name="geometry">
+          <rect>
+           <x>380</x>
+           <y>30</y>
+           <width>81</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Pixel Value:</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="pushButton">
+         <property name="geometry">
+          <rect>
+           <x>510</x>
+           <y>30</y>
+           <width>101</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Reset Timeplot</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label">
+         <property name="geometry">
+          <rect>
+           <x>620</x>
+           <y>30</y>
+           <width>141</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Timeplot Timespan (s):</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit">
+         <property name="geometry">
+          <rect>
+           <x>770</x>
+           <y>30</y>
+           <width>81</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+        <widget class="PyDMCheckbox" name="PyDMCheckbox_18">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>90</y>
+           <width>121</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Noise Colormap</string>
+         </property>
+         <property name="rules" stdset="0">
+          <string>[{&quot;name&quot;: &quot;NoiseColormapReady&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;True&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;${dataReceiver}.NoiseColormapReady&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}]}]</string>
+         </property>
+         <property name="alarmSensitiveContent" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="alarmSensitiveBorder" stdset="0">
+          <bool>true</bool>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.NoiseColormap</string>
+         </property>
+        </widget>
        </widget>
       </widget>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="PyDMCheckbox" name="PyDMCheckbox_18">
-   <property name="geometry">
-    <rect>
-     <x>790</x>
-     <y>150</y>
-     <width>121</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string/>
-   </property>
-   <property name="text">
-    <string>Noise Colormap</string>
-   </property>
-   <property name="rules" stdset="0">
-    <string>[{&quot;name&quot;: &quot;NoiseColormapReady&quot;, &quot;property&quot;: &quot;Enable&quot;, &quot;initial_value&quot;: &quot;True&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;${dataReceiver}.NoiseColormapReady&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}]}]</string>
-   </property>
-   <property name="alarmSensitiveContent" stdset="0">
-    <bool>false</bool>
-   </property>
-   <property name="alarmSensitiveBorder" stdset="0">
-    <bool>true</bool>
-   </property>
-   <property name="channel" stdset="0">
-    <string>${dataReceiver}.NoiseColormap</string>
-   </property>
-  </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
   <customwidget>

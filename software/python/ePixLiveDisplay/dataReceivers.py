@@ -5,18 +5,18 @@
 # File       : dataReceivers.py
 # Author     : Jaeyoung (Daniel) Lee
 # Created    : 2022-06-22
-# Last update: 2022-07-27
+# Last update: 2022-08-23
 #-----------------------------------------------------------------------------
 # Description:
 # Updated data receivers for processing image, environment, and pseudoscope
 # data for the new PyDM live viewer
 #-----------------------------------------------------------------------------
-# This file is part of the ePix rogue. It is subject to 
-# the license terms in the LICENSE.txt file found in the top-level directory 
-# of this distribution and at: 
+# This file is part of the ePix rogue. It is subject to
+# the license terms in the LICENSE.txt file found in the top-level directory
+# of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-# No part of the ePix rogue, including this file, may be 
-# copied, modified, propagated, or distributed except according to the terms 
+# No part of the ePix rogue, including this file, may be
+# copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
