@@ -5,7 +5,7 @@
 # File       : ePixGUI.py
 # Author     : Jaeyoung (Daniel) Lee
 # Created    : 2022-06-22
-# Last update: 2022-07-27
+# Last update: 2022-08-26
 #-----------------------------------------------------------------------------
 # Description:
 # Configuration file for building the live image viewer GUI using PyDM
@@ -65,19 +65,19 @@ class ePixGUI(pydm.Display):
         self._dataReceiver = macros['dataReceiver']
         self.ui.PyDMImageView.newImageSignal.connect(self.updateDisplay)
         self.ui.PyDMImageView.scene.sigMouseClicked.connect(self.clickProcess)
-        self.ui.PyDMLineEdit_2.textChanged.connect(self.resetTimePlot)
-        self.ui.PyDMLineEdit_6.textChanged.connect(self.resetTimePlot)
-        self.ui.lineEdit.textChanged.connect(self.setTimeSpan)
-        self.ui.PyDMCheckbox_15.stateChanged.connect(self.resetTimePlot)
-        self.ui.pushButton.clicked.connect(self.resetTimePlot)
+        # self.ui.PyDMLineEdit_3.textChanged.connect(self.resetTimePlot)
+        # self.ui.PyDMLineEdit_6.textChanged.connect(self.resetTimePlot)
+        # self.ui.lineEdit.textChanged.connect(self.setTimeSpan)
+        # self.ui.PyDMCheckbox_15.stateChanged.connect(self.resetTimePlot)
+        # self.ui.pushButton.clicked.connect(self.resetTimePlot)
 
     def updateDisplay(self):
         maxContrast = int(self.ui.PyDMLineEdit_5.displayText())
         minContrast = int(self.ui.PyDMLineEdit_4.displayText())
         self.ui.PyDMImageView.setColorMapLimits(minContrast, maxContrast)
 
-    def setTimeSpan(self):
-        self.ui.PyDMTimePlot.setTimeSpan(int(self.ui.lineEdit.text()))
+    # def setTimeSpan(self):
+    #     self.ui.PyDMTimePlot.setTimeSpan(int(self.ui.lineEdit.text()))
 
     def clickProcess(self, event):
         pos = self.ui.PyDMImageView.getView().getViewBox().mapSceneToView(event.scenePos())
@@ -88,15 +88,15 @@ class ePixGUI(pydm.Display):
         self.ui.PyDMLineEdit_6.setText(y)
         self.ui.PyDMLineEdit_6.send_value()
 
-    def resetTimePlot(self):
-        self.ui.PyDMTimePlot.removeYChannel(self.ui.PyDMTimePlot.findCurve(
-            f'{self._dataReceiver}.PixelData'))
-        self.ui.PyDMTimePlot.addYChannel(
-            y_channel = f'{self._dataReceiver}.PixelData', 
-            name = "Pixel counts", 
-            plot_style = "Line", 
-            color = "white", 
-            lineWidth = 1)
+    # def resetTimePlot(self):
+    #     self.ui.PyDMTimePlot.removeYChannel(self.ui.PyDMTimePlot.findCurve(
+    #         f'{self._dataReceiver}.PixelData'))
+    #     self.ui.PyDMTimePlot.addYChannel(
+    #         y_channel = f'{self._dataReceiver}.PixelData', 
+    #         name = "Pixel counts", 
+    #         plot_style = "Line", 
+    #         color = "white", 
+    #         lineWidth = 1)
 
     def ui_filename(self):
         # Point to the UI file

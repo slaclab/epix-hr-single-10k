@@ -5,7 +5,7 @@
 # File       : dataReceivers.py
 # Author     : Jaeyoung (Daniel) Lee
 # Created    : 2022-06-22
-# Last update: 2022-08-23
+# Last update: 2022-08-26
 #-----------------------------------------------------------------------------
 # Description:
 # Updated data receivers for processing image, environment, and pseudoscope
@@ -38,6 +38,14 @@ class DataReceiverBase(pr.DataReceiver):
         # Queue for automatic contrast
         self.NoiseQueue = collections.deque(maxlen = 1000)
         # Queue for noise color map
+        self.TimePlotQueue = collections.deque(maxlen = 1000)
+        # Queue for pixel timeplot y
+        self.TimePlotIndexQueue = collections.deque(maxlen = 1000)
+        # Queue for pixel timeplot x
+        self.nextIndex = 0
+        # Next index for timeplot
+        self.maxlen = 1000
+        # Maxlen for timeplot
         self.numDarkCol = 0
         self.DarkImg = []
         self.oldApplyDark = False
@@ -47,9 +55,18 @@ class DataReceiverBase(pr.DataReceiver):
         self.colormap = []
         self.add(pr.LocalVariable(
             name = "PixelData",
+            value = [],
+            description = "Vector pixel value for pixel data slot"
+        ))
+        self.add(pr.LocalVariable(
+            name = "IndexData",
+            value = [],
+            description = "Vector index value for pixel data slot"
+        ))
+        self.add(pr.LocalVariable(
+            name = "PixelDataScalar",
             value = 0,
-            mode = "RO",
-            description = "Scalar pixel value for timeplot"
+            description = "Scalar pixel value for pixel data slot"
         ))
         self.add(pr.LocalVariable(
             name = "X",
@@ -157,6 +174,33 @@ class DataReceiverBase(pr.DataReceiver):
             value = False,
             description = "Whether NoiseColormap is ready or not"
         ))
+        self.add(pr.LocalVariable(
+            name = "TimePlotMaxLen",
+            value = 1000,
+            description = "Max frame length for timeplot"
+        ))
+        self.add(pr.LocalVariable(
+            name = "ResetTimePlot",
+            value = False,
+            description = "Whether to reset timeplot or not"
+        ))
+        maxlen = 1000
+        index = -maxlen
+        for i in range(maxlen):
+            self.TimePlotQueue.append(0)
+            self.TimePlotIndexQueue.append(index + i)
+
+    def resetTimePlot(self):
+        maxlen = self.TimePlotMaxLen.get()
+        index = -maxlen
+        for i in range(maxlen):
+            self.TimePlotQueue.append(0)
+            self.TimePlotIndexQueue.append(index + i)
+        self.nextIndex = 0
+    
+    def resetTimePlotMaxLen(self):
+        self.TimePlotQueue = collections.deque(self.TimePlotQueue.copy(), maxlen = self.TimePlotMaxLen.get())
+        self.TimePlotIndexQueue = collections.deque(self.TimePlotIndexQueue.copy(), maxlen = self.TimePlotMaxLen.get())
 
     def descramble(self, frame):
         return frame
@@ -165,12 +209,20 @@ class DataReceiverBase(pr.DataReceiver):
         if time.time() - self.start > 1 and self.NoiseQueue:
             self.start = time.time()
             self.colormap = np.std(np.array(self.NoiseQueue), 0)
-        if len(self.colormap):
-            self.NoiseColormapReady.set(True, write = True)
         with self.root.updateGroup():
+            if len(self.colormap):
+                self.NoiseColormapReady.set(True, write = True)
             imgDesc = self.descramble(frame)
             imgView = copy(imgDesc)
             imgRaw = copy(imgDesc)
+
+            if self.ResetTimePlot.get():
+                self.resetTimePlot()
+                self.ResetTimePlot.set(False, write = True)
+
+            if self.TimePlotMaxLen.get() is not self.maxlen:
+                self.resetTimePlotMaxLen()
+                self.maxlen = self.TimePlotMaxLen.get()
 
             # Dark collecting process:
             if self.CollectDark.get():
@@ -221,12 +273,20 @@ class DataReceiverBase(pr.DataReceiver):
                         imgView[self.x+1][i] = crossHairVal
                 self.Data.set(imgView, write = True)
             
+            self.NoiseQueue.append(imgRaw)
             # Setting data for timeplot and horizontal/vertical plots:
             if self.x >= 0 and self.x < self.length and self.y >= 0 and self.y < self.width:
+                # Timeplot processing
+                self.PixelDataScalar.set(int(imgRaw[self.x][self.y]), write = True)
+                self.TimePlotQueue.append(int(imgRaw[self.x][self.y]))
+                self.TimePlotIndexQueue.append(self.nextIndex)
+                self.nextIndex += 1
+                self.PixelData.set(np.array(self.TimePlotQueue), write = True)
+                self.IndexData.set(np.array(self.TimePlotIndexQueue), write = True)
+
                 temp = imgRaw
                 if self.NoiseColormap.get():
                     temp = self.colormap
-                self.PixelData.set(int(temp[self.x][self.y]), write = True)
                 if self.PlotHorizontal.get():
                     self.Horizontal.set(temp[self.x], write = True)
                 else:
@@ -238,7 +298,7 @@ class DataReceiverBase(pr.DataReceiver):
                 self.Queue.append(imgRaw[self.x][self.y])
                 self.ImageQueue.append(imgRaw)
 
-            self.NoiseQueue.append(imgRaw)
+            
 
             # Histogram generation & automatic contrast processing:
             array = np.array(self.Queue)

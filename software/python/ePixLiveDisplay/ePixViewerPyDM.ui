@@ -28,7 +28,7 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0" rowspan="5">
+     <item row="0" column="0" rowspan="6">
       <widget class="PyDMImageView" name="PyDMImageView">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -98,44 +98,7 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1" colspan="2">
-      <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>823</width>
-         <height>230</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string/>
-       </property>
-       <property name="yAxes">
-        <stringlist>
-         <string>{&quot;name&quot;: &quot;Counts&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
-        </stringlist>
-       </property>
-       <property name="title" stdset="0">
-        <string>Histogram</string>
-       </property>
-       <property name="xLabels">
-        <stringlist>
-         <string>Pixel Values</string>
-        </stringlist>
-       </property>
-       <property name="curves">
-        <stringlist>
-         <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.Histogram&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.Bins&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: &quot;s&quot;, &quot;symbolSize&quot;: 1, &quot;yAxisName&quot;: &quot;Counts&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
-        </stringlist>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1" colspan="2">
+     <item row="5" column="1" colspan="2">
       <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot_3">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -173,8 +136,8 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1" rowspan="2" colspan="2">
-      <widget class="PyDMTimePlot" name="PyDMTimePlot">
+     <item row="4" column="1" colspan="2">
+      <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -192,37 +155,50 @@
        </property>
        <property name="yAxes">
         <stringlist>
-         <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: 10500.0, &quot;maxRange&quot;: 10600.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
+         <string>{&quot;name&quot;: &quot;Counts&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: null}</string>
         </stringlist>
        </property>
-       <property name="showLegend">
-        <bool>false</bool>
+       <property name="title" stdset="0">
+        <string>Histogram</string>
+       </property>
+       <property name="xLabels">
+        <stringlist>
+         <string>Pixel Values</string>
+        </stringlist>
+       </property>
+       <property name="curves">
+        <stringlist>
+         <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.Histogram&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.Bins&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: &quot;s&quot;, &quot;symbolSize&quot;: 1, &quot;yAxisName&quot;: &quot;Counts&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="PyDMWaveformPlot" name="PyDMWaveformPlot_2">
+       <property name="minimumSize">
+        <size>
+         <width>823</width>
+         <height>230</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="yAxes">
+        <stringlist>
+         <string>{&quot;name&quot;: &quot;Axis 1&quot;, &quot;orientation&quot;: &quot;left&quot;, &quot;label&quot;: null, &quot;minRange&quot;: -1.0, &quot;maxRange&quot;: 1.0, &quot;autoRange&quot;: true, &quot;logMode&quot;: false}</string>
+        </stringlist>
+       </property>
+       <property name="title" stdset="0">
+        <string>Pixel Counts</string>
        </property>
        <property name="maxRedrawRate" stdset="0">
         <number>100000</number>
        </property>
        <property name="curves">
         <stringlist>
-         <string>{&quot;channel&quot;: &quot;${dataReceiver}.PixelData&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;Time Counts&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;}</string>
+         <string>{&quot;y_channel&quot;: &quot;${dataReceiver}.PixelData&quot;, &quot;x_channel&quot;: &quot;${dataReceiver}.IndexData&quot;, &quot;plot_style&quot;: null, &quot;name&quot;: &quot;&quot;, &quot;color&quot;: &quot;white&quot;, &quot;lineStyle&quot;: 1, &quot;lineWidth&quot;: 1, &quot;symbol&quot;: null, &quot;symbolSize&quot;: 10, &quot;yAxisName&quot;: &quot;Axis 1&quot;, &quot;barWidth&quot;: null, &quot;upperThreshold&quot;: null, &quot;lowerThreshold&quot;: null, &quot;thresholdColor&quot;: &quot;white&quot;, &quot;redraw_mode&quot;: 2}</string>
         </stringlist>
-       </property>
-       <property name="bufferSize">
-        <number>60000</number>
-       </property>
-       <property name="updatesAsynchronously">
-        <bool>false</bool>
-       </property>
-       <property name="updateMode" stdset="0">
-        <enum>PyDMTimePlot::OnValueChange</enum>
-       </property>
-       <property name="timeSpan">
-        <double>60.000000000000000</double>
-       </property>
-       <property name="updateInterval">
-        <double>0.001000000000000</double>
-       </property>
-       <property name="autoRangeY">
-        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -556,7 +532,7 @@
           <string/>
          </property>
          <property name="channel" stdset="0">
-          <string>${dataReceiver}.PixelData</string>
+          <string>${dataReceiver}.PixelDataScalar</string>
          </property>
         </widget>
         <widget class="PyDMLabel" name="PyDMLabel_5">
@@ -594,45 +570,6 @@
           <string>Pixel Value:</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton">
-         <property name="geometry">
-          <rect>
-           <x>510</x>
-           <y>30</y>
-           <width>101</width>
-           <height>23</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Reset Timeplot</string>
-         </property>
-        </widget>
-        <widget class="QLabel" name="label">
-         <property name="geometry">
-          <rect>
-           <x>620</x>
-           <y>30</y>
-           <width>141</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Timeplot Timespan (s):</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="lineEdit">
-         <property name="geometry">
-          <rect>
-           <x>770</x>
-           <y>30</y>
-           <width>81</width>
-           <height>23</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
         <widget class="PyDMCheckbox" name="PyDMCheckbox_18">
          <property name="geometry">
           <rect>
@@ -661,6 +598,57 @@
           <string>${dataReceiver}.NoiseColormap</string>
          </property>
         </widget>
+        <widget class="QLabel" name="label">
+         <property name="geometry">
+          <rect>
+           <x>520</x>
+           <y>30</y>
+           <width>131</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Timeplot Max Frames</string>
+         </property>
+        </widget>
+        <widget class="PyDMLineEdit" name="PyDMLineEdit_3">
+         <property name="geometry">
+          <rect>
+           <x>650</x>
+           <y>30</y>
+           <width>61</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.TimePlotMaxLen</string>
+         </property>
+        </widget>
+        <widget class="PyDMPushButton" name="PyDMPushButton">
+         <property name="geometry">
+          <rect>
+           <x>740</x>
+           <y>30</y>
+           <width>101</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>Reset Timeplot</string>
+         </property>
+         <property name="channel" stdset="0">
+          <string>${dataReceiver}.ResetTimePlot</string>
+         </property>
+         <property name="pressValue" stdset="0">
+          <string>1</string>
+         </property>
+        </widget>
        </widget>
       </widget>
      </item>
@@ -678,11 +666,6 @@
    <class>PyDMLabel</class>
    <extends>QLabel</extends>
    <header>pydm.widgets.label</header>
-  </customwidget>
-  <customwidget>
-   <class>PyDMTimePlot</class>
-   <extends>QGraphicsView</extends>
-   <header>pydm.widgets.timeplot</header>
   </customwidget>
   <customwidget>
    <class>PyDMWaveformPlot</class>
