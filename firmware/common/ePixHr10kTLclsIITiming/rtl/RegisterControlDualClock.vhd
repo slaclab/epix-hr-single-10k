@@ -249,7 +249,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------  
-   comb : process (axiReadMaster, axiReset, axiWriteMaster, r, idValids, idValues, acqStart, saciReadoutAck, asicRefClockFreq) is
+   comb : process (axiReadMaster, axiReset, axiWriteMaster, r, idValids, idValues, acqStart, saciReadoutAck, asicRefClockFreq, v1LinkUp, v2LinkUp) is
       variable v           : RegType;
       variable regCon      : AxiLiteEndPointType;
       
@@ -259,6 +259,10 @@ begin
       
       -- Reset data and strobes
       v.resetCounters            := '0';
+
+      -- Update timing status flags
+      v.v1LinkUp := v1LinkUp;
+      v.v2LinkUp := v2LinkUp;
       
       
       -- Determine the transaction type
