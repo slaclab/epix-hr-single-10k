@@ -89,7 +89,7 @@ parser.add_argument(
     "--verbose", 
     type     = str,
     required = False,
-    default  = False,
+    default  = True,
     help     = "true for verbose printout",
 )
 
@@ -222,7 +222,7 @@ class Board(pr.Root):
         # Create arrays to be filled
         self.dmaStreams = [None for lane in range(3)]
         self.dmaCtrlStreams = [None for lane in range(3)]
-        self._dbg       = [DataDebug(name='DataDebug',enPrint=False) for lane in range(3)]
+        self._dbg       = [DataDebug(name='DataDebug',enPrint=True) for lane in range(3)]
         self.unbatchers = [rogue.protocols.batcher.SplitterV1() for lane in range(3)]
         self.dataFilter = [rogue.interfaces.stream.Filter(False, dataCh+3) for dataCh in range(3)]
 

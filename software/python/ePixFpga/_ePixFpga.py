@@ -3,7 +3,6 @@
 # Title      : PyRogue AXI Version Module
 #-----------------------------------------------------------------------------
 # File       : 
-# Author     : Maciej Kwiatkowski
 # Created    : 2016-09-29
 # Last update: 2017-01-31
 #-----------------------------------------------------------------------------
@@ -31,7 +30,7 @@ import surf.misc
 import surf.protocols.batcher       as batcher
 import surf
 import LclsTimingCore
-import l2si_core
+import l2si_core as l2si
 import epix_hr_core as epixHr
 import numpy as np
 import time
@@ -81,10 +80,10 @@ class EpixHR10kT(pr.Device):
             ssiPrbsTxRegisters(               name='ssiPrbs3PktRegisters',     offset=0x85000000, expand=False, enabled=False),
             axi.AxiStreamMonAxiL(             name='AxiStreamMon',             offset=0x86000000, expand=False, enabled=False, numberLanes=4),
             axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False),
-            epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
-            epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
-            epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
-            epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False),
+            epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
+            epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
+            epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
+            epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False),
             #When using fw without timing, Register control class changes
             EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
             powerSupplyRegisters(                name='PowerSupply',              offset=0x89000000, expand=False, enabled=False),            
@@ -101,8 +100,8 @@ class EpixHR10kT(pr.Device):
             # TimingCore
             LclsTimingCore.TimingFrameRx(                                         offset=0x97100000, expand=False, enabled=False),
             # XPM Mini Core
-            l2si_core.XpmMiniWrapper(                                             offset=0x97200000, expand=False, enabled=False),
-            l2si_core.TriggerEventManager(                                        offset=0x97300000, numDetectors=2, enLclsI=False, enLclsII=True, expand=False),
+            l2si.XpmMiniWrapper(                                             offset=0x97200000, expand=False, enabled=False),
+            l2si.TriggerEventManager(                                        offset=0x97300000, numDetectors=2, enLclsI=False, enLclsII=True, expand=False),
             batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder0",     offset=0x98000000, expand=False, numberSlaves = 2),
             batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder1",     offset=0x99000000, expand=False, numberSlaves = 2),
             batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder2",     offset=0x9A000000, expand=False, numberSlaves = 2)
@@ -115,6 +114,86 @@ class EpixHR10kT(pr.Device):
         self.add(pr.LocalCommand(name='AcqDataWithSaciClkRst',      description='acquires a set of frame sending a clock reset between frames', function=self.fnAcqDataWithSaciClkRstScript))
         self.add(pr.LocalCommand(name='InitHSADC',   description='Initialize the HS ADC used by the scope module', value='' ,function=self.fnInitHsADC))
 
+        @self.command(description="Configure for LCLS-II Timing (186 MHz based)")
+        def ConfigLclsTimingV2():
+            print ( 'ConfigLclsTimingV2()' )
+            self.RegisterControl.timingUseMiniTpg.set(False)
+            self.TimingFrameRx.ModeSelEn.setDisp('UseClkSel')
+            self.TimingFrameRx.RxPllReset.set(1)
+            self.RegisterControl.timingTxUserRst.set(True)
+            time.sleep(1.0)
+            self.TimingFrameRx.RxPllReset.set(0)
+            self.RegisterControl.timingTxUserRst.set(False)
+            self.TimingFrameRx.ClkSel.set(0x1)
+            self.TimingFrameRx.C_RxReset()
+            time.sleep(1.0)
+            self.TimingFrameRx.RxDown.set(0) # Reset the latching register
+
+        @self.command(description="GTX TX Reset")
+        def TimingTxReset():
+            print ( 'TimingTxReset()' )
+            self.RegisterControl.timingTxUserRst.set(True)
+            time.sleep(0.1)
+            self.RegisterControl.timingTxUserRst.set(False)
+
+        @self.command()
+        def ConfigureXpmMini():
+            print ( 'ConfigureXpmMini()' )
+            self.ConfigLclsTimingV2()
+            self.RegisterControl.timingUseMiniTpg.set(True)
+            self.XpmMiniWrapper.XpmMini.HwEnable.set(True)
+            self.XpmMiniWrapper.XpmMini.Link.set(0)
+            self.XpmMiniWrapper.XpmMini.Config_L0Select_RateSel.set(5)
+            self.XpmMiniWrapper.XpmMini.Config_L0Select_Enabled.set(False)
+
+        self.add(pr.LocalVariable(
+            name        = 'RunState',
+            description = 'Run state status, which is controlled by the StopRun() and StartRun() commands',
+            mode        = 'RO',
+            value       = False,
+        ))
+
+        @self.command(description  = 'Stops the triggers and blows off data in the pipeline')
+        def StopRun():
+            print (f'{self.path}.StopRun() executed')
+
+            # Get devices
+            eventBuilder = self.find(typ=batcher.AxiStreamBatcherEventBuilder)
+            trigger      = self.find(typ=l2si.TriggerEventBuffer)
+
+            # Turn off the triggering
+            for devPtr in trigger:
+                devPtr.MasterEnable.set(False)
+
+            # Flush the downstream data/trigger pipelines
+            for devPtr in eventBuilder:
+                devPtr.Blowoff.set(True)
+
+            # Update the run state status variable
+            self.RunState.set(False)
+
+        @self.command(description  = 'starts the triggers and allow steams to flow to DMA engine')
+        def StartRun():
+            print (f'{self.path}.StartRun() executed')
+
+            # Get devices
+            eventBuilder = self.find(typ=batcher.AxiStreamBatcherEventBuilder)
+            trigger      = self.find(typ=l2si.TriggerEventBuffer)
+
+            # Reset all counters
+            self.CountReset()
+
+            # Arm for data/trigger stream
+            for devPtr in eventBuilder:
+                devPtr.Blowoff.set(False)
+                devPtr.SoftRst()
+
+            # Turn on the triggering
+            for devPtr in trigger:
+                devPtr.MasterEnable.set(True)
+
+            # Update the run state status variable
+            self.RunState.set(True)      
 
     def fnSetWaveform(self, dev,cmd,arg):
         """SetTestBitmap command function"""
@@ -554,7 +633,7 @@ class EpixHR10kT(pr.Device):
         self.root.readBlocks()
         print("Fast ADC initialized")
 
-      
+  
 
 class EpixHRCoreFpgaRegisters(pr.Device):
    def __init__(self, **kwargs):
@@ -954,11 +1033,11 @@ class EPixHr10kTAppCoreRegLCLS(pr.Device):
          pr.RemoteVariable(name='StartupAck',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=1, base=pr.Bool, mode='RO'),
          pr.RemoteVariable(name='StartupFail',           description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=2, base=pr.Bool, mode='RO')))
       self.add((
-         pr.RemoteVariable(name='rxUserRst',             description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='txUserRst',             description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=1, base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='useMiniTpg',            description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=2, base=pr.Bool, mode='RW'),
-         pr.RemoteVariable(name='v1LinkUp',              description='Timing Status',     offset=0x0000026C, bitSize=1, bitOffset=3, base=pr.Bool, mode='RO'),
-         pr.RemoteVariable(name='v2LinkUp',              description='Timing Status',     offset=0x0000026C, bitSize=1, bitOffset=4, base=pr.Bool, mode='RO'))
+         pr.RemoteVariable(name='timingRxUserRst',             description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='timingTxUserRst',             description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=1, base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='timingUseMiniTpg',            description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=2, base=pr.Bool, mode='RW'),
+         pr.RemoteVariable(name='timingV1LinkUp',              description='Timing Status',     offset=0x0000026C, bitSize=1, bitOffset=3, base=pr.Bool, mode='RO'),
+         pr.RemoteVariable(name='timingV2LinkUp',              description='Timing Status',     offset=0x0000026C, bitSize=1, bitOffset=4, base=pr.Bool, mode='RO'))
       )
 
      

@@ -428,6 +428,9 @@ begin
       asicPpmat      <= r.asicAcqReg.Ppmat;
       asicR0         <= r.asicAcqReg.Start;
       asicAcq        <= r.asicAcqReg.Acq;
+      rxUserRst      <= r.rxUserRst;
+      txUserRst      <= r.txUserRst;
+      useMiniTpg     <= r.useMiniTpg;
 
       
    end process comb;
