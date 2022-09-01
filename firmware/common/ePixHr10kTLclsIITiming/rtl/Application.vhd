@@ -1518,7 +1518,7 @@ begin
            0           => "0000000-",  --,
            1           => "00000010"),
          TRANS_TDEST_G  => X"01",
-         AXIS_CONFIG_G  => ssiAxiStreamConfig(8)
+         AXIS_CONFIG_G  => ssiAxiStreamConfig(16)
          )
        port map (
          -- Clock and Reset

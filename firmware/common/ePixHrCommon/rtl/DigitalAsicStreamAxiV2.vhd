@@ -387,6 +387,7 @@ begin
                
                v.txMaster.tValid := '1';
                v.txMaster.tData(16*LANES_NO_G-1 downto 0) := dFifoExtData;
+               --v.txMaster.tData(16*LANES_NO_G-1 downto 0) := x"0000_0001_0002_0003_0004_0005_0006_0007_0008_0009_000A"  & r.stCnt;
                
                v.dFifoRd := (others=>'1');
                            
@@ -513,10 +514,10 @@ begin
    -- gearbox 4/3 by double stream resizing 
    -- must be able to store whole frame if AXIS is muxed
    ----------------------------------------------------------------------------
-   AxisResize12to48_U: entity surf.AxiStreamFifoV2
+   AxisResize24to48_U: entity surf.AxiStreamFifoV2
    generic map(
       GEN_SYNC_FIFO_G      => false,
-      FIFO_ADDR_WIDTH_G    => 11,
+      FIFO_ADDR_WIDTH_G    => 13,
       CASCADE_SIZE_G       => 1,
       INT_WIDTH_SELECT_G   => "WIDE",
       SLAVE_AXI_CONFIG_G   => AXI_STREAM_CONFIG_I_C,
