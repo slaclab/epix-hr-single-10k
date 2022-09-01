@@ -181,7 +181,7 @@ class EpixHR10kT(pr.Device):
             trigger      = self.find(typ=l2si.TriggerEventBuffer)
 
             # Reset all counters
-            self.CountReset()
+            #self.CountReset()
 
             # Arm for data/trigger stream
             for devPtr in eventBuilder:
@@ -480,36 +480,9 @@ class EpixHR10kT(pr.Device):
 			
             #Enable the ASIC clock for a bit while RSTreg is True and then turn it off again before removing RSTreg Commented to check?
            # self.RegisterControl.ClkSyncEn.set(True)
-				
-            if arg[1] != 0:
-                print("Pulsing RSTreg ASIC0")        
-                self.Hr10kTAsic0.RSTreg.set(True)
-            if arg[2] != 0:
-                print("Pulsing RSTreg ASIC1")
-                self.Hr10kTAsic1.RSTreg.set(True)
-            if arg[3] != 0:
-                print("Pulsing RSTreg ASIC2")
-                self.Hr10kTAsic2.RSTreg.set(True)
-            if arg[4] != 0:
-                print("Pulsing RSTreg ASIC3")
-                self.Hr10kTAsic3.RSTreg.set(True)		
-				
-			#Disable the ASIC clock	
-        #    self.RegisterControl.ClkSyncEn.set(False)
-			#Pulse Sync Commented to check if works without sync
-           # self.RegisterControl.SyncPolarity.set(True)
-           # self.RegisterControl.SyncPolarity.set(False)
-		
-            if arg[1] != 0:      
-                self.Hr10kTAsic0.RSTreg.set(False)
-            if arg[2] != 0:
-                self.Hr10kTAsic1.RSTreg.set(False)
-            if arg[3] != 0:
-                self.Hr10kTAsic2.RSTreg.set(False)
-            if arg[4] != 0:
-                self.Hr10kTAsic3.RSTreg.set(False)
-
-        #time.sleep(forcedDelay) 
+        self.RegisterControl.RoLogicRst.set(False)
+        time.sleep(delay)
+        self.RegisterControl.RoLogicRst.set(True)
         # starting clock inside the ASIC
         self.RegisterControl.ClkSyncEn.set(True)
         
@@ -1033,7 +1006,6 @@ class EPixHr10kTAppCoreRegLCLS(pr.Device):
          pr.RemoteVariable(name='StartupReq',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='StartupAck',            description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=1, base=pr.Bool, mode='RO'),
          pr.RemoteVariable(name='StartupFail',           description='AdcStartup',        offset=0x00000264, bitSize=1, bitOffset=2, base=pr.Bool, mode='RO')))
-      self.add(pr.RemoteVariable(name='AsicClockFreq',   description='Measured clock frequency',offset=0x00000268, bitSize=32,bitOffset=0,  base=pr.UInt, disp = '{:}',  mode='RO'))
       self.add((
          pr.RemoteVariable(name='timingRxUserRst',             description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=0, base=pr.Bool, mode='RW'),
          pr.RemoteVariable(name='timingTxUserRst',             description='Timing Control',    offset=0x0000026C, bitSize=1, bitOffset=1, base=pr.Bool, mode='RW'),
@@ -1931,15 +1903,15 @@ class DigitalAsicStreamAxi(pr.Device):
       
       #Setup registers & variables
       
-      self.add(pr.RemoteVariable(name='FrameCount',      description='FrameCount',                                  offset=0x00000000, bitSize=32,  bitOffset=0, base=pr.UInt, mode='RO'))
-      self.add(pr.RemoteVariable(name='FrameSize',       description='FrameSize',                                   offset=0x00000004, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RO'))
-      self.add(pr.RemoteVariable(name='FrameMaxSize',    description='FrameMaxSize',                                offset=0x00000008, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RO'))
-      self.add(pr.RemoteVariable(name='FrameMinSize',    description='FrameMinSize',                                offset=0x0000000C, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameCount',      description='FrameCount',                                  offset=0x00000000, bitSize=32,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameSize',       description='FrameSize',                                   offset=0x00000004, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameMaxSize',    description='FrameMaxSize',                                offset=0x00000008, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
+      self.add(pr.RemoteVariable(name='FrameMinSize',    description='FrameMinSize',                                offset=0x0000000C, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))
       self.add(pr.RemoteVariable(name='ResetCounters',   description='ResetCounters',                               offset=0x00000024, bitSize=1,   bitOffset=0, base=pr.Bool, mode='WO'))
-      self.add(pr.RemoteVariable(name='asicDataReq',     description='Number of samples requested per ADC stream.', offset=0x00000028, bitSize=16,  bitOffset=0, base=pr.UInt, mode='RW'))
+      self.add(pr.RemoteVariable(name='asicDataReq',     description='Number of samples requested per ADC stream.', offset=0x00000028, bitSize=16,  bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='DisableLane',     description='Disable selected lanes.',                     offset=0x0000002C, bitSize=numberLanes,  bitOffset=0, base=pr.UInt, mode='RW'))
       self.add(pr.RemoteVariable(name='EnumerateDisLane',description='Insert lane number into disabled lane.',      offset=0x00000030, bitSize=numberLanes,  bitOffset=0, base=pr.UInt, mode='RW'))
-      self.add(pr.RemoteVariable(name='gainBitRemapped', description='Set true to move gain bit (bit(0)) to MSB.',  offset=0x00000034, bitSize=numberLanes,  bitOffset=0, base=pr.UInt, mode='RW'))
+
       
       self.addRemoteVariables(
          name         = 'TimeoutCntLane',
@@ -1949,6 +1921,7 @@ class DigitalAsicStreamAxi(pr.Device):
          number       = numberLanes,
          stride       = 4,
          pollInterval = 1,
+         disp         = '{}', 
       )
       
       self.addRemoteVariables(
@@ -1959,6 +1932,7 @@ class DigitalAsicStreamAxi(pr.Device):
          number       = numberLanes,
          stride       = 4,
          pollInterval = 1,
+         disp         = '{}', 
       )
       
       self.addRemoteVariables(
@@ -1969,6 +1943,7 @@ class DigitalAsicStreamAxi(pr.Device):
          number       = numberLanes,
          stride       = 4,
          pollInterval = 1,
+         disp         = '{}', 
       )
       
       self.addRemoteVariables(
@@ -1979,6 +1954,7 @@ class DigitalAsicStreamAxi(pr.Device):
          number       = numberLanes,
          stride       = 4,
          pollInterval = 1,
+         disp         = '{}', 
       )
       
       self.addRemoteVariables(
@@ -1989,6 +1965,7 @@ class DigitalAsicStreamAxi(pr.Device):
          number       = numberLanes,
          stride       = 4,
          pollInterval = 1,
+         disp         = '{}', 
       )
       
       self.addRemoteVariables(
@@ -1999,6 +1976,7 @@ class DigitalAsicStreamAxi(pr.Device):
          number       = numberLanes,
          stride       = 4,
          pollInterval = 1,
+         disp         = '{}',  
       )
       
       self.addRemoteVariables(
@@ -2009,6 +1987,7 @@ class DigitalAsicStreamAxi(pr.Device):
          number       = numberLanes,
          stride       = 4,
          pollInterval = 1,
+         disp         = '{}', 
       )
       
 class AxiStreamMonitoring(pr.Device):

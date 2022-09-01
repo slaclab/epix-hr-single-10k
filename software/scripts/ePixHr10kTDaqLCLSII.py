@@ -273,12 +273,13 @@ class Board(pr.Root):
         # Viewer gui
         self.onlineViewers = [None for lane in range(3)]
         for viewerNum in range(3):
-            self.onlineViewers[viewerNum] = vi.Window(cameraType='ePixHr10kT', verbose=self.args.verbose)
+            self.onlineViewers[viewerNum] = vi.Window(cameraType='ePixHr10kTBatcher', verbose=self.args.verbose)
             self.onlineViewers[viewerNum].eventReader.frameIndex = 0
             self.onlineViewers[viewerNum].setReadDelay(0)
             self.onlineViewers[viewerNum].setWindowTitle("ePix image viewer ASIC %d" % (viewerNum))
             self.onlineViewers[viewerNum].eventReader.setDataDisplayParameters(2,viewerNum)
-            self.unbatchers[0]  >> self.dataFilter[viewerNum] >> self.onlineViewers[viewerNum].eventReader
+#            self.unbatchers[viewerNum]  >> self.dataFilter[viewerNum] >> self.onlineViewers[viewerNum].eventReader
+            self.unbatchers[viewerNum]  >> self.onlineViewers[viewerNum].eventReader
             self.dmaCtrlStreams[1] >> self.onlineViewers[viewerNum].eventReaderScope
             self.dmaCtrlStreams[2] >> self.onlineViewers[viewerNum].eventReaderMonitoring
 

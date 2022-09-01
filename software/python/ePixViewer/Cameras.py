@@ -51,6 +51,7 @@ HRADC32x32 = 7
 CRYO64XN   = 8
 EPIXMNX64  = 9
 EPIXHR10kT = 10
+EPIXHR10KTBATCHER = 11
 
 
 ################################################################################
@@ -69,7 +70,7 @@ class Camera():
     sensorWidth = 0
     sensorHeight = 0
     pixelDepth = 0
-    availableCameras = {  'ePix100a':  EPIX100A, 'ePix100p' : EPIX100P, 'Tixel48x48' : TIXEL48X48, 'ePix10ka' : EPIX10KA,  'Cpix2' : CPIX2, 'ePixM32Array' : EPIXM32, 'HrAdc32x32': HRADC32x32, 'cryo64xN':  CRYO64XN, 'ePixHrePixM' : EPIXMNX64, 'ePixHr10kT': EPIXHR10kT }
+    availableCameras = {  'ePix100a':  EPIX100A, 'ePix100p' : EPIX100P, 'Tixel48x48' : TIXEL48X48, 'ePix10ka' : EPIX10KA,  'Cpix2' : CPIX2, 'ePixM32Array' : EPIXM32, 'HrAdc32x32': HRADC32x32, 'cryo64xN':  CRYO64XN, 'ePixHrePixM' : EPIXMNX64, 'ePixHr10kT': EPIXHR10kT, 'ePixHr10kTBatcher': EPIXHR10KTBATCHER }
     
 
     def __init__(self, cameraType = 'ePix100a', verbose=False) :
@@ -105,6 +106,8 @@ class Camera():
             self._initEPIXMNX64()
         if (camID == EPIXHR10kT):
             self._initEPIXHR10kT()
+        if (camID == EPIXHR10KTBATCHER):
+            self._initEPIXHR10kTBatcher()
 
         #creates a image processing tool for local use
         self.imgTool = imgPr.ImageProcessing(self)
@@ -145,6 +148,9 @@ class Camera():
             return self.imgTool.applyBitMask(descImg, mask = self.bitMask)
         if (camID == EPIXHR10kT):
             descImg = self._descrambleEpixHR10kTImage(rawData)
+            return self.imgTool.applyBitMask(descImg, mask = self.bitMask)
+        if (camID == EPIXHR10KTBATCHER):
+            descImg = self._descrambleEpixHR10kTImageBatcher(rawData)
             return self.imgTool.applyBitMask(descImg, mask = self.bitMask)
 
         if (camID == NOCAMERA):
@@ -201,7 +207,10 @@ class Camera():
         if (camID == EPIXHR10kT):
             frameComplete = 1
             readyForDisplay = 1
-            #[frameComplete, readyForDisplay, newRawData]  = self._buildFrameEpix10kTImage(currentRawData, newRawData)
+            return [frameComplete, readyForDisplay, newRawData]
+        if (camID == EPIXHR10KTBATCHER):
+            frameComplete = 1
+            readyForDisplay = 1
             return [frameComplete, readyForDisplay, newRawData]
         if (camID == NOCAMERA):
             return Null
@@ -304,6 +313,16 @@ class Camera():
         self.bitMask = np.uint16(0xFFFF)
 
     def _initEPIXHR10kT(self):
+        #self._superRowSize = 384
+        self._NumAsicsPerSide = 1
+        #self._NumAdcChPerAsic = 4
+        #self._NumColPerAdcCh = 96
+        #self._superRowSizeInBytes = self._superRowSize * 4
+        self.sensorWidth  = 192 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
+        self.sensorHeight = 146 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
+        self.pixelDepth = 16
+        self.bitMask = np.uint16(0xFFFF)
+    def _initEPIXHR10kTBatcher(self):
         #self._superRowSize = 384
         self._NumAsicsPerSide = 1
         #self._NumAdcChPerAsic = 4
@@ -1107,6 +1126,44 @@ class Camera():
              #get data for each bank
              adcImg = quadrant0.reshape(-1,6)
              for i in range(0,6):
+                 #reshape data into 2D array per bank
+                 adcImg2 = adcImg[0:adcImg.shape[0],i].reshape(-1,32)
+                 #apply row-shift patch
+                 adcImg2[1:,30] = adcImg2[0:adcImg2.shape[0]-1,30]
+                 adcImg2[1:,31] = adcImg2[0:adcImg2.shape[0]-1,31]
+                 #concatenate bank data into a single image per asic
+                 if i == 0:
+                     quadrant0sq = adcImg2
+                 else:
+                     quadrant0sq = np.concatenate((quadrant0sq,adcImg2),1)
+             imgDesc = quadrant0sq
+        else:
+            print("descramble error")
+            imgDesc = np.zeros((144,384), dtype='uint16')
+            
+        # returns final image
+        return imgDesc
+
+    def _descrambleEpixHR10kTImageBatcher(self, rawData):
+        """performs the Epix10kT with  batcher image descrambling """
+        print("Length raw data: %d" % (len(rawData)))
+                         #55712
+        #if (len(rawData)==56096):
+        #if (len(rawData)%(32)==0):
+        if (True):
+             if (type(rawData != 'numpy.ndarray')):
+                img = np.frombuffer(rawData,dtype='uint16')
+             print("shape", img.shape)          
+             #Select data payload
+             #quadrant0 = np.frombuffer(img[16:-192],dtype='uint16')
+             calcLen = int(np.floor(img.shape[0]/32/12-1)*32*12)
+             print("CalcLen", calcLen)
+             quadrant0 = np.frombuffer(img[16:calcLen+16],dtype='uint16')
+             #descramble image
+             #get data for each bank
+             adcImg = quadrant0.reshape(-1,12)
+             #for i in [0,1,2,3,8,9,4,5,6,7,10,11]:
+             for i in [0,1,2,3,6,7,4,5,8,9,10,11]:
                  #reshape data into 2D array per bank
                  adcImg2 = adcImg[0:adcImg.shape[0],i].reshape(-1,32)
                  #apply row-shift patch
