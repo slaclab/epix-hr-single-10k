@@ -230,6 +230,7 @@ architecture mapping of Application is
    signal connMpsMux         : sl;
    signal acqStart           : sl;
    signal dataSend           : sl;
+   signal dataSendStreched   : sl;
    signal saciPrepReadoutReq : sl;
    signal saciPrepReadoutAck : sl;
 
@@ -505,7 +506,7 @@ begin
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel1 = "10101" else
       pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
       acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
-      dataSend          when boardConfig.epixhrDbgSel1 = "11000" else
+      dataSendStreched  when boardConfig.epixhrDbgSel1 = "11000" else
       '0';   
 
    connMps    <= not connMpsMux;        -- required because the board has a
@@ -535,7 +536,7 @@ begin
       slowAdcRefClk_i   when boardConfig.epixhrDbgSel2 = "10101" else
       pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
       acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
-      dataSend          when boardConfig.epixhrDbgSel1 = "11000" else
+      dataSendStreched  when boardConfig.epixhrDbgSel1 = "11000" else
       '0';
 
   smaTxP          <= '0';
@@ -831,7 +832,25 @@ begin
       sAxilWriteSlave   => mAxiWriteSlaves(TRIG_REG_AXI_INDEX_C),
       sAxilReadMaster   => mAxiReadMasters(TRIG_REG_AXI_INDEX_C),
       sAxilReadSlave    => mAxiReadSlaves(TRIG_REG_AXI_INDEX_C)
-   );
+      );
+
+  U_DataSendStretcher : entity surf.SynchronizerOneShot 
+    generic map(
+      TPD_G          => TPD_G,
+      RST_ASYNC_G    => false,
+      RST_POLARITY_G => '1',    -- '1' for active HIGH reset, '0' for active LOW reset
+      BYPASS_SYNC_G  => false,  -- Bypass RstSync module for synchronous data configuration
+      IN_POLARITY_G  => '1',    -- 0 for active LOW, 1 for active HIGH
+      OUT_POLARITY_G => '1',    -- 0 for active LOW, 1 for active HIGH
+      OUT_DELAY_G    => 3,   -- Stages in output sync chain
+      PULSE_WIDTH_G  => 4)  -- one-shot pulse width duration (units of clk cycles)
+   port map(
+      clk     => appClk,
+      rst     => appRst,
+      dataIn  => dataSend,
+      dataOut => dataSendStreched
+      );                -- synced one-shot pulse
+
 
    --------------------------------------------
    -- SACI interface controller              --
@@ -1308,7 +1327,7 @@ begin
          acqNo             => boardConfig.acqCnt,
       
          -- start of readout strobe
-         startRdout        => dataSend
+         startRdout        => dataSendStreched
          );       
    end generate;
 
