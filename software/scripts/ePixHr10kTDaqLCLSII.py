@@ -18,6 +18,8 @@
 # copied, modified, propagated, or distributed except according to the terms 
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
+import os
+top_level=f'{os.getcwd()}/'# point to the software folder
 import setupLibPaths
 import pyrogue as pr
 import pyrogue.utilities.prbs
@@ -209,6 +211,7 @@ class Board(pr.Root):
     def __init__(self,
                  args,
                  guiTop,
+                 top_level,
                  dev    = '/dev/datadev_0',
                  dataVc = 1,
                  simPort = 11000,
@@ -218,6 +221,7 @@ class Board(pr.Root):
         self.guiTop = guiTop
         self._sim = (args.type == 'SIM');
         self.simPort = simPort
+        self.top_level = top_level
 
         # Create arrays to be filled
         self.dmaStreams = [None for lane in range(3)]
@@ -263,7 +267,7 @@ class Board(pr.Root):
 
         self.cmd = rogue.protocols.srp.Cmd()
         if ( self.args.type != 'dataFile' ):
-            pyrogue.streamConnect(self.cmd, self.dmaStreams[lane])
+            pyrogue.streamConnect(self.cmd, self.dmaStreams[0])
 
         # Create and Connect SRP to VC1 to send commands
         self._srp = rogue.protocols.srp.SrpV3()
@@ -315,7 +319,7 @@ class Board(pr.Root):
 # Create GUI
 appTop = QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='ePixHr10kT')
-with Board(args, guiTop, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
+with Board(args, guiTop, top_level=top_level, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
 
     if ( args.type == 'dataFile' or args.type == 'SIM'):
         print("Simulation mode does not initialize monitoring ADC")

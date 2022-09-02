@@ -328,8 +328,8 @@ class Camera():
         #self._NumAdcChPerAsic = 4
         #self._NumColPerAdcCh = 96
         #self._superRowSizeInBytes = self._superRowSize * 4
-        self.sensorWidth  = 192 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
-        self.sensorHeight = 146 # The sensor size in this dimension is doubled because each pixel has two information (ToT and ToA) 
+        self.sensorWidth  = 384 
+        self.sensorHeight = 145 
         self.pixelDepth = 16
         self.bitMask = np.uint16(0xFFFF)
 
@@ -1146,24 +1146,24 @@ class Camera():
 
     def _descrambleEpixHR10kTImageBatcher(self, rawData):
         """performs the Epix10kT with  batcher image descrambling """
-        print("Length raw data: %d" % (len(rawData)))
+        if (self.Verbose):print("Length raw data: %d" % (len(rawData)))
                          #55712
         #if (len(rawData)==56096):
         #if (len(rawData)%(32)==0):
         if (True):
              if (type(rawData != 'numpy.ndarray')):
                 img = np.frombuffer(rawData,dtype='uint16')
-             print("shape", img.shape)          
+             if (self.Verbose):print("shape", img.shape)          
              #Select data payload
              #quadrant0 = np.frombuffer(img[16:-192],dtype='uint16')
              calcLen = int(np.floor(img.shape[0]/32/12-1)*32*12)
-             print("CalcLen", calcLen)
+             if (self.Verbose):print("CalcLen", calcLen)
              quadrant0 = np.frombuffer(img[16:calcLen+16],dtype='uint16')
              #descramble image
              #get data for each bank
              adcImg = quadrant0.reshape(-1,12)
-             #for i in [0,1,2,3,8,9,4,5,6,7,10,11]:
-             for i in [0,1,2,3,6,7,4,5,8,9,10,11]:
+             #for i in [0,1,6,7,10,11,2,3,8,9,4,5]:
+             for i in [0,1,8,9,10,11,2,3,4,5,6,7]:
                  #reshape data into 2D array per bank
                  adcImg2 = adcImg[0:adcImg.shape[0],i].reshape(-1,32)
                  #apply row-shift patch

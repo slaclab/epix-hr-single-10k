@@ -10,25 +10,9 @@ ePixHr10kT:
       asicDataReq: 0x123f
       DisableLane: 0x0
       EnumerateDisLane: 0x0
-      gainBitRemapped: 0x3f
     PacketRegisters1:
       enable: True
       ResetCounters: False
       asicDataReq: 0x123f
       DisableLane: 0x0
       EnumerateDisLane: 0x0
-      gainBitRemapped: 0x3f
-    PacketRegisters2:
-      enable: True
-      ResetCounters: False
-      asicDataReq: 0x123f
-      DisableLane: 0x0
-      EnumerateDisLane: 0x0
-      gainBitRemapped: 0x3f
-    PacketRegisters3:
-      enable: True
-      ResetCounters: False
-      asicDataReq: 0x123f
-      DisableLane: 0x0
-      EnumerateDisLane: 0x0
-      gainBitRemapped: 0x3f

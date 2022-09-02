@@ -8,6 +8,7 @@ ePixHr10kT:
       enable: True
       GlblRstPolarity: True
       ClkSyncEn: False
+      RoLogicRst: True
       SyncPolarity: False
       SyncDelay: 0
       SyncWidth: 0
@@ -27,7 +28,7 @@ ePixHr10kT:
       PPbePolarity: False
       PPbeDelay: 0
       PPbeWidth: 0
-      PpmatPolarity: False
+      PpmatPolarity: True
       PpmatDelay: 0
       PpmatWidth: 0
       SaciSyncPolarity: False
