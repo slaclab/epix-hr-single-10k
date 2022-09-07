@@ -51,6 +51,15 @@ set_clock_groups -asynchronous \
 set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks sysClk] \
    -group [get_clocks -include_generated_clocks divClk_1]
+
+
+#timing constrains
+create_clock -name lcls2RefClk    -period  2.692 [get_ports {qsfpTimingClkP}]
+create_clock -name timingRxClk    -period  8.402 [get_pins  {U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/U_Gtx/gtxe2_i/RXOUTCLK}]
+create_clock -name timingTxClk    -period  8.402 [get_pins  {U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/U_Gtx/gtxe2_i/TXOUTCLK}]
+
+
+
 # ASIC Gbps Ports
 
 set_property -dict {PACKAGE_PIN V20 IOSTANDARD LVDS} [get_ports {asicDataP[0]}]
