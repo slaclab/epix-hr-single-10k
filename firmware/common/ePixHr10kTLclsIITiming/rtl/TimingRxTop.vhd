@@ -273,9 +273,9 @@ begin
            TPD_G             => TPD_G,
            DISABLE_TIME_GT_G => false,
            EXTREF_G          => false,
-           AXIL_BASE_ADDR_G  => AXI_BASE_ADDR_G,
-           ADDR_BITS_G       => 24,
-           GTH_DRP_OFFSET_G  => x"00400000"
+           AXIL_BASE_ADDR_G  => AXI_CONFIG_C(RX_PHY0_INDEX_C).baseAddr,
+           ADDR_BITS_G       => 12,
+           GTH_DRP_OFFSET_G  => x"00001000"
        
            --REFCLK_G          => true,
            --CPLL_REFCLK_SEL_G => "001",
