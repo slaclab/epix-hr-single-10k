@@ -2,7 +2,7 @@
 -- File       : TimingRxTop.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2017-02-04
--- Last update: 2022-06-17
+-- Last update: 2022-09-08
 -------------------------------------------------------------------------------
 -- Description: Wave8 System Core
 -------------------------------------------------------------------------------
@@ -37,80 +37,68 @@ use l2si_core.L2SiPkg.all;
 
 entity TimingRxTop is
    generic (
-      TPD_G                : time               := 1 ns;
-      SIMULATION_G         : boolean            := false;
-      AXI_BASE_ADDR_G      : slv(31 downto 0)   := (others => '0');
-      DMA_AXIS_CONFIG_G    : AxiStreamConfigType;
-      -- GT Ports
-      -- index 1 EVR1: LCLSII 371 MHz ref
-      -- index 0 EVR0: LCLSI  238 MHz ref
-      LCLS_II_TIMING_TYPE_G: boolean := false; -- false: LCLS-I timing, true:
-                                               -- LCLS-II timing
-      NUM_DETECTORS_G      : integer range 1 to 4
-   );
+      TPD_G             : time             := 1 ns;
+      SIMULATION_G      : boolean          := false;
+      AXI_BASE_ADDR_G   : slv(31 downto 0) := (others => '0');
+      DMA_AXIS_CONFIG_G : AxiStreamConfigType;
+      NUM_DETECTORS_G   : integer range 1 to 4);
    port (
-
-      gtRefClkP            : in  sl;
-      gtRefClkN            : in  sl;
-      gtRxP                : in  sl;
-      gtRxN                : in  sl;
-      gtTxP                : out sl;
-      gtTxN                : out sl;
+      gtRefClkP           : in  sl;     -- 371 MHz ref
+      gtRefClkN           : in  sl;
+      gtRxP               : in  sl;
+      gtRxN               : in  sl;
+      gtTxP               : out sl;
+      gtTxN               : out sl;
       -- timing control signals
-      rxUserRst            : in  sl;
-      txUserRst            : in  sl;
-      useMiniTpg           : in  sl;
+      rxUserRst           : in  sl;
+      txUserRst           : in  sl;
+      useMiniTpg          : in  sl;
       -- timing status
-      v1LinkUp             : out sl;
-      v2LinkUp             : out sl;
+      v1LinkUp            : out sl;
+      v2LinkUp            : out sl;
       -- AXI-Lite Register Interface
-      axilClk              : in  sl;
-      axilRst              : in  sl;
-      mAxilReadMaster      : in  AxiLiteReadMasterType;
-      mAxilReadSlave       : out AxiLiteReadSlaveType;
-      mAxilWriteMaster     : in  AxiLiteWriteMasterType;
-      mAxilWriteSlave      : out AxiLiteWriteSlaveType;
+      axilClk             : in  sl;
+      axilRst             : in  sl;
+      mAxilReadMaster     : in  AxiLiteReadMasterType;
+      mAxilReadSlave      : out AxiLiteReadSlaveType;
+      mAxilWriteMaster    : in  AxiLiteWriteMasterType;
+      mAxilWriteSlave     : out AxiLiteWriteSlaveType;
       -- Trigger Interface
-      triggerClk           : in  sl;
-      triggerRst           : in  sl;
-      triggerData          : out TriggerEventDataArray(NUM_DETECTORS_G-1 downto 0);
+      triggerClk          : in  sl;
+      triggerRst          : in  sl;
+      triggerData         : out TriggerEventDataArray(NUM_DETECTORS_G-1 downto 0);
       -- L1 trigger feedback (optional)
-      l1Clk                : in  sl                                                 := '0';
-      l1Rst                : in  sl                                                 := '0';
-      l1Feedbacks          : in  TriggerL1FeedbackArray(NUM_DETECTORS_G-1 downto 0) := (others => TRIGGER_L1_FEEDBACK_INIT_C);
-      l1Acks               : out slv(NUM_DETECTORS_G-1 downto 0);
+      l1Clk               : in  sl                                                 := '0';
+      l1Rst               : in  sl                                                 := '0';
+      l1Feedbacks         : in  TriggerL1FeedbackArray(NUM_DETECTORS_G-1 downto 0) := (others => TRIGGER_L1_FEEDBACK_INIT_C);
+      l1Acks              : out slv(NUM_DETECTORS_G-1 downto 0);
       -- Event streams
-      eventClk             : in  sl;
-      eventRst             : in  sl;
-      eventTimingMessages  : out TimingMessageArray(NUM_DETECTORS_G-1 downto 0);
-      eventAxisMasters     : out AxiStreamMasterArray(NUM_DETECTORS_G-1 downto 0);
-      eventAxisSlaves      : in  AxiStreamSlaveArray(NUM_DETECTORS_G-1 downto 0);
-      eventAxisCtrl        : in  AxiStreamCtrlArray(NUM_DETECTORS_G-1 downto 0)
-
-   );
+      eventClk            : in  sl;
+      eventRst            : in  sl;
+      eventTimingMessages : out TimingMessageArray(NUM_DETECTORS_G-1 downto 0);
+      eventAxisMasters    : out AxiStreamMasterArray(NUM_DETECTORS_G-1 downto 0);
+      eventAxisSlaves     : in  AxiStreamSlaveArray(NUM_DETECTORS_G-1 downto 0);
+      eventAxisCtrl       : in  AxiStreamCtrlArray(NUM_DETECTORS_G-1 downto 0));
 end TimingRxTop;
 
 architecture top_level of TimingRxTop is
 
    constant NUM_AXI_MASTERS_C : natural := 4;
 
-   constant RX_PHY0_INDEX_C   : natural := 0;
-   constant TIMING_INDEX_C    : natural := 1;
-   constant XPM_MINI_INDEX_C  : natural := 2;
-   constant TEM_INDEX_C       : natural := 3;
+   constant RX_PHY0_INDEX_C  : natural := 0;
+   constant TIMING_INDEX_C   : natural := 1;
+   constant XPM_MINI_INDEX_C : natural := 2;
+   constant TEM_INDEX_C      : natural := 3;
 
-   constant AXI_CONFIG_C   : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 24, 20);
+   constant AXI_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXI_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXI_MASTERS_C, AXI_BASE_ADDR_G, 24, 20);
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXI_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXI_MASTERS_C-1 downto 0);
 
-
    ------------------
-
    signal timingClkSel   : sl;
-
    signal gtRxOutClk     : sl;
    signal gtRxClk        : sl;
    signal timingRxClk    : sl;
@@ -128,14 +116,16 @@ architecture top_level of TimingRxTop is
    signal rxStatus       : TimingPhyStatusType;
    signal rxCtrl         : TimingPhyControlType;
    signal rxControl      : TimingPhyControlType;
-   signal gtRefClkIn     : sl;
 
-   signal gtTxOutClk     : sl;
-   signal gtTxClk        : sl;
-   signal timingTxClk    : sl;
-   signal timingTxRst    : sl;
+   signal gtRefClkIn   : sl;
+   signal gtRefClkDiv2 : sl;
+   signal refClkDiv2   : sl;
 
-   signal tpgMiniTimingPhy : TimingPhyType;
+   signal gtTxOutClk  : sl;
+   signal gtTxClk     : sl;
+   signal timingTxClk : sl;
+   signal timingTxRst : sl;
+
    signal xpmMiniTimingPhy : TimingPhyType;
    signal appTimingBus     : TimingBusType;
    signal appTimingMode    : sl;
@@ -145,10 +135,6 @@ architecture top_level of TimingRxTop is
    -----------------------------------------------
    signal temTimingTxPhy : TimingPhyType;
    signal txControl      : TimingPhyControlType;
-
-   signal gtRefClkDiv2   : sl;
-   signal refClk         : sl;
-   signal refClkDiv2     : sl;
 
 begin
 
@@ -194,157 +180,113 @@ begin
          mAxiReadMasters  => axilReadMasters,
          mAxiReadSlaves   => axilReadSlaves);
 
-
-   ---------------------
-   -- Timing referenc clock buffers
-   -- LCLSII timing uses GT ref clock
-   -- LCLSI timing uses global clock
-   ---------------------
-   IBUF_LCLS2 : if (LCLS_II_TIMING_TYPE_G) generate
-     U_IBUFDS_GTE3 : IBUFDS_GTE3
-       generic map (
-               REFCLK_EN_TX_PATH  => '0',
-               REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
-               REFCLK_ICNTL_RX    => "00")
-       port map (
+   ---------------------------------
+   -- Timing Reference clock buffers
+   ---------------------------------
+   U_IBUFDS_GTE3 : IBUFDS_GTE3
+      generic map (
+         REFCLK_EN_TX_PATH  => '0',
+         REFCLK_HROW_CK_SEL => "01",  -- 2'b01: ODIV2 = Divide-by-2 version of O
+         REFCLK_ICNTL_RX    => "00")
+      port map (
          I     => gtRefClkP,
          IB    => gtRefClkN,
          CEB   => '0',
-         ODIV2 => gtRefClkDiv2,
-         O     => gtRefClkIn
-         );
-   end generate;
+         ODIV2 => gtRefClkDiv2,         -- 371 MHz
+         O     => gtRefClkIn);          -- 187 MHz
 
    U_BUFG_GT : BUFG_GT
-            port map (
-               I       => gtRefClkDiv2,
-               CE      => '1',
-               CEMASK  => '1',
-               CLR     => '0',
-               CLRMASK => '1',
-               DIV     => "000",        -- Divide by 1
-               O       => refClk);
+      port map (
+         I       => gtRefClkDiv2,       -- 187 MHz
+         CE      => '1',
+         CEMASK  => '1',
+         CLR     => '0',
+         CLRMASK => '1',
+         DIV     => "000",              -- Divide by 1
+         O       => refClkDiv2);        -- 187 MHz
 
-   U_refClkDiv2 : BUFGCE_DIV
-         generic map (
-            BUFGCE_DIVIDE => 2)
-         port map (
-            I   => refClk,
-            CE  => '1',
-            CLR => '0',
-            O   => refClkDiv2);
+   U_RXCLK : BUFGMUX
+      generic map (
+         CLK_SEL_TYPE => "ASYNC")       -- ASYNC, SYNC
+      port map (
+         O  => gtRxClk,                 -- 1-bit output: Clock output
+         I0 => gtRxOutClk,              -- 1-bit input: Clock input (S=0)
+         I1 => refClkDiv2,              -- 1-bit input: Clock input (S=1)
+         S  => useMiniTpg);             -- 1-bit input: Clock select
 
-
-   IBUF_LCLS1 : if (not LCLS_II_TIMING_TYPE_G) generate
-     U_IBUFGDS : IBUFGDS
-       port map (
-         I     => gtRefClkP,
-         IB    => gtRefClkN,
-         O     => gtRefClkIn
-         );
-     end generate;
+   U_TXCLK : BUFGMUX
+      generic map (
+         CLK_SEL_TYPE => "ASYNC")       -- ASYNC, SYNC
+      port map (
+         O  => gtTxClk,                 -- 1-bit output: Clock output
+         I0 => gtTxOutClk,              -- 1-bit input: Clock input (S=0)
+         I1 => refClkDiv2,              -- 1-bit input: Clock input (S=1)
+         S  => useMiniTpg);             -- 1-bit input: Clock select
 
    -------------
    -- GTH Module
    -------------
-     U_RXCLK : BUFGMUX
-       generic map (
-         CLK_SEL_TYPE => "ASYNC")    -- ASYNC, SYNC
-       port map (
-         O  => gtRxClk,              -- 1-bit output: Clock output
-         I0 => gtRxOutClk,           -- 1-bit input: Clock input (S=0)
-         I1 => refClkDiv2,         -- 1-bit input: Clock input (S=1)
-         S  => useMiniTpg);          -- 1-bit input: Clock select
-     --
-     U_TXCLK : BUFGMUX
-       generic map (
-         CLK_SEL_TYPE => "ASYNC")    -- ASYNC, SYNC
-       port map (
-         O  => gtTxClk,           -- 1-bit output: Clock output
-         I0 => gtTxOutClk,        -- 1-bit input: Clock input (S=0)
-         I1 => refClkDiv2,         -- 1-bit input: Clock input (S=1)
-         S  => useMiniTpg);          -- 1-bit input: Clock select
-     --
+   REAL_PCIE : if (not SIMULATION_G) generate
 
-     REAL_PCIE : if (not SIMULATION_G) generate
-
-       U_LCLS2_GT : entity lcls_timing_core.TimingGtCoreWrapper
+      U_LCLS2_GT : entity lcls_timing_core.TimingGtCoreWrapper
          generic map (
-           TPD_G             => TPD_G,
-           DISABLE_TIME_GT_G => false,
-           EXTREF_G          => false,
-           AXIL_BASE_ADDR_G  => AXI_CONFIG_C(RX_PHY0_INDEX_C).baseAddr,
-           ADDR_BITS_G       => 12,
-           GTH_DRP_OFFSET_G  => x"00001000"
-       
-           --REFCLK_G          => true,
-           --CPLL_REFCLK_SEL_G => "001",
-           --GT_CONFIG_G       => ite(not LCLS_II_TIMING_TYPE_G, false, true)  -- V1 = false, V2 = true
-           )
+            TPD_G            => TPD_G,
+            AXIL_BASE_ADDR_G => AXI_CONFIG_C(RX_PHY0_INDEX_C).baseAddr,
+            ADDR_BITS_G      => 12,
+            GTH_DRP_OFFSET_G => x"00001000")
          port map (
-           -- AXI-Lite Port
-           axilClk         => axilClk,
-           axilRst         => axilRst,
-           axilReadMaster  => axilReadMasters(RX_PHY0_INDEX_C),
-           axilReadSlave   => axilReadSlaves(RX_PHY0_INDEX_C),
-           axilWriteMaster => axilWriteMasters(RX_PHY0_INDEX_C),
-           axilWriteSlave  => axilWriteSlaves(RX_PHY0_INDEX_C),
+            -- AXI-Lite Port
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMasters(RX_PHY0_INDEX_C),
+            axilReadSlave   => axilReadSlaves(RX_PHY0_INDEX_C),
+            axilWriteMaster => axilWriteMasters(RX_PHY0_INDEX_C),
+            axilWriteSlave  => axilWriteSlaves(RX_PHY0_INDEX_C),
+            stableClk       => axilClk,
+            stableRst       => axilRst,
+            -- GTH Ports
+            gtRefClk        => gtRefClkIn,
+            gtRefClkDiv2    => refClkDiv2,
+            gtRxP           => gtRxP,
+            gtRxN           => gtRxN,
+            gtTxP           => gtTxP,
+            gtTxN           => gtTxN,
+            -- Rx ports
+            rxControl       => rxControl,
+            rxStatus        => gtRxStatus,
+            rxUsrClkActive  => '1',
+            rxUsrClk        => timingRxClk,
+            rxData          => gtRxData,
+            rxDataK         => gtRxDataK,
+            rxDispErr       => gtRxDispErr,
+            rxDecErr        => gtRxDecErr,
+            rxOutClk        => gtRxOutClk,
+            -- Tx Ports
+            txControl       => txControl,
+            txUsrClk        => gtTxOutClk,
+            txUsrClkActive  => '1',
+            txData          => temTimingTxPhy.data,
+            txDataK         => temTimingTxPhy.dataK,
+            txOutClk        => gtTxOutClk,
+            -- Misc.
+            loopback        => "000");
 
-           stableClk       => axilClk,
-           stableRst       => axilRst,
-           -- GTH Ports
-           gtRefClk        => gtRefClkIn,
-           gtRefClkDiv2    => gtRefClkDiv2,
-           gtRxP           => gtRxP,
-           gtRxN           => gtRxN,
-           gtTxP           => gtTxP,
-           gtTxN           => gtTxN,
+   end generate;
 
-           gtgRefClk       => '0',
-           cpllRefClkSel   => "001", -- Set for "111" for gtgRefClk
+   SIM_PCIE : if (SIMULATION_G) generate
 
-           -- Rx ports
-           rxControl       => rxControl,
-           rxStatus        => gtRxStatus,
-           rxUsrClkActive  => '1',
-           rxCdrStable     => open,
-           rxUsrClk        => timingRxClk,
+      axilReadSlaves(RX_PHY0_INDEX_C)  <= AXI_LITE_READ_SLAVE_EMPTY_OK_C;
+      axilWriteSlaves(RX_PHY0_INDEX_C) <= AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
 
-           rxData          => gtRxData,
-           rxDataK         => gtRxDataK,
-           rxDispErr       => gtRxDispErr,
-           rxDecErr        => gtRxDecErr,
-           rxOutClk        => gtRxOutClk,
-           -- Tx Ports
-           txControl       => txControl,
-           txStatus        => open,
-           txUsrClk        => gtTxOutClk,
-           txUsrClkActive  => '1',
-           txData          => temTimingTxPhy.data,
-           txDataK         => temTimingTxPhy.dataK,
-           txOutClk        => gtTxOutClk,
-           
-           -- Misc.
-           loopback        => "000"
-           );
+      gtRxOutClk  <= axilClk;
+      gtTxOutClk  <= axilClk;
+      gtRxStatus  <= TIMING_PHY_STATUS_FORCE_C;
+      gtRxData    <= (others => '0');   --temTimingTxPhy.data;
+      gtRxDataK   <= (others => '0');   --temTimingTxPhy.dataK;
+      gtRxDispErr <= "00";
+      gtRxDecErr  <= "00";
 
-     end generate;
-
-
-     SIM_PCIE : if (SIMULATION_G) generate
-
-       axilReadSlaves(RX_PHY0_INDEX_C)  <= AXI_LITE_READ_SLAVE_EMPTY_OK_C;
-       axilWriteSlaves(RX_PHY0_INDEX_C) <= AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
-
-       gtRxOutClk  <= axilClk;
-       gtTxOutClk  <= axilClk;
-       gtRxStatus  <= TIMING_PHY_STATUS_FORCE_C;
-       gtRxData    <= (others => '0');  --temTimingTxPhy.data;
-       gtRxDataK   <= (others => '0');  --temTimingTxPhy.dataK;
-       gtRxDispErr <= "00";
-       gtRxDecErr  <= "00";
-
-     end generate;
+   end generate;
 
    process(timingRxClk)
    begin
@@ -366,7 +308,6 @@ begin
       end if;
    end process;
 
-
    timingRxClk <= gtRxClk;
    timingTxClk <= gtTxClk;
 
@@ -385,36 +326,35 @@ begin
    U_TimingCore : entity lcls_timing_core.TimingCore
       generic map (
          TPD_G             => TPD_G,
-         DEFAULT_CLK_SEL_G => '1',      -- '0': default LCLS-I, '1': default LCLS-II
+         DEFAULT_CLK_SEL_G => '1',      -- '1': default LCLS-II
          TPGEN_G           => false,
          AXIL_RINGB_G      => false,
          ASYNC_G           => true,
          AXIL_BASE_ADDR_G  => AXI_CONFIG_C(TIMING_INDEX_C).baseAddr)
       port map (
          -- GT Interface
-         gtTxUsrClk       => timingTxClk,
-         gtTxUsrRst       => timingTxRst,
-         gtRxRecClk       => timingRxClk,
-         gtRxData         => rxData,
-         gtRxDataK        => rxDataK,
-         gtRxDispErr      => rxDispErr,
-         gtRxDecErr       => rxDecErr,
-         gtRxControl      => rxCtrl,
-         gtRxStatus       => rxStatus,
-         tpgMiniTimingPhy => tpgMiniTimingPhy,
-         timingClkSel     => timingClkSel,
+         gtTxUsrClk      => timingTxClk,
+         gtTxUsrRst      => timingTxRst,
+         gtRxRecClk      => timingRxClk,
+         gtRxData        => rxData,
+         gtRxDataK       => rxDataK,
+         gtRxDispErr     => rxDispErr,
+         gtRxDecErr      => rxDecErr,
+         gtRxControl     => rxCtrl,
+         gtRxStatus      => rxStatus,
+         timingClkSel    => timingClkSel,
          -- Decoded timing message interface
-         appTimingClk     => timingRxClk,
-         appTimingRst     => timingRxRst,
-         appTimingMode    => appTimingMode,
-         appTimingBus     => appTimingBus,
+         appTimingClk    => timingRxClk,
+         appTimingRst    => timingRxRst,
+         appTimingMode   => appTimingMode,
+         appTimingBus    => appTimingBus,
          -- AXI Lite interface
-         axilClk          => axilClk,
-         axilRst          => axilRst,
-         axilReadMaster   => axilReadMasters(TIMING_INDEX_C),
-         axilReadSlave    => axilReadSlaves(TIMING_INDEX_C),
-         axilWriteMaster  => axilWriteMasters(TIMING_INDEX_C),
-         axilWriteSlave   => axilWriteSlaves(TIMING_INDEX_C));
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(TIMING_INDEX_C),
+         axilReadSlave   => axilReadSlaves(TIMING_INDEX_C),
+         axilWriteMaster => axilWriteMasters(TIMING_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(TIMING_INDEX_C));
 
    ---------------------
    -- XPM Mini Wrapper
@@ -450,9 +390,9 @@ begin
    U_TriggerEventManager_1 : entity l2si_core.TriggerEventManager
       generic map (
          TPD_G                          => TPD_G,
-         EN_LCLS_I_TIMING_G             => true,
+         EN_LCLS_I_TIMING_G             => false,
          EN_LCLS_II_TIMING_G            => true,
-         NUM_DETECTORS_G                => NUM_DETECTORS_G,     -- ???
+         NUM_DETECTORS_G                => NUM_DETECTORS_G,
          AXIL_BASE_ADDR_G               => AXI_CONFIG_C(TEM_INDEX_C).baseAddr,
          EVENT_AXIS_CONFIG_G            => DMA_AXIS_CONFIG_G,
          L1_CLK_IS_TIMING_TX_CLK_G      => false,
@@ -462,7 +402,7 @@ begin
          timingRxClk         => timingRxClk,                    -- [in]
          timingRxRst         => timingRxRst,                    -- [in]
          timingBus           => appTimingBus,                   -- [in]
-         timingMode          => appTimingMode,                   -- [in]
+         timingMode          => appTimingMode,                  -- [in]
          timingTxClk         => timingTxClk,                    -- [in]
          timingTxRst         => timingTxRst,                    -- [in]
          timingTxPhy         => temTimingTxPhy,                 -- [out]
@@ -485,6 +425,5 @@ begin
          axilReadSlave       => axilReadSlaves(TEM_INDEX_C),    -- [out]
          axilWriteMaster     => axilWriteMasters(TEM_INDEX_C),  -- [in]
          axilWriteSlave      => axilWriteSlaves(TEM_INDEX_C));  -- [out]
-
 
 end top_level;
