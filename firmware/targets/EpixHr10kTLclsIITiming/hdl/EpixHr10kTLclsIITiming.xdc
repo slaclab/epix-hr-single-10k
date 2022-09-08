@@ -38,7 +38,7 @@ create_generated_clock -name adcBitClk     [get_pins U_App/U_MonAdcReadout/G_MMC
 create_generated_clock -name adcBitClkDiv4 [get_pins U_App/U_MonAdcReadout/G_MMCM.U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT1]
                                            
 #timing constrains
-create_clock -name gtRefClkDiv2    -period  2.692 [get_ports {U_App/U_LCLSTimingReceiver/U_refClkDiv2/O}]
+create_clock -name gtRefClk        -period  2.692 [get_ports {qsfpTimingClkP}]
 create_clock -name timingRxClk     -period  8.402 [get_pins  {U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/LOCREF_G.U_TimingGthCore/inst/gen_gtwizard_gthe3_top.TimingGth_fixedlat_gtwizard_gthe3_inst/gen_gtwizard_gthe3.gen_channel_container[0].gen_enabled_channel.gthe3_channel_wrapper_inst/channel_inst/gthe3_channel_gen.gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
 create_clock -name gtTxOutClk      -period  8.402 [get_pins  {U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/LOCREF_G.TIMING_TXCLK_BUFG_GT/O}]
 
@@ -54,7 +54,7 @@ set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks adcMonDoClkP] \
    -group [get_clocks -include_generated_clocks adcBitClk] \
    -group [get_clocks -include_generated_clocks adcBitClkDiv4] \
-   -group [get_clocks -include_generated_clocks gtRefClkDiv2] \ 
+   -group [get_clocks -include_generated_clocks gtRefClk] \ 
    -group [get_clocks -include_generated_clocks timingRxClk] \
    -group [get_clocks -include_generated_clocks gtTxOutClk] \
 
