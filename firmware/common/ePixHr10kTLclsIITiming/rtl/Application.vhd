@@ -1424,7 +1424,6 @@ begin
          SIMULATION_G         => SIMULATION_G,
          AXI_BASE_ADDR_G      => HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C(TIMING_INDEX_C).baseAddr,
          DMA_AXIS_CONFIG_G    => ssiAxiStreamConfig(8),
-         LCLS_II_TIMING_TYPE_G=> True,
          NUM_DETECTORS_G      => 2
       )
       port map (

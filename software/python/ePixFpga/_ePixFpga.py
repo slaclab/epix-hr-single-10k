@@ -98,10 +98,11 @@ class EpixHR10kT(pr.Device):
             DigitalAsicStreamAxi(                name="PacketRegisters0",         offset=0x95000000, expand=False, enabled=False, numberLanes=12), 
             DigitalAsicStreamAxi(                name="PacketRegisters1",         offset=0x95100000, expand=False, enabled=False, numberLanes=12),
             # TimingCore
+            LclsTimingCore.GthRxAlignCheck(                                       offset=0x97000000, expand=False, enabled=False),
             LclsTimingCore.TimingFrameRx(                                         offset=0x97100000, expand=False, enabled=False),
             # XPM Mini Core
-            l2si.XpmMiniWrapper(                                             offset=0x97200000, expand=False, enabled=False),
-            l2si.TriggerEventManager(                                        offset=0x97300000, numDetectors=2, enLclsI=False, enLclsII=True, expand=False),
+            l2si.XpmMiniWrapper(                                                  offset=0x97200000, expand=False, enabled=False),
+            l2si.TriggerEventManager(                                             offset=0x97300000, numDetectors=2, enLclsI=False, enLclsII=True, expand=False),
             batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder0",     offset=0x98000000, expand=False, numberSlaves = 2),
             batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder1",     offset=0x99000000, expand=False, numberSlaves = 2),
             batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder2",     offset=0x9A000000, expand=False, numberSlaves = 2)
