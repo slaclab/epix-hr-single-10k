@@ -15,7 +15,7 @@
 #set_property -dict {PACKAGE_PIN H27 IOSTANDARD LVCMOS18} [get_ports userSmaP]
 #set_property -dict {PACKAGE_PIN G27 IOSTANDARD LVCMOS18} [get_ports userSmaN]
 
- 
+
 
 ####################################
 ## Application Timing Constraints ##
@@ -25,7 +25,7 @@
 ## Misc. Configurations ##
 ##########################
 create_generated_clock -name sysClk [get_pins  U_Core/GEN_PLL.U_Mmcm/PllGen.U_Pll/CLKOUT0]
-                                      
+
 create_generated_clock -name refClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
 create_generated_clock -name adcClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]
 create_generated_clock -name appClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]
@@ -36,35 +36,62 @@ create_generated_clock -name deserClk [get_pins U_App/U_Deser/U_Bufg/O]
 #create_clock -name adcClkIn   -period  2.85 [get_ports {adcDoClkP}]
 create_generated_clock -name adcBitClk     [get_pins U_App/U_MonAdcReadout/G_MMCM.U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT0]
 create_generated_clock -name adcBitClkDiv4 [get_pins U_App/U_MonAdcReadout/G_MMCM.U_iserdesClockGen/MmcmGen.U_Mmcm/CLKOUT1]
-                                           
-#timing constrains
-create_clock -name gtRefClk        -period  2.692 [get_ports {qsfpTimingClkP}]
-create_clock -name timingRxClk     -period  8.402 [get_pins  {U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/LOCREF_G.U_TimingGthCore/inst/gen_gtwizard_gthe3_top.TimingGth_fixedlat_gtwizard_gthe3_inst/gen_gtwizard_gthe3.gen_channel_container[0].gen_enabled_channel.gthe3_channel_wrapper_inst/channel_inst/gthe3_channel_gen.gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
-create_clock -name gtTxOutClk      -period  8.402 [get_pins  {U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/LOCREF_G.TIMING_TXCLK_BUFG_GT/O}]
 
-
+create_clock -name gtRefClk -period  2.691 [get_ports {qsfpTimingClkP}]
 
 set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks sysClk] \
    -group [get_clocks -include_generated_clocks refClk] \
-   -group [get_clocks -include_generated_clocks appClk] \
    -group [get_clocks -include_generated_clocks adcClk] \
+   -group [get_clocks -include_generated_clocks appClk] \
    -group [get_clocks -include_generated_clocks asicClk] \
    -group [get_clocks -include_generated_clocks deserClk] \
    -group [get_clocks -include_generated_clocks adcMonDoClkP] \
    -group [get_clocks -include_generated_clocks adcBitClk] \
    -group [get_clocks -include_generated_clocks adcBitClkDiv4] \
-   -group [get_clocks -include_generated_clocks gtRefClk] \ 
-   -group [get_clocks -include_generated_clocks timingRxClk] \
-   -group [get_clocks -include_generated_clocks gtTxOutClk] \
+   -group [get_clocks -include_generated_clocks gtRefClk]
 
 set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks sysClk] \
    -group [get_clocks -include_generated_clocks divClk_1]
 
+create_generated_clock -name clk186 [get_pins {U_App/U_LCLSTimingReceiver/U_IBUFDS_GTE3/ODIV2}]
+create_generated_clock -name timingGtRxOutClk [get_pins -hier -filter {name =~ U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/*/RXOUTCLK}]
+create_generated_clock -name timingGtTxOutClk [get_pins -hier -filter {name =~ U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/*/TXOUTCLK}]
+create_generated_clock -name timingTxOutClk [get_pins {U_App/U_LCLSTimingReceiver/REAL_PCIE.U_LCLS2_GT/LOCREF_G.TIMING_TXCLK_BUFG_GT/O}]
 
+create_generated_clock -name muxRxClk186 \
+    -divide_by 1 -add -master_clock clk186 \
+    -source [get_pins {U_App/U_LCLSTimingReceiver/U_RXCLK/I1}] \
+    [get_pins {U_App/U_LCLSTimingReceiver/U_RXCLK/O}]
 
+create_generated_clock -name muxTimingGtRxOutClk \
+    -divide_by 1 -add -master_clock timingGtRxOutClk \
+    -source [get_pins {U_App/U_LCLSTimingReceiver/U_RXCLK/I0}] \
+    [get_pins {U_App/U_LCLSTimingReceiver/U_RXCLK/O}]
 
+set_clock_groups -physically_exclusive -group muxTimingGtRxOutClk -group muxRxClk186
+set_false_path -to [get_pins {U_App/U_LCLSTimingReceiver/U_RXCLK/CE*}]
+
+create_generated_clock -name muxTxClk186 \
+    -divide_by 1 -add -master_clock clk186 \
+    -source [get_pins {U_App/U_LCLSTimingReceiver/U_TXCLK/I1}] \
+    [get_pins {U_App/U_LCLSTimingReceiver/U_TXCLK/O}]
+
+create_generated_clock -name muxTimingGtTxOutClk \
+    -divide_by 1 -add -master_clock timingTxOutClk \
+    -source [get_pins {U_App/U_LCLSTimingReceiver/U_TXCLK/I0}] \
+    [get_pins {U_App/U_LCLSTimingReceiver/U_TXCLK/O}]
+
+set_clock_groups -physically_exclusive -group muxTimingGtTxOutClk -group muxTxClk186
+set_false_path -to [get_pins {U_App/U_LCLSTimingReceiver/U_TXCLK/CE*}]
+
+set_clock_groups -asynchronous \
+   -group [get_clocks -include_generated_clocks sysClk] \
+   -group [get_clocks -include_generated_clocks appClk] \
+   -group [get_clocks -include_generated_clocks timingGtRxOutClk] \
+   -group [get_clocks -include_generated_clocks timingGtTxOutClk] \
+   -group [get_clocks -include_generated_clocks clk186]
 
 # ASIC Gbps Ports
 
