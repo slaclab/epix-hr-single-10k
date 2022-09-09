@@ -1449,8 +1449,8 @@ begin
          mAxilWriteMaster     => mAxiWriteMasters(TIMING_INDEX_C),
          mAxilWriteSlave      => mAxiWriteSlaves(TIMING_INDEX_C),
          -- Trigger Interface
-         triggerClk           => sysClk,
-         triggerRst           => sysRst,
+         triggerClk           => appClk,
+         triggerRst           => appRst,
          triggerData          => iTriggerData,--NUM_DETECTORS_G
          -- Event streams
          eventClk             => sysClk,
