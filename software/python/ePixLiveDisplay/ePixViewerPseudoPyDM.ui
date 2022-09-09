@@ -143,7 +143,7 @@
     </layout>
    </item>
    <item row="0" column="1">
-    <widget class="SimpleDebugTree" name="SimpleDebugTree">
+    <widget class="DebugTree" name="DebugTree">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -168,9 +168,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SimpleDebugTree</class>
+   <class>DebugTree</class>
    <extends>PyDMFrame</extends>
-   <header>pyrogue.pydm.widgets.simple_debug_tree</header>
+   <header>pyrogue.pydm.widgets.debug_tree</header>
   </customwidget>
   <customwidget>
    <class>PyDMTabWidget</class>
