@@ -53,10 +53,12 @@ except ImportError:
 #######################################################
 
 class EpixHR10kT(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, asicVersion=2, **kwargs):
         if 'description' not in kwargs:
             kwargs['description'] = "HR Gen1 FPGA attached to ePixHr and ePix M test board"
-      
+
+        self.asicVersion = asicVersion
+        
         trigChEnum={0:'TrigReg', 1:'ThresholdChA', 2:'ThresholdChB', 3:'AcqStart', 4:'AsicAcq', 5:'AsicR0', 6:'AsicRoClk', 7:'AsicPpmat', 8:'PgpTrigger', 9:'AsicSync', 10:'AsicGr', 11:'AsicSaciSel0', 12:'AsicSaciSel1'}
         inChaEnum={0:'Asic0TpsMux', 1:'Asic1TpsMux', 2:'Asic2TpsMux', 3:'Asic3TpsMux'}
         inChbEnum={0:'Asic0TpsMux', 1:'Asic1TpsMux', 2:'Asic2TpsMux', 3:'Asic3TpsMux'}
@@ -79,11 +81,20 @@ class EpixHR10kT(pr.Device):
             ssiPrbsTxRegisters(               name='ssiPrbs2PktRegisters',     offset=0x84000000, expand=False, enabled=False),
             ssiPrbsTxRegisters(               name='ssiPrbs3PktRegisters',     offset=0x85000000, expand=False, enabled=False),
             axi.AxiStreamMonAxiL(             name='AxiStreamMon',             offset=0x86000000, expand=False, enabled=False, numberLanes=4),
-            axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False),
-            epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
-            epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
-            epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
-            epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False),
+            axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False)))
+        if (self.asicVersion == 2):
+            self.add((
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False)))
+        if (self.asicVersion == 3):
+            self.add((
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False)))
+        self.add((
             #When using fw without timing, Register control class changes
             EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
             powerSupplyRegisters(                name='PowerSupply',              offset=0x89000000, expand=False, enabled=False),            
@@ -478,11 +489,37 @@ class EpixHR10kT(pr.Device):
                 self.root.LoadConfig(self.filenameASIC3)
                 self.Hr10kTAsic3.ClearMatrix()
 			
-            #Enable the ASIC clock for a bit while RSTreg is True and then turn it off again before removing RSTreg Commented to check?
-           # self.RegisterControl.ClkSyncEn.set(True)
-        self.RegisterControl.RoLogicRst.set(False)
-        time.sleep(delay)
-        self.RegisterControl.RoLogicRst.set(True)
+        #Enable the ASIC clock for a bit while RSTreg is True and then turn it off again before removing RSTreg Commented to check?
+        # self.RegisterControl.ClkSyncEn.set(True)
+        if (self.asicVersion== 2):
+            if arg[1] != 0:
+                print("Pulsing RSTreg ASIC0")        
+                self.Hr10kTAsic0.RSTreg.set(True)
+            if arg[2] != 0:
+                print("Pulsing RSTreg ASIC1")
+                self.Hr10kTAsic1.RSTreg.set(True)
+            if arg[3] != 0:
+                print("Pulsing RSTreg ASIC2")
+                self.Hr10kTAsic2.RSTreg.set(True)
+            if arg[4] != 0:
+                print("Pulsing RSTreg ASIC3")
+                self.Hr10kTAsic3.RSTreg.set(True)
+
+            if arg[1] != 0:      
+                self.Hr10kTAsic0.RSTreg.set(False)
+            if arg[2] != 0:
+                self.Hr10kTAsic1.RSTreg.set(False)
+            if arg[3] != 0:
+                self.Hr10kTAsic2.RSTreg.set(False)
+            if arg[4] != 0:
+                self.Hr10kTAsic3.RSTreg.set(False)
+
+        
+        if (self.asicVersion== 3):
+            self.RegisterControl.RoLogicRst.set(False)
+            time.sleep(delay)
+            self.RegisterControl.RoLogicRst.set(True)
+
         # starting clock inside the ASIC
         self.RegisterControl.ClkSyncEn.set(True)
         

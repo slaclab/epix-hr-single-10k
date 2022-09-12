@@ -101,6 +101,14 @@ parser.add_argument(
     required = False,
     default  = 11000,
     help     = "same port defined in the vhdl testbench",
+)
+
+parser.add_argument(
+    "--asicVersion", 
+    type     = int,
+    required = False,
+    default  = 2,
+    help     = "same port defined in the vhdl testbench",
 )  
 
 # Get the arguments
@@ -309,7 +317,7 @@ class Board(pr.Root):
         # Add Devices
         if ( self.args.type == 'kcu1500' ):
             self.add(epixHr.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,numberOfLanes=3))
-        self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True))
+        self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True, asicVersion=args.asicVersion))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 
 
