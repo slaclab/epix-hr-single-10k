@@ -662,7 +662,8 @@ class EventReader(rogue.interfaces.stream.Slave):
             # define the data type IDs
             #############################
             self.isLCLSII = True
-            self.VIEW_DATA_CHANNEL_ID    = 0x2 + displayNum
+            #self.VIEW_DATA_CHANNEL_ID    = 0x2 + displayNum
+            self.VIEW_DATA_CHANNEL_ID    = 0x2
             self.VIEW_PSEUDOSCOPE_ID     = -1
             self.VIEW_MONITORING_DATA_ID = -1
         else:
