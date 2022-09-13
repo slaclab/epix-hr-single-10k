@@ -75,13 +75,13 @@ class EpixHR10kT(pr.Device):
             #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane3',            offset=0x05030000, expand=False, enabled=False),
             # app registers
             MMCM7Registers(                   name='MMCMRegisters',            offset=0x80000000, expand=False, enabled=False),
-            TriggerRegisters(                 name="TriggerRegisters",         offset=0x81000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(               name='ssiPrbs0PktRegisters',     offset=0x82000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(               name='ssiPrbs1PktRegisters',     offset=0x83000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(               name='ssiPrbs2PktRegisters',     offset=0x84000000, expand=False, enabled=False),
-            ssiPrbsTxRegisters(               name='ssiPrbs3PktRegisters',     offset=0x85000000, expand=False, enabled=False),
-            axi.AxiStreamMonAxiL(             name='AxiStreamMon',             offset=0x86000000, expand=False, enabled=False, numberLanes=4),
-            axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False)))
+            TriggerRegisters(                 name="TriggerRegisters",         offset=0x81000000, expand=False, enabled=False)))
+#            ssiPrbsTxRegisters(               name='ssiPrbs0PktRegisters',     offset=0x82000000, expand=False, enabled=False),
+#            ssiPrbsTxRegisters(               name='ssiPrbs1PktRegisters',     offset=0x83000000, expand=False, enabled=False),
+#            ssiPrbsTxRegisters(               name='ssiPrbs2PktRegisters',     offset=0x84000000, expand=False, enabled=False),
+#            ssiPrbsTxRegisters(               name='ssiPrbs3PktRegisters',     offset=0x85000000, expand=False, enabled=False),
+#            axi.AxiStreamMonAxiL(             name='AxiStreamMon',             offset=0x86000000, expand=False, enabled=False, numberLanes=4),
+#            axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False)))
         if (self.asicVersion == 2):
             self.add((
                 epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
@@ -99,7 +99,7 @@ class EpixHR10kT(pr.Device):
             EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
             powerSupplyRegisters(                name='PowerSupply',              offset=0x89000000, expand=False, enabled=False),            
             HighSpeedDacRegisters(               name='HSDac',                    offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
-            pr.MemoryDevice(                     name='waveformMem',              offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4),
+            pr.MemoryDevice(                     name='waveformMem',              offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4, hidden=True),
             sDacRegisters(                       name='SlowDacs'    ,             offset=0x8C000000, expand=False, enabled=False),
             OscilloscopeRegisters(               name='Oscilloscope',             offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(                     name='FastADCsDebug',            offset=0x8E000000, expand=False, enabled=False),
@@ -452,6 +452,23 @@ class EpixHR10kT(pr.Device):
         # load config that sets packet registers
         print("Loading packet registers")
         self.root.LoadConfig(self.filenamePacketReg)
+        if arg[1] == 0:
+            print("Disabling packet lanes for ASIC 0")
+            newDisableLane = self.PacketRegisters0.DisableLane.get()| 0x3F
+            self.PacketRegisters0.DisableLane.set(newDisableLane)
+        if arg[2] == 0:
+            print("Disabling packet lanes for ASIC 1")
+            newDisableLane = self.PacketRegisters0.DisableLane.get()| 0xFC0
+            self.PacketRegisters0.DisableLane.set(newDisableLane)
+        if arg[3] == 0:          
+            print("Disabling packet lanes for ASIC 2")
+            newDisableLane = self.PacketRegisters1.DisableLane.get()| 0x3F
+            self.PacketRegisters1.DisableLane.set(newDisableLane)
+        if arg[4] == 0:
+            print("Disabling packet lanes for ASIC 3")
+            newDisableLane = self.PacketRegisters1.DisableLane.get()| 0xFC0
+            self.PacketRegisters1.DisableLane.set(newDisableLane)
+
         print(self.filenamePacketReg)
         time.sleep(delay)         
 
@@ -1174,7 +1191,46 @@ class TriggerRegisters(pr.Device):
       self.add(pr.RemoteCommand(name='AcqCountReset', description='Resets Acq counter', 
                              offset=0x00000020, bitSize=1, bitOffset=0, function=pr.Command.touchOne))
 
-   
+      @self.command(description = 'Set Auto Trigger period (Hz)', value=1000)
+      def SetAutoTrigger (arg):
+         print('Set Auto Trigger command executed')
+         self.TimingDaqTriggerEnable.set(False)
+         self.TimingRunTriggerEnable.set(False)
+         period = int(1/arg*1e8)
+         self.AutoTrigPeriod.set(period)
+         self.AutoRunEn.set(True)
+         self.AutoDaqEn.set(True)
+
+      @self.command(description = 'Start and enable auto triggers')
+      def StartAutoTrigger ():
+         print('Start Auto Trigger command executed')
+         self.AutoRunEn.set(True)
+         self.RunTriggerEnable.set(True)
+         time.sleep(1)
+         self.AutoDaqEn.set(True)
+         self.DaqTriggerEnable.set(True)
+
+      @self.command(description = 'Stop all trigger sources')
+      def StopTriggers ():
+         print('Stop Triggers command executed')
+         self.AutoRunEn.set(False)
+         self.TimingRunTriggerEnable.set(False)
+         self.RunTriggerEnable.set(False)
+         self.AutoDaqEn.set(False)
+         self.TimingDaqTriggerEnable.set(False)
+         self.DaqTriggerEnable.set(False)
+
+      @self.command(description = 'Set Timing Trigger input', )
+      def SetTimingTrigger ():
+         print('Set Timing Trigger command executed')
+         self.AutoRunEn.set(False)
+         self.AutoDaqEn.set(False)
+         self.TimingDaqTriggerEnable.set(True)
+         self.TimingRunTriggerEnable.set(True)
+         self.RunTriggerEnable.set(True)
+         self.DaqTriggerEnable.set(True)
+
+      
    @staticmethod   
    def frequencyConverter(self):
       def func(dev, var):         
