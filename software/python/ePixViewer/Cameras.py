@@ -84,6 +84,8 @@ class Camera():
             print("Camera ", cameraType ," not supported")
             
         self.cameraType = cameraType
+        self.MAX_NUMBER_OF_FRAMES_PER_BATCH  = 1000
+
 
         #selcts proper initialization based on camera type
         if (camID == EPIX100A):
@@ -1162,8 +1164,8 @@ class Camera():
              #descramble image
              #get data for each bank
              adcImg = quadrant0.reshape(-1,12)
-             #for i in [0,1,6,7,10,11,2,3,8,9,4,5]:
-             for i in [0,1,8,9,10,11,2,3,4,5,6,7]:
+             #for i in [0,1,8,9,10,11,2,3,4,5,6,7]::
+             for i in range(12):
                  #reshape data into 2D array per bank
                  adcImg2 = adcImg[0:adcImg.shape[0],i].reshape(-1,32)
                  #apply row-shift patch
@@ -1174,7 +1176,7 @@ class Camera():
                      quadrant0sq = adcImg2
                  else:
                      quadrant0sq = np.concatenate((quadrant0sq,adcImg2),1)
-             imgDesc = quadrant0sq
+             imgDesc = quadrant0sq[1:,:]#removes first invalid row)
         else:
             print("descramble error")
             imgDesc = np.zeros((144,384), dtype='uint16')
@@ -1185,3 +1187,73 @@ class Camera():
     # helper functions
     def _calcImgWidth(self):
         return self._NumAsicsPerSide * self._NumAdcChPerAsic * self._NumColPerAdcCh
+    
+    def getData(self, localFile, batchertimingWidth = 0):
+
+        file_header = [0]
+        numberOfFrames = 0
+        previousSize = 0
+        while ((len(file_header)>0) and ((numberOfFrames<self.MAX_NUMBER_OF_FRAMES_PER_BATCH) or (self.MAX_NUMBER_OF_FRAMES_PER_BATCH==-1))):
+            try:
+                # reads file header [the number of bytes to read, EVIO]
+                file_header = np.fromfile(localFile, dtype='uint32', count=2)
+                newPayload = np.fromfile(localFile, dtype='uint16', count=batchertimingWidth)
+                payloadSize = int(file_header[0]/2)-(2+batchertimingWidth) #-1 is need because size info includes the second word from the header            
+                newPayload = np.fromfile(localFile, dtype='uint16', count=payloadSize) #(frame size splited by four to read 32 bit
+                #save only serial data frames
+                if (numberOfFrames == 0):
+                    allFrames = [newPayload.copy()]
+                else:
+                    newFrame  = [newPayload.copy()]
+                    allFrames = np.append(allFrames, newFrame, axis = 0)
+                numberOfFrames = numberOfFrames + 1 
+                #print ("Payload" , numberOfFrames, ":",  (newPayload[0:5]))
+                previousSize = file_header
+
+                if (numberOfFrames%1000==0):
+                    print("Read %d frames" % numberOfFrames)
+
+            except Exception: 
+                e = sys.exc_info()[0]
+                #print ("Message\n", e)
+                print ('\r', 'numberOfFrames read:', numberOfFrames, 'Size Error, currnt size', file_header, 'previous size', previousSize)
+                return [0]
+
+
+        return allFrames
+
+
+    def getDescImaData(self, localAllFrames):
+    ##################################################
+    # image descrambling
+    ##################################################
+        numberOfFrames = localAllFrames.shape[0]
+    #numberOfFrames = allFrames.shape[0]
+        print("numberOfFrames in the 3D array: " ,numberOfFrames)
+        print("Starting descrambling images")
+        currentRawData = []
+        imgDesc = []
+        if(numberOfFrames==1):
+            [frameComplete, readyForDisplay, rawImgFrame] = self.buildImageFrame(currentRawData = [], newRawData = allFrames[0])
+            imgDesc = np.array([self.descrambleImage(bytearray(rawImgFrame.tobytes()))])
+        else:
+            for i in range(0, numberOfFrames):
+            #get an specific frame
+                [frameComplete, readyForDisplay, rawImgFrame] = self.buildImageFrame(currentRawData, newRawData = localAllFrames[i,:])
+                currentRawData = rawImgFrame
+
+            #get descrambled image from camera
+                if (len(imgDesc)==0 and (readyForDisplay)):
+                    imgDesc = np.array([self.descrambleImage(bytearray(rawImgFrame.tobytes()))])
+                    currentRawData = []
+                else:
+                    if readyForDisplay:
+                        currentRawData = []
+                        newImage = np.array([self.descrambleImage(bytearray(rawImgFrame.tobytes()))])
+                    #newImage = currentCam.descrambleImage(rawImgFrame)
+                    #newImage = newImage.astype(np.float, copy=False)
+                    #if (np.sum(np.sum(newImage))==0):
+                    #    newImage[np.where(newImage==0)]=np.nan
+                        imgDesc = np.concatenate((imgDesc, np.array([newImage[0]])),0)
+
+        return imgDesc

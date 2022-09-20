@@ -27,11 +27,12 @@ import ePixFpga as fpga
 
 
 class Root(pr.Root):
-    def __init__(self, top_level, sim, **kwargs):
+    def __init__(self, top_level, sim, asicVersion, **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
 
         self.top_level = top_level
         self._sim = sim
+        self._asicVersion = asicVersion
 
         # Create the PGP interfaces for ePix hr camera
         self.pgpL0Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+0, True) # Registers  
@@ -66,7 +67,7 @@ class Root(pr.Root):
         
 
         self.add(epixHrCore.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,))
-        self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True))
+        self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True,asicVersion=self._asicVersion))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 
 

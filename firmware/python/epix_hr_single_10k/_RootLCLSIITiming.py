@@ -27,12 +27,13 @@ import ePixFpga as fpga
 
 
 class RootLCLSIITiming(pr.Root):
-    def __init__(self, top_level, sim, dev = '/dev/datadev_0',  **kwargs):
+    def __init__(self, top_level, sim, asicVersion, dev = '/dev/datadev_0',  **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
 
         self.top_level = top_level
         self._sim = sim
         self._dev = dev
+        self._asicVersion = asicVersion
 
         # Create arrays to be filled
         self.dmaStreams = [None for lane in range(3)]
@@ -73,7 +74,7 @@ class RootLCLSIITiming(pr.Root):
             self._cmd.sendCmd(0, 0)
         
         self.add(epixHrCore.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,numberOfLanes=3))
-        self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True))
+        self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True, asicVersion=self._asicVersion))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
 
 
