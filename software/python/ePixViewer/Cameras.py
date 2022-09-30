@@ -331,7 +331,7 @@ class Camera():
         #self._NumColPerAdcCh = 96
         #self._superRowSizeInBytes = self._superRowSize * 4
         self.sensorWidth  = 384 
-        self.sensorHeight = 145 
+        self.sensorHeight = 144 
         self.pixelDepth = 16
         self.bitMask = np.uint16(0xFFFF)
 
@@ -1160,7 +1160,7 @@ class Camera():
              #quadrant0 = np.frombuffer(img[16:-192],dtype='uint16')
              calcLen = int(np.floor(img.shape[0]/32/12-1)*32*12)
              if (self.Verbose):print("CalcLen", calcLen)
-             quadrant0 = np.frombuffer(img[16:calcLen+16],dtype='uint16')
+             quadrant0 = np.frombuffer(img[12:calcLen+12],dtype='uint16')
              #descramble image
              #get data for each bank
              adcImg = quadrant0.reshape(-1,12)
