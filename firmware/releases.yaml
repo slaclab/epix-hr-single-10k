@@ -22,7 +22,7 @@ RogueScripts:
 
 Targets:
 ################################################################################  
-  EpixHr10kT:
+  EpixHr10kTLclsIITiming:
     ImageDir: targets/EpixHr10kTLclsIITiming/images
     Extensions:
       - mcs
