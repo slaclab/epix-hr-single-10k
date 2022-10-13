@@ -7,6 +7,8 @@ RoguePackages:
   - submodules/axi-pcie-core/python
   - submodules/epix-hr-core/python
   - submodules/surf/python
+  - submodules/l2si-core/python
+  - submodules/lcls-timing-core/python
   - python
   - ../software/python
 
@@ -14,12 +16,14 @@ RogueConfig:
   - ../software/yml
 
 RogueScripts:
-#  - ../software/scripts/devGui
+  - ../software/scripts/ePixHr10kTDaqLCLSII.py
+  - ../software/scripts/setupLibPaths.py
+
 
 Targets:
 ################################################################################  
   EpixHr10kT:
-    ImageDir: targets/EpixHr10kT/images
+    ImageDir: targets/EpixHr10kTLclsIITiming/images
     Extensions:
       - mcs
 ################################################################################        
@@ -27,6 +31,6 @@ Releases:
   epix_hr_single_10k:
     Primary: True
     Targets:
-      - EpixHr10kT
+      - EpixHr10kTLclsIITiming
     Types:
       - Rogue
