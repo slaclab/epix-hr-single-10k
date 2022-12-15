@@ -1097,6 +1097,7 @@ class EpixHr10kTV3Asic(pr.Device):
                    self.filename = self.filename[0]
                if os.path.splitext(self.filename)[1] == '.csv':
                     matrixCfg = np.genfromtxt(self.filename, delimiter=',')
+                    print("ASIC V3")
                     if matrixCfg.shape == (146, 192):
                         self.CmdPrepForRead() #0000
                         self.PrepareMultiConfig() #8000
@@ -1113,16 +1114,9 @@ class EpixHr10kTV3Asic(pr.Device):
                                     colToWrite = 0x380 + y%48;
                                 else:
                                     print('unexpected bank number')
-                                for reapeat in range (0, 1):
-                                    self.RowCounter.set(x) #6011
-                                    self.ColCounter.set(colToWrite) #6013
-                                    for reapeat2 in range (0, 1):
-                                        self.WritePixelData.get() #5000
-                                        self.WritePixelData.get() #5000
-                                        self.WritePixelData.get() #5000
-                                        self.WritePixelData.get() #5000
-                                        ti.sleep(1.0 / float(1000))
-                                        self.WritePixelData.set(int(matrixCfg[x][y])) #5000
+                                self.RowCounter.set(x) #6011
+                                self.ColCounter.set(colToWrite) #6013
+                                self.WritePixelData.set(int(matrixCfg[x][y])) #5000
 
                         self.CmdPrepForRead()
 
