@@ -69,7 +69,15 @@ parser.add_argument(
     required = False,
     default  = "kcu1500",
     help     = "define the PCIe card type (either pgp-gen3 or kcu1500)",
-)  
+)
+
+parser.add_argument(
+    "--dev", 
+    type     = str,
+    required = False,
+    default  = '/dev/datadev_0',
+    help     = "define the PCIe card type (either pgp-gen3 or kcu1500)",
+)
 
 parser.add_argument(
     "--start_gui", 
@@ -295,7 +303,7 @@ class Board(pr.Root):
 # Create GUI
 appTop = QApplication(sys.argv)
 guiTop = pyrogue.gui.GuiTop(group='ePixHr10kT')
-with Board(args, guiTop, top_level=top_level, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
+with Board(args, guiTop, top_level=top_level, dev=args.dev, pollEn=pollEn, timeout=timeout) as ePixHrBoard:
 
     if ( args.type == 'dataFile' or args.type == 'SIM'):
         print("Simulation mode does not initialize monitoring ADC")

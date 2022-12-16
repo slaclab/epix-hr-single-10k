@@ -27,21 +27,22 @@ import ePixFpga as fpga
 
 
 class Root(pr.Root):
-    def __init__(self, top_level, sim, asicVersion, **kwargs):
+    def __init__(self, top_level, dev='/dev/datadev_0', sim=False, asicVersion=3, **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
 
         self.top_level = top_level
+        self._dev = dev
         self._sim = sim
         self._asicVersion = asicVersion
 
         # Create the PGP interfaces for ePix hr camera
-        self.pgpL0Vc0 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+0, True) # Registers  
-        self.pgpL0Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+1, True) # Data & cmds
-        self.pgpL0Vc2 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+2, True) # PseudoScope
-        self.pgpL0Vc3 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(0*256)+3, True) # Monitoring (Slow ADC)
-        self.pgpL1Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(1*256)+1, True) # Data
-        self.pgpL2Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(2*256)+1, True) # Data
-        self.pgpL3Vc1 = rogue.hardware.axi.AxiStreamDma('/dev/datadev_0',(3*256)+1, True) # Data
+        self.pgpL0Vc0 = rogue.hardware.axi.AxiStreamDma(self._dev,(0*256)+0, True) # Registers  
+        self.pgpL0Vc1 = rogue.hardware.axi.AxiStreamDma(self._dev,(0*256)+1, True) # Data & cmds
+        self.pgpL0Vc2 = rogue.hardware.axi.AxiStreamDma(self._dev,(0*256)+2, True) # PseudoScope
+        self.pgpL0Vc3 = rogue.hardware.axi.AxiStreamDma(self._dev,(0*256)+3, True) # Monitoring (Slow ADC)
+        self.pgpL1Vc1 = rogue.hardware.axi.AxiStreamDma(self._dev,(1*256)+1, True) # Data
+        self.pgpL2Vc1 = rogue.hardware.axi.AxiStreamDma(self._dev,(2*256)+1, True) # Data
+        self.pgpL3Vc1 = rogue.hardware.axi.AxiStreamDma(self._dev,(3*256)+1, True) # Data
 
         # Add data stream to file as channel 1 File writer
         self.dataWriter = pyrogue.utilities.fileio.StreamWriter(name='dataWriter')
