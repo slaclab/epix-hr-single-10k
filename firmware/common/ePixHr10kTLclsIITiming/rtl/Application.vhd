@@ -1289,7 +1289,7 @@ begin
      -------------------------------------------------------------------------------
      -- generate stream frames
      -------------------------------------------------------------------------------
-     U_Framers : entity work.DigitalAsicStreamAxiV2 
+     U_Framers : entity work.DigitalAsicStreamAxiV3
        generic map(
          TPD_G               => TPD_G,
          VC_NO_G             => "0000",
