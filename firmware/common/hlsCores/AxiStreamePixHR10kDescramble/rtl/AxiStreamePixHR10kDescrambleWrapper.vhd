@@ -42,18 +42,18 @@ architecture rtl of AxiStreamePixHR10kDescrambleWrapper is
          ibStream_TVALID : in  std_logic;
          ibStream_TREADY : out std_logic;
          ibStream_TDEST  : in  std_logic_vector(0 downto 0);
-         ibStream_TDATA  : in  std_logic_vector(31 downto 0);
-         ibStream_TKEEP  : in  std_logic_vector(3 downto 0);
-         ibStream_TSTRB  : in  std_logic_vector(3 downto 0);
+         ibStream_TDATA  : in  std_logic_vector(191 downto 0);
+         ibStream_TKEEP  : in  std_logic_vector(23 downto 0);
+         ibStream_TSTRB  : in  std_logic_vector(23 downto 0);
          ibStream_TUSER  : in  std_logic_vector(1 downto 0);
          ibStream_TLAST  : in  std_logic_vector(0 downto 0);
          ibStream_TID    : in  std_logic_vector(0 downto 0);
          obStream_TVALID : out std_logic;
          obStream_TREADY : in  std_logic;
          obStream_TDEST  : out std_logic_vector(0 downto 0);
-         obStream_TDATA  : out std_logic_vector(31 downto 0);
-         obStream_TKEEP  : out std_logic_vector(3 downto 0);
-         obStream_TSTRB  : out std_logic_vector(3 downto 0);
+         obStream_TDATA  : out std_logic_vector(191 downto 0);
+         obStream_TKEEP  : out std_logic_vector(23 downto 0);
+         obStream_TSTRB  : out std_logic_vector(23 downto 0);
          obStream_TUSER  : out std_logic_vector(1 downto 0);
          obStream_TLAST  : out std_logic_vector(0 downto 0);
          obStream_TID    : out std_logic_vector(0 downto 0)
@@ -74,9 +74,9 @@ begin
          ap_rst_n          => axisRstL,
          -- Inbound Interface
          ibStream_TVALID   => sAxisMaster.tValid,
-         ibStream_TDATA    => sAxisMaster.tData(31 downto 0),
-         ibStream_TKEEP    => sAxisMaster.tKeep(3 downto 0),
-         ibStream_TSTRB    => sAxisMaster.tStrb(3 downto 0),
+         ibStream_TDATA    => sAxisMaster.tData(191 downto 0),
+         ibStream_TKEEP    => sAxisMaster.tKeep(23 downto 0),
+         ibStream_TSTRB    => sAxisMaster.tStrb(23 downto 0),
          ibStream_TUSER    => sAxisMaster.tUser(1 downto 0),
          ibStream_TLAST(0) => sAxisMaster.tLast,
          ibStream_TID      => sAxisMaster.tId(0 downto 0),
@@ -84,9 +84,9 @@ begin
          ibStream_TREADY   => sAxisSlave.tReady,
          -- Outbound Interface
          obStream_TVALID   => axisMaster.tValid,
-         obStream_TDATA    => axisMaster.tData(31 downto 0),
-         obStream_TKEEP    => axisMaster.tKeep(3 downto 0),
-         obStream_TSTRB    => axisMaster.tStrb(3 downto 0),
+         obStream_TDATA    => axisMaster.tData(191 downto 0),
+         obStream_TKEEP    => axisMaster.tKeep(23 downto 0),
+         obStream_TSTRB    => axisMaster.tStrb(23 downto 0),
          obStream_TUSER    => axisMaster.tUser(1 downto 0),
          obStream_TLAST(0) => axisMaster.tLast,
          obStream_TID      => axisMaster.tId(0 downto 0),
