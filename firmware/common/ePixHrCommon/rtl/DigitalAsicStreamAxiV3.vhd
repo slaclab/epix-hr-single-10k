@@ -160,6 +160,8 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    signal txSlave          : AxiStreamSlaveType;
    signal sAxisMasterWide  : AxiStreamMasterType;
    signal sAxisSlaveWide   : AxiStreamSlaveType;
+   signal hlsRxMaster      : AxiStreamMasterType;
+   signal hlsRxSlave       : AxiStreamSlaveType;
    signal hlsTxMaster      : AxiStreamMasterType;
    signal hlsTxSlave       : AxiStreamSlaveType;
    
@@ -517,13 +519,33 @@ begin
    ---------------------------------------------------------------------------
    -- descramble hls core
    ----------------------------------------------------------------------------
+   AxisHLS_IN_FIFO_U: entity surf.AxiStreamFifoV2
+   generic map(
+      GEN_SYNC_FIFO_G      => false,
+      FIFO_ADDR_WIDTH_G    => 13,
+      CASCADE_SIZE_G       => 1,
+      INT_WIDTH_SELECT_G   => "WIDE",
+      SLAVE_AXI_CONFIG_G   => AXI_STREAM_CONFIG_I_C,
+      MASTER_AXI_CONFIG_G  => AXI_STREAM_CONFIG_I_C
+   )
+   port map(
+      sAxisClk    => deserClk,
+      sAxisRst    => deserRst,
+      sAxisMaster => r.txMaster,
+      sAxisSlave  => txSlave,
+      mAxisClk    => deserClk,
+      mAxisRst    => deserRst,
+      mAxisMaster => hlsRxMaster,
+      mAxisSlave  => hlsRxSlave
+      );
+   
    U_HLS : entity work.AxiStreamePixHR10kDescrambleWrapper
      port map (
        axisClk     => deserClk,
        axisRst     => deserRst,
        -- Slave Port
-       sAxisMaster => r.txMaster,
-       sAxisSlave  => txSlave,
+       sAxisMaster => hlsRxMaster,
+       sAxisSlave  => hlsRxSlave,
        -- Master Port
        mAxisMaster => hlsTxMaster,
        mAxisSlave  => hlsTxSlave);   

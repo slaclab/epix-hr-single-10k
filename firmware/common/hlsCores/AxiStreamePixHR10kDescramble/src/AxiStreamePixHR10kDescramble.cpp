@@ -62,8 +62,8 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
 	       }
            obVar.data = temp_data;
            obVar.last = lastDataFlag[idx];//flag is kept in order since only data should be mirrored
-           obVar.strb = ibVar.strb; //for 192 bits bus this value should always be xFFFFFF
-           obVar.keep = ibVar.keep;
+           obVar.strb = 0xFFFFFF;//ibVar.strb; //for 192 bits bus this value should always be xFFFFFF
+           obVar.keep = 0xFFFFFF;//ibVar.keep;
 
            cout << "idx="        << idx        << ", ";
            cout << "linebuffer=" << linebuf[idx] << ", ";
