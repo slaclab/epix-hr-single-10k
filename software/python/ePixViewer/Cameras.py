@@ -331,7 +331,7 @@ class Camera():
         #self._NumColPerAdcCh = 96
         #self._superRowSizeInBytes = self._superRowSize * 4
         self.sensorWidth  = 384 
-        self.sensorHeight = 144 
+        self.sensorHeight = 145 
         self.pixelDepth = 16
         self.bitMask = np.uint16(0xFFFF)
 
@@ -1146,7 +1146,35 @@ class Camera():
         # returns final image
         return imgDesc
 
+
     def _descrambleEpixHR10kTImageBatcher(self, rawData):
+        """performs the Epix10kT with  batcher image descrambling """
+        if (self.Verbose):print("Length raw data: %d" % (len(rawData)))
+                         #55712
+        #if (len(rawData)==56096):
+        #if (len(rawData)%(32)==0):
+        if (True):
+             if (type(rawData != 'numpy.ndarray')):
+                img = np.frombuffer(rawData,dtype='uint16')
+             if (self.Verbose):print("shape", img.shape)          
+             #Select data payload
+             #quadrant0 = np.frombuffer(img[16:-192],dtype='uint16')
+             calcLen = img.shape[0]
+             if (self.Verbose):print("CalcLen", calcLen)
+             quadrant0 = np.frombuffer(img[0:calcLen],dtype='uint16')
+             #descramble image
+             #get data for each bank
+             adcImg = quadrant0.reshape(-1,384)
+             imgDesc = adcImg[1:,:]#removes first invalid row)
+        else:
+            print("descramble error")
+            imgDesc = np.zeros((144,384), dtype='uint16')
+            
+        # returns final image
+        return imgDesc
+
+    
+    def _descrambleEpixHR10kTImageBatcherWithSWDescramble(self, rawData):
         """performs the Epix10kT with  batcher image descrambling """
         if (self.Verbose):print("Length raw data: %d" % (len(rawData)))
                          #55712
