@@ -384,6 +384,7 @@ begin
                v.txMaster.tData(63 downto 32) := r.acqNo(1)(31 downto 0);
                v.txMaster.tData(79 downto 64) := x"000" & '0' & ASIC_NO_G;
                v.txMaster.tData(95 downto 80) := x"0000";
+               v.txMaster.tData(191 downto 96):= x"0000_0000_0000_0000_0000_0000";
                ssiSetUserSof(AXI_STREAM_CONFIG_I_C, v.txMaster, '1');
                --Remove first pixel (invalid pixel) from stream and replace it
                --with header information
@@ -506,7 +507,7 @@ begin
       axilReadSlave   <= r.axilReadSlave;
       dFifoRd         <= v.dFifoRd;
       -- -2 is for counter starting at 0 and 1 header word
-      numPixRequested <= (r.dataReqLane*32)-2;-- each row has 32 columns
+      numPixRequested <= (r.dataReqLane<<5)-2;-- each row has 32 columns
 
    end process comb;
 
