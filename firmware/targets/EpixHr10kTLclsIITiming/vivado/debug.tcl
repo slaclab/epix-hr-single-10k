@@ -72,6 +72,7 @@ ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[txMaster][*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[dFifoRd][*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[state][*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoValid[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/hlsTxMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}

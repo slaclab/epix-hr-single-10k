@@ -163,7 +163,8 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    signal hlsTxMaster      : AxiStreamMasterType;
    signal hlsTxSlave       : AxiStreamSlaveType;
    
-   signal acqNoSync     : slv(31 downto 0);
+   signal acqNoSync        : slv(31 downto 0);
+   signal numPixRequested  : slv(31 downto 0);
    
    signal axilWriteMaster  : AxiLiteWriteMasterType;
    signal axilWriteSlave   : AxiLiteWriteSlaveType;
@@ -399,7 +400,7 @@ begin
                v.dFifoRd := (others=>'1');
                            
                v.stCnt := r.stCnt + 1;
-               if r.stCnt = r.dataReqLane then 
+               if r.stCnt = numPixRequested then 
                   v.frmSize := r.stCnt;
                   v.stCnt := (others=>'0');
                   
@@ -501,9 +502,11 @@ begin
       
       rin <= v;
 
-      axilWriteSlave <= r.axilWriteSlave;
-      axilReadSlave  <= r.axilReadSlave;
-      dFifoRd        <= v.dFifoRd;
+      axilWriteSlave  <= r.axilWriteSlave;
+      axilReadSlave   <= r.axilReadSlave;
+      dFifoRd         <= v.dFifoRd;
+      -- -2 is for counter starting at 0 and 1 header word
+      numPixRequested <= (r.dataReqLane*32)-2;-- each row has 32 columns
 
    end process comb;
 
