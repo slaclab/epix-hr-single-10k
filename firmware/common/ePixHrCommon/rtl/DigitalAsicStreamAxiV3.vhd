@@ -164,7 +164,7 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    signal hlsTxSlave       : AxiStreamSlaveType;
    
    signal acqNoSync        : slv(31 downto 0);
-   signal numPixRequested  : slv(31 downto 0);
+   signal numPixRequested  : slv(15 downto 0);
    
    signal axilWriteMaster  : AxiLiteWriteMasterType;
    signal axilWriteSlave   : AxiLiteWriteSlaveType;
@@ -290,7 +290,8 @@ begin
 
 
    comb : process (deserRst, axilReadMaster, axilWriteMaster, txSlave, r, 
-      acqNoSync, dFifoExtData, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, startRdSync, rxValid, rxSof, rxEof, rxEofe, rxFull) is
+      acqNoSync, dFifoExtData, dFifoValid, dFifoSof, dFifoEof, dFifoEofe, 
+      startRdSync, rxValid, rxSof, rxEof, rxEofe, rxFull, numPixRequested) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
@@ -507,7 +508,8 @@ begin
       axilReadSlave   <= r.axilReadSlave;
       dFifoRd         <= v.dFifoRd;
       -- -2 is for counter starting at 0 and 1 header word
-      numPixRequested <= (r.dataReqLane<<5)-2;-- each row has 32 columns
+      numPixRequested <= (r.dataReqLane(10 downto  0)&"00000")-2;-- each row has 32 columns
+      
 
    end process comb;
 
