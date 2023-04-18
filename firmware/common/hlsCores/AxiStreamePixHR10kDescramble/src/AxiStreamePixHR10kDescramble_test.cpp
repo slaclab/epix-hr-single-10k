@@ -28,7 +28,7 @@ int main() {
   // Put data into A Stream
   for(i=0; i < SIZE; i++){
       data_t tmp;
-      inputPix = i;
+      inputPix = i*256;
       cout << "pix value " << hex << inputPix << ",";
       inputData =  (inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix);
       cout << "pix value " << hex << inputData(63,0) << endl;
@@ -46,7 +46,7 @@ int main() {
   // Run a software version of the hardware function to validate results
   ap_uint<ASIC_DATA_WIDTH> linebuf[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS];
   for(i=0; i < NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS; i++){
-	  linebuf[i]=i%32;
+	  linebuf[i]=(i%32)*256;
   }
   for(i=0; i < ASIC_COLUMNS_PER_STREAM; i++){
       data_t tmp_c;

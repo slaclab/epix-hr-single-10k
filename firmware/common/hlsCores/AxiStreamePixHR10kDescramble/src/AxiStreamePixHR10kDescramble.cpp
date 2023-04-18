@@ -42,8 +42,7 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
            cout << "hw lane ibVar.data=" << ibVar.data << " hw lane ibVar.strb=" << ibVar.strb << " hw lane ibVar.keep=" << ibVar.keep << ", linebuf " << linebuf[idx] <<", last " << lastDataFlag[idx] << ", " << endl;
 	       //loops over the single input data and buffer it on a line buffer
 	       for (idx2 = 0; idx2 < ASIC_NUM_OF_STREAMS*NUM_ASICS; ++idx2){
-	    	   temp_pix = temp_data.range(15,0);
-	    	   high_range = ((ASIC_DATA_WIDTH-1)*(idx2+1));
+	    	   high_range = ((ASIC_DATA_WIDTH)*(idx2+1)-1);
 		       low_range = (ASIC_DATA_WIDTH*idx2);
 	    	   temp_pix = temp_data.range(high_range,low_range);
 	    	   cout << "tmp data " << temp_pix << ", ";
@@ -58,7 +57,7 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
    output_to_buf_loop:
    	  for (idx = 0; idx < ASIC_COLUMNS_PER_STREAM  ; ++idx){
 	      for (idx2 = 0; idx2 < ASIC_NUM_OF_STREAMS*NUM_ASICS; ++idx2){
-		temp_data.range((ASIC_DATA_WIDTH-1)*(idx2+1),ASIC_DATA_WIDTH*idx2) = linebuf[((idx*ASIC_NUM_OF_STREAMS*NUM_ASICS)+idx2)];
+		temp_data.range(((ASIC_DATA_WIDTH)*(idx2+1)-1),ASIC_DATA_WIDTH*idx2) = linebuf[((idx*ASIC_NUM_OF_STREAMS*NUM_ASICS)+idx2)];
 	       }
            obVar.data = temp_data;
            obVar.last = lastDataFlag[idx];//flag is kept in order since only data should be mirrored
