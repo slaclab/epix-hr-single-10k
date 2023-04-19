@@ -139,7 +139,7 @@ architecture RTL of DigitalAsicStreamAxiV3 is
       txMaster       => AXI_STREAM_MASTER_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      hlsCoreRst     => '1',
+      hlsCoreRst     => '1'
    );
    
    signal r   : RegType := REG_INIT_C;
