@@ -109,6 +109,7 @@ architecture RTL of DigitalAsicStreamAxiV3 is
       txMaster       : AxiStreamMasterType;
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
+      hlsCoreRst     : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -137,7 +138,8 @@ architecture RTL of DigitalAsicStreamAxiV3 is
       dFifoRd        => (others=>'0'),
       txMaster       => AXI_STREAM_MASTER_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      hlsCoreRst     => '1',
    );
    
    signal r   : RegType := REG_INIT_C;
@@ -298,6 +300,7 @@ begin
       v := r;
       
       v.rstCnt := '0';
+      v.hlsCoreRst := '0';
       v.dFifoRd := (others=>'0');
       v.stateD1 := r.state;
       v.startRdSync(3) := startRdSync;
@@ -348,9 +351,10 @@ begin
       case r.state is
          when IDLE_S =>
             if startRdSync = '1' then
-               v.state := WAIT_SOF_S;
-            end if;
-            
+              v.state := WAIT_SOF_S;
+              -- provides a 1 clock cycle hls core reset before new frame arrives
+              v.hlsCoreRst := '1';
+            end if;            
             
          when WAIT_SOF_S =>
          
@@ -526,7 +530,7 @@ begin
    U_HLS : entity work.AxiStreamePixHR10kDescrambleWrapper
      port map (
        axisClk     => deserClk,
-       axisRst     => deserRst,
+       axisRst     => r.hlsCoreRst,
        -- Slave Port
        sAxisMaster => r.txMaster,
        sAxisSlave  => txSlave,
