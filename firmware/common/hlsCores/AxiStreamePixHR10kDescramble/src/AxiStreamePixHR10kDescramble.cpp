@@ -33,6 +33,8 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
 
    ap_uint<8> idx = 0, idx2 = 0;
    int high_range, low_range;
+   rows_loop:
+   do{
 
    #pragma HLS DATAFLOW
    input_to_buf_loop:
@@ -60,6 +62,8 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
 		temp_data.range(((ASIC_DATA_WIDTH)*(idx2+1)-1),ASIC_DATA_WIDTH*idx2) = linebuf[((idx*ASIC_NUM_OF_STREAMS*NUM_ASICS)+idx2)];
 	       }
            obVar.data = temp_data;
+           //create error flag check and set
+           //last should coincide with idx = 31
            obVar.last = lastDataFlag[idx];//flag is kept in order since only data should be mirrored
            obVar.strb = 0xFFFFFF;//ibVar.strb; //for 192 bits bus this value should always be xFFFFFF
            obVar.keep = 0xFFFFFF;//ibVar.keep;
@@ -70,5 +74,5 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
 
            obStream.write(obVar);
       }
-
+   }while(obVar.last==0);
 }

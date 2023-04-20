@@ -16,7 +16,7 @@
 #include "ap_axi_sdata.h"
 #include "hls_stream.h"
 
-#define SIZE 32
+#define ASIC_ROWS 3
 #define NUM_ASICS 2
 #define ASIC_NUM_OF_STREAMS 6
 #define ASIC_DATA_WIDTH 16
