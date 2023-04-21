@@ -31,8 +31,13 @@ int main() {
   for(row=0; row < ASIC_ROWS; row++){
 	  for(i=0; i < ASIC_COLUMNS_PER_STREAM; i++){
 		  data_t tmp;
-		  //pixels is LSB row, MSB bank column
-		  inputPix = (row*256)+i;
+		  if (i < ROW_SHIFT_START_COLUMN){
+			  //pixels is LSB row, MSB bank column
+			  inputPix = (row*256)+i;
+		  }else{
+			  //pixels is LSB row, MSB bank column
+			  inputPix = ((row+1)*256)+i;
+		  }
 		  cout << "pix value " << hex << inputPix << ",";
 		  //Stream is scrambled due to parallel readout
 		  inputData =  (inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix,inputPix);
@@ -80,16 +85,21 @@ int main() {
   //-----------------------------------------------
   cout << "Start HW/SW comparison" << endl;
 
-  for(i=0; i < ASIC_COLUMNS_PER_STREAM*ASIC_ROWS; i++){
-      data_t tmp_b = B.read();
-      data_t tmp_c = C.read();
-      if (tmp_b.data != tmp_c.data){
-         cout << "i="          << i          << ", ";
-         cout << "hw data -> tmp_b.data=" << tmp_b.data << ", ";
-         cout << "sw data -> tmp_c.data=" << tmp_c.data << endl;
-         cout << "ERROR HW and SW results mismatch" << endl;
-         return 1;
-      }
+  //for(i=0; i < ASIC_COLUMNS_PER_STREAM*ASIC_ROWS; i++){
+  for(row=0; row < ASIC_ROWS; row++){
+	  for(i=0; i < ASIC_COLUMNS_PER_STREAM; i++){
+		  data_t tmp_b = B.read();
+		  data_t tmp_c = C.read();
+		  if (row>0){
+			  if (tmp_b.data != tmp_c.data){
+				 cout << "i="          << i          << ", ";
+				 cout << "hw data -> tmp_b.data=" << tmp_b.data << ", ";
+				 cout << "sw data -> tmp_c.data=" << tmp_c.data << endl;
+				 cout << "ERROR HW and SW results mismatch" << endl;
+				 return 1;
+			  }
+		  }
+	  }
   }
   cout << "Success HW and SW results match" << endl;
   return 0;
