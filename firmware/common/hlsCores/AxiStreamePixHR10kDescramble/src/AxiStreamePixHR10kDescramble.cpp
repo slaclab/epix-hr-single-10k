@@ -36,13 +36,13 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
 
    rows_loop:
    for(rowIdx=0; rowIdx<MAX_NUM_ROWS;rowIdx++){
-       #pragma HLS DATAFLOW
+       //#pragma HLS DATAFLOW
 	   read_frame(ibStream, input_line_buffer, lastDataFlag);
 
-	   #pragma HLS DATAFLOW
+	   //#pragma HLS DATAFLOW
 	   process_line(input_line_buffer, previous_line_buffer);
 
-       #pragma HLS DATAFLOW
+       //#pragma HLS DATAFLOW
 	   last = send_frame(input_line_buffer, lastDataFlag, obStream);
 
 	   //exit logic, frame ends with the last flag but now the algorithm
