@@ -26,7 +26,7 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
    // Exemple for 2 ePixHR10k ASICs => 2 * 32 * 6 = 384
    ap_uint<ASIC_DATA_WIDTH> input_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS];
    #pragma HLS ARRAY_PARTITION variable=input_line_buffer dim=1 complete
-   ap_uint<ASIC_DATA_WIDTH> output_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS];
+   static ap_uint<ASIC_DATA_WIDTH> output_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS];
    #pragma HLS ARRAY_PARTITION variable=output_line_buffer dim=1 complete
 
    ap_uint<32> lastDataFlag=0;
@@ -39,8 +39,8 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
        #pragma HLS DATAFLOW
 	   read_frame(ibStream, input_line_buffer, lastDataFlag);
 
-	   //#pragma HLS DATAFLOW
-	   //process_line(input_line_buffer, output_line_buffer, lastDataFlag);
+	   #pragma HLS DATAFLOW
+	   process_line(input_line_buffer, output_line_buffer, startColumn);
 
        #pragma HLS DATAFLOW
 	   last = send_frame(input_line_buffer, lastDataFlag, obStream);
@@ -67,6 +67,7 @@ void read_frame(mystream &ibStream, ap_uint<ASIC_DATA_WIDTH> linebuf[NUM_ASICS *
 		       low_range = (ASIC_DATA_WIDTH*idx2);
 	    	   temp_pix = temp_data.range(high_range,low_range);
 	    	   cout << "tmp data " << temp_pix << ", ";
+	    	   //effectively de scramble the data
 		       linebuf[idx+(idx2*ASIC_COLUMNS_PER_STREAM)] = temp_pix;
 	       }
 	       cout << endl;
@@ -76,15 +77,16 @@ void read_frame(mystream &ibStream, ap_uint<ASIC_DATA_WIDTH> linebuf[NUM_ASICS *
    	   }
 }
 
-void process_line(ap_uint<ASIC_DATA_WIDTH> input_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS], ap_uint<ASIC_DATA_WIDTH> output_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS]){
+void process_line(ap_uint<ASIC_DATA_WIDTH> input_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS], static ap_uint<ASIC_DATA_WIDTH> output_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS]){
 	ap_uint<8> idx = 0, idx2 = 0;
-	ap_uint<IO_STREAM_WIDTH> temp_data;
+
 
 	buf_in_to_buf_out_loop:
 	   	  for (idx = 0; idx < ASIC_COLUMNS_PER_STREAM  ; ++idx){
-		      for (idx2 = 0; idx2 < ASIC_NUM_OF_STREAMS*NUM_ASICS; ++idx2){
-		    	  temp_data.range(((ASIC_DATA_WIDTH)*(idx2+1)-1),ASIC_DATA_WIDTH*idx2) =  input_line_buffer[((idx*ASIC_NUM_OF_STREAMS*NUM_ASICS)+idx2)];
-		       }
+	   		for (idx2 = 0; idx2 < ASIC_NUM_OF_STREAMS*NUM_ASICS; ++idx2){
+			  #pragma HLS UNROLL factor=ASIC_NUM_OF_STREAMS*NUM_ASICS
+		      output_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))] =  input_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))];
+	   		}
 	   	  }
 }
 
@@ -96,7 +98,7 @@ ap_uint<1> send_frame(ap_uint<ASIC_DATA_WIDTH> output_line_buffer[NUM_ASICS * AS
    output_to_buf_loop:
    	  for (idx = 0; idx < ASIC_COLUMNS_PER_STREAM  ; ++idx){
 	      for (idx2 = 0; idx2 < ASIC_NUM_OF_STREAMS*NUM_ASICS; ++idx2){
-		temp_data.range(((ASIC_DATA_WIDTH)*(idx2+1)-1),ASIC_DATA_WIDTH*idx2) = output_line_buffer[((idx*ASIC_NUM_OF_STREAMS*NUM_ASICS)+idx2)];
+	    	  temp_data.range(((ASIC_DATA_WIDTH)*(idx2+1)-1),ASIC_DATA_WIDTH*idx2) = output_line_buffer[((idx*ASIC_NUM_OF_STREAMS*NUM_ASICS)+idx2)];
 	       }
            obVar.data = temp_data;
            //create error flag check and set
