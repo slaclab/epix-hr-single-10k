@@ -28,22 +28,24 @@ void AxiStreamePixHR10kDescramble(mystream &ibStream, mystream &obStream) {
    #pragma HLS ARRAY_PARTITION variable=input_line_buffer dim=1 complete
    static ap_uint<ASIC_DATA_WIDTH> previous_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS];
    #pragma HLS ARRAY_PARTITION variable=previous_line_buffer dim=1 complete
+   ap_uint<ASIC_DATA_WIDTH> output_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS];
+   #pragma HLS ARRAY_PARTITION variable=output_line_buffer dim=1 complete
 
    ap_uint<32> lastDataFlag=0;
    ap_uint<1> last;
    int rowIdx = 0;
 
-
+   #pragma HLS DATAFLOW
    rows_loop:
    for(rowIdx=0; rowIdx<MAX_NUM_ROWS;rowIdx++){
-       //#pragma HLS DATAFLOW
+
 	   read_frame(ibStream, input_line_buffer, lastDataFlag);
 
 	   //#pragma HLS DATAFLOW
-	   process_line(input_line_buffer, previous_line_buffer);
+	   process_line(input_line_buffer, previous_line_buffer, output_line_buffer);
 
        //#pragma HLS DATAFLOW
-	   last = send_frame(input_line_buffer, lastDataFlag, obStream);
+	   last = send_frame(output_line_buffer, lastDataFlag, obStream);
 
 	   //exit logic, frame ends with the last flag but now the algorithm
 	   //has an upper boundary
@@ -81,7 +83,7 @@ void read_frame(mystream &ibStream, ap_uint<ASIC_DATA_WIDTH> linebuf[NUM_ASICS *
    	   }
 }
 
-void process_line(ap_uint<ASIC_DATA_WIDTH> input_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS], ap_uint<ASIC_DATA_WIDTH> output_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS]){
+void process_line(ap_uint<ASIC_DATA_WIDTH> input_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS], ap_uint<ASIC_DATA_WIDTH> previous_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS], ap_uint<ASIC_DATA_WIDTH> output_line_buffer[NUM_ASICS * ASIC_COLUMNS_PER_STREAM * ASIC_NUM_OF_STREAMS]){
 	ap_uint<8> idx = 0, idx2 = 0;
 	ap_uint<ASIC_DATA_WIDTH> temp_pix;
 
@@ -93,9 +95,8 @@ void process_line(ap_uint<ASIC_DATA_WIDTH> input_line_buffer[NUM_ASICS * ASIC_CO
 	   		  if (idx < ROW_SHIFT_START_COLUMN){
 	   			output_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))] =  input_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))];
 	   		  }else{ //row shift
-	   			temp_pix = output_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))];
-		        output_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))] =  input_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))];
-		        input_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))] = temp_pix;
+	   			output_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))] = previous_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))];
+	   			previous_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))] = input_line_buffer[(idx+(idx2*ASIC_COLUMNS_PER_STREAM))];
 	   		  }
 	   		}
 	   	  }

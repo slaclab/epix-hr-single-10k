@@ -249,7 +249,7 @@ begin
       generic map (
          GEN_SYNC_FIFO_G   => true,
          FWFT_EN_G         => true,
-         ADDR_WIDTH_G      => 9,
+         ADDR_WIDTH_G      => 11,
          DATA_WIDTH_G      => 19
          )
       port map (
