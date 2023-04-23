@@ -6,11 +6,11 @@ ePixHr10kT:
     enable: True
     PacketRegisters0:
       enable: True
-      asicDataReq: 0x123f
+      asicDataReq: 146
       DisableLane: 0x0
       EnumerateDisLane: 0x0
     PacketRegisters1:
       enable: True
-      asicDataReq: 0x123f
+      asicDataReq: 146
       DisableLane: 0x0
       EnumerateDisLane: 0x0

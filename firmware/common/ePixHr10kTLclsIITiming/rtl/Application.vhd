@@ -1289,7 +1289,7 @@ begin
      -------------------------------------------------------------------------------
      -- generate stream frames
      -------------------------------------------------------------------------------
-     U_Framers : entity work.DigitalAsicStreamAxiV2 
+     U_Framers : entity work.DigitalAsicStreamAxiV3
        generic map(
          TPD_G               => TPD_G,
          VC_NO_G             => "0000",
@@ -1423,7 +1423,7 @@ begin
          TPD_G                => TPD_G,
          SIMULATION_G         => SIMULATION_G,
          AXI_BASE_ADDR_G      => HR_FD_AXI_CROSSBAR_MASTERS_CONFIG_C(TIMING_INDEX_C).baseAddr,
-         DMA_AXIS_CONFIG_G    => ssiAxiStreamConfig(8),
+         DMA_AXIS_CONFIG_G    => ssiAxiStreamConfig(16),
          NUM_DETECTORS_G      => 2
       )
       port map (

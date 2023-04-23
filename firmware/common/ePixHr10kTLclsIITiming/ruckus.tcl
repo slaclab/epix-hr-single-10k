@@ -7,4 +7,6 @@ loadSource -dir "$::DIR_PATH/rtl/"
 # Load Source Code common to all ePixHr family
 loadSource -dir "$::DIR_PATH/../ePixHrCommon/rtl/"
 
+# Load HLS Ips
+loadRuckusTcl $::DIR_PATH/../hlsCores
 
