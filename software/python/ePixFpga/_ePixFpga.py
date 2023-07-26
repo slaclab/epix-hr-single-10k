@@ -53,7 +53,7 @@ except ImportError:
 #######################################################
 
 class EpixHR10kT(pr.Device):
-    def __init__(self, asicVersion=2, **kwargs):
+    def __init__(self, asicVersion=4, **kwargs):
         if 'description' not in kwargs:
             kwargs['description'] = "HR Gen1 FPGA attached to ePixHr and ePix M test board"
 
@@ -84,16 +84,23 @@ class EpixHR10kT(pr.Device):
 #            axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False)))
         if (self.asicVersion == 2):
             self.add((
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False)))
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V2 Asic Configuration', offset=0x88000000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V2 Asic Configuration', offset=0x88400000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V2 Asic Configuration', offset=0x88800000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V2 Asic Configuration', offset=0x88C00000, expand=False, enabled=False)))
         if (self.asicVersion == 3):
             self.add((
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False)))
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V3 Asic Configuration', offset=0x88000000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V3 Asic Configuration', offset=0x88400000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V3 Asic Configuration', offset=0x88800000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V3 Asic Configuration', offset=0x88C00000, expand=False, enabled=False)))
+        if (self.asicVersion == 4):
+            self.add((
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V4 Asic Configuration', offset=0x88000000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V4 Asic Configuration', offset=0x88400000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V4 Asic Configuration', offset=0x88800000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V4 Asic Configuration', offset=0x88C00000, expand=False, enabled=False, RegAccessMode='RW')))
+
         self.add((
             #When using fw without timing, Register control class changes
             EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
@@ -532,7 +539,7 @@ class EpixHR10kT(pr.Device):
                 self.Hr10kTAsic3.RSTreg.set(False)
 
         
-        if (self.asicVersion== 3):
+        if (self.asicVersion>= 3):
             self.RegisterControl.RoLogicRst.set(False)
             time.sleep(delay)
             self.RegisterControl.RoLogicRst.set(True)
