@@ -61,6 +61,9 @@ entity DigitalAsicStreamAxiV3 is
       
       -- acquisition number input to the header
       acqNo             : in  slv(31 downto 0);
+
+      -- clock fo the HLS core only
+      hlsClk         : in sl;
       
       -- readout request input
       startRdout        : in  sl
@@ -162,6 +165,8 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    signal txSlave          : AxiStreamSlaveType;
    signal sAxisMasterWide  : AxiStreamMasterType;
    signal sAxisSlaveWide   : AxiStreamSlaveType;
+   signal hlsRxMaster      : AxiStreamMasterType;
+   signal hlsRxSlave       : AxiStreamSlaveType;
    signal hlsTxMaster      : AxiStreamMasterType;
    signal hlsTxSlave       : AxiStreamSlaveType;
    
@@ -172,6 +177,8 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    signal axilWriteSlave   : AxiLiteWriteSlaveType;
    signal axilReadMaster   : AxiLiteReadMasterType;
    signal axilReadSlave    : AxiLiteReadSlaveType;
+
+   signal hlsRst           : sl;
 
    
    attribute keep : string;
@@ -185,7 +192,8 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    
    
 begin
-   
+
+   hlsRst <= deserRst;
    ----------------------------------------------------------------------------
    -- Cross clocking synchronizers
    ----------------------------------------------------------------------------
@@ -525,15 +533,37 @@ begin
    end process seq;
 
    ---------------------------------------------------------------------------
+   -- hls core input fifo
+   ---------------------------------------------------------------------------  
+   AxisStreamFifoHLSIn_U: entity surf.AxiStreamFifoV2
+   generic map(
+      GEN_SYNC_FIFO_G      => false,
+      FIFO_ADDR_WIDTH_G    => 13,
+      CASCADE_SIZE_G       => 1,  
+      INT_WIDTH_SELECT_G   => "WIDE",
+      SLAVE_AXI_CONFIG_G   => AXI_STREAM_CONFIG_I_C,
+      MASTER_AXI_CONFIG_G  => AXI_STREAM_CONFIG_I_C
+   )
+   port map(
+      sAxisClk    => deserClk,
+      sAxisRst    => deserRst,
+      sAxisMaster => r.txMaster,
+      sAxisSlave  => txSlave,
+      mAxisClk    => hlsClk,
+      mAxisRst    => hlsRst,
+      mAxisMaster => hlsRxMaster,
+      mAxisSlave  => hlsRxSlave
+   );
+   ---------------------------------------------------------------------------
    -- descramble hls core
    ---------------------------------------------------------------------------  
    U_HLS : entity work.AxiStreamePixHR10kDescrambleWrapper
      port map (
-       axisClk     => deserClk,
+       axisClk     => hlsClk,
        axisRst     => r.hlsCoreRst,
        -- Slave Port
-       sAxisMaster => r.txMaster,
-       sAxisSlave  => txSlave,
+       sAxisMaster => hlsRxMaster,
+       sAxisSlave  => hlsRxSlave,
        -- Master Port
        mAxisMaster => hlsTxMaster,
        mAxisSlave  => hlsTxSlave);   
@@ -554,8 +584,8 @@ begin
       MASTER_AXI_CONFIG_G  => AXI_STREAM_CONFIG_W_C
    )
    port map(
-      sAxisClk    => deserClk,
-      sAxisRst    => deserRst,
+      sAxisClk    => hlsClk,
+      sAxisRst    => hlsRst,
       sAxisMaster => hlsTxMaster,
       sAxisSlave  => hlsTxSlave,
       mAxisClk    => axisClk,

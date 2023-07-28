@@ -1325,6 +1325,9 @@ begin
       
          -- acquisition number input to the header
          acqNo             => boardConfig.acqCnt,
+
+         -- clock fo the HLS core only
+         hlsClk           => asicRdClk,
       
          -- start of readout strobe
          startRdout        => dataSendStreched
