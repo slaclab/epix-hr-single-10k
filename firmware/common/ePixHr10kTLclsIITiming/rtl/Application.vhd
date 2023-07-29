@@ -191,8 +191,10 @@ architecture mapping of Application is
    signal asicRdClkRst   : sl;
    signal clkLocked      : sl;
    signal dummyRst       : slv(1 downto 0);
-     
-
+   --
+   signal hlsClk         : sl;
+   signal hlsRst         : sl;    
+   --
    -- AXI-Lite Signals
    signal sAxiReadMaster  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_SLAVE_SLOTS_C-1 downto 0);
    signal sAxiReadSlave   : AxiLiteReadSlaveArray(HR_FD_NUM_AXI_SLAVE_SLOTS_C-1 downto 0);
@@ -640,7 +642,7 @@ begin
       INPUT_BUFG_G           => true,
       FB_BUFG_G              => true,
       RST_IN_POLARITY_G      => '1',     -- '0' for active low
-      NUM_CLOCKS_G           => 3,
+      NUM_CLOCKS_G           => 4,
       SIMULATION_G           => SIMULATION_G,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
@@ -652,27 +654,34 @@ begin
       CLKOUT0_DIVIDE_G       => 1,
       CLKOUT1_DIVIDE_G       => 20,       -- 1000 Base clk
       CLKOUT2_DIVIDE_G       => 10,       -- 1000 Base clk
+      CLKOUT3_DIVIDE_G       => 5,       -- 1000 Base clk
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
+      CLKOUT3_PHASE_G        => 0.0,
       CLKOUT0_DUTY_CYCLE_G   => 0.5,
       CLKOUT1_DUTY_CYCLE_G   => 0.5,
       CLKOUT2_DUTY_CYCLE_G   => 0.5,
+      CLKOUT3_DUTY_CYCLE_G   => 0.5,
       CLKOUT0_RST_HOLD_G     => 3,
       CLKOUT1_RST_HOLD_G     => 3,
       CLKOUT2_RST_HOLD_G     => 3,
+      CLKOUT3_RST_HOLD_G     => 3,
       CLKOUT0_RST_POLARITY_G => '1',
       CLKOUT1_RST_POLARITY_G => '1',
-      CLKOUT2_RST_POLARITY_G => '1')
+      CLKOUT2_RST_POLARITY_G => '1',
+      CLKOUT3_RST_POLARITY_G => '1')
    port map(
       clkIn           => sysClk,
       rstIn           => sysRst,
       clkOut(0)       => refClk,
       clkOut(1)       => adcClk,
       clkOut(2)       => appClk,
+      clkOut(3)       => hlsClk,
       rstOut(0)       => refRst,
       rstOut(1)       => dummyRst(0),
       rstOut(2)       => appRst,
+      rstOut(3)       => hlsRst,
       locked          => clkLocked,
       -- AXI-Lite Interface 
       axilClk         => appClk,
@@ -1327,7 +1336,7 @@ begin
          acqNo             => boardConfig.acqCnt,
 
          -- clock fo the HLS core only
-         hlsClk           => asicRdClk,
+         hlsClk           => hlsClk,
       
          -- start of readout strobe
          startRdout        => dataSendStreched
