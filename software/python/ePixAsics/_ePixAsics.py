@@ -812,9 +812,9 @@ class EpixHr10kTV2Asic(pr.Device):
 #
 #################################################################################################################
 class EpixHr10kTV3Asic(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, RegAccessMode='WO', **kwargs):
         """Create the ePixHR10kTAsic device"""
-        super().__init__(description='EpixHr10kT V2 Asic Configuration', **kwargs)
+        super().__init__(**kwargs)
 
 
         #In order to easily compare GenDAQ address map with the ePix rogue address map 
@@ -840,87 +840,87 @@ class EpixHr10kTV3Asic(pr.Device):
         # CMD = 1, Addr = 1 
         # TODO: fix CompEn so it is one uint register
         self.add((
-            pr.RemoteVariable(name='shvc_DAC',      description='Config1',  offset=0x00001001*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='fastPP_enable', description='Config1',  offset=0x00001001*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='PulserSync',    description='Config1',  offset=0x00001001*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='WO')))
+            pr.RemoteVariable(name='shvc_DAC',      description='Config1',  offset=0x00001001*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='fastPP_enable', description='Config1',  offset=0x00001001*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='PulserSync',    description='Config1',  offset=0x00001001*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode=RegAccessMode)))
         # CMD = 1, Addr = 2  : Pixel dummy, write data
         self.add((
-            pr.RemoteVariable(name='Pll_RO_Reset',    description='Config2',  offset=0x00001002*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='Pll_Itune',       description='Config2',  offset=0x00001002*addrSize, bitSize=3, bitOffset=1, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Pll_KVCO',        description='Config2',  offset=0x00001002*addrSize, bitSize=3, bitOffset=4, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Pll_filter1LSB',  description='Config2',  offset=0x00001002*addrSize, bitSize=1, bitOffset=7, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Pll_filter1MSB',  description='Config15', offset=0x0000100F*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='Pll_RO_Reset',    description='Config2',  offset=0x00001002*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='Pll_Itune',       description='Config2',  offset=0x00001002*addrSize, bitSize=3, bitOffset=1, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Pll_KVCO',        description='Config2',  offset=0x00001002*addrSize, bitSize=3, bitOffset=4, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Pll_filter1LSB',  description='Config2',  offset=0x00001002*addrSize, bitSize=1, bitOffset=7, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Pll_filter1MSB',  description='Config15', offset=0x0000100F*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode=RegAccessMode)))
         
 
         # CMD = 1, Addr = 3  
         self.add((
-            pr.RemoteVariable(name='Pulser',   description='Config3', offset=0x00001003*addrSize, bitSize=10, bitOffset=0,  base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='pbit',     description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=10, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='atest',    description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=11, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='test',     description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=12, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='sab_test', description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=13, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='hrtest',   description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=14, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='PulserR',  description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=15, base=pr.Bool, mode='WO')))
+            pr.RemoteVariable(name='Pulser',   description='Config3', offset=0x00001003*addrSize, bitSize=10, bitOffset=0,  base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='pbit',     description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=10, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='atest',    description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=11, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='test',     description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=12, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='sab_test', description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=13, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='hrtest',   description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=14, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='PulserR',  description='Config3', offset=0x00001003*addrSize, bitSize=1,  bitOffset=15, base=pr.Bool, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 4 
         self.add((
-            pr.RemoteVariable(name='DigMon1', description='Config4',offset=0x00001004*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='DigMon2', description='Config4',offset=0x00001004*addrSize, bitSize=4, bitOffset=4, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='DigMon1', description='Config4',offset=0x00001004*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='DigMon2', description='Config4',offset=0x00001004*addrSize, bitSize=4, bitOffset=4, base=pr.UInt, mode=RegAccessMode)))
  
         # CMD = 1, Addr = 5 
         self.add((
-            pr.RemoteVariable(name='PulserDac',    description='Config5',  offset=0x00001005*addrSize, bitSize=3, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='MonostPulser', description='Config5',  offset=0x00001005*addrSize, bitSize=3, bitOffset=3, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='RefGenB',      description='Config5',  offset=0x00001005*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='PulserDac',    description='Config5',  offset=0x00001005*addrSize, bitSize=3, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='MonostPulser', description='Config5',  offset=0x00001005*addrSize, bitSize=3, bitOffset=3, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='RefGenB',      description='Config5',  offset=0x00001005*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 6 
         self.add((
-            pr.RemoteVariable(name='Dm1En',     description='Config6', offset=0x00001006*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='Dm2En',     description='Config6', offset=0x00001006*addrSize, bitSize=1, bitOffset=1, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='emph_bd',   description='Config6', offset=0x00001006*addrSize, bitSize=3, bitOffset=2, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='emph_bc',   description='Config6', offset=0x00001006*addrSize, bitSize=3, bitOffset=5, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='Dm1En',     description='Config6', offset=0x00001006*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='Dm2En',     description='Config6', offset=0x00001006*addrSize, bitSize=1, bitOffset=1, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='emph_bd',   description='Config6', offset=0x00001006*addrSize, bitSize=3, bitOffset=2, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='emph_bc',   description='Config6', offset=0x00001006*addrSize, bitSize=3, bitOffset=5, base=pr.UInt, mode=RegAccessMode)))
       
         # CMD = 1, Addr = 7  : Bit  5:0 = VREF[5:0]
         #                    : Bit  7:6 = VrefLow[1:0]
         self.add((
-            pr.RemoteVariable(name='VRef_DAC',    description='Config7', offset=0x00001007*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='VRefLow',     description='Config7', offset=0x00001007*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='VRef_DAC',    description='Config7', offset=0x00001007*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='VRefLow',     description='Config7', offset=0x00001007*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 8  : Bit  0   = TPS_tcomp
         #                    : Bit  4:1 = TPS_MUX[3:0]
         #                    : Bit  7:5 = RO_Monost[2:0]
         self.add((
-            pr.RemoteVariable(name='trbit',     description='Config8', offset=0x00001008*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='TpsMux',    description='Config8', offset=0x00001008*addrSize, bitSize=4, bitOffset=1, base=pr.UInt,  mode='WO'),
-            pr.RemoteVariable(name='RoMonost',  description='Config8', offset=0x00001008*addrSize, bitSize=3, bitOffset=5, base=pr.UInt,  mode='WO')))     
+            pr.RemoteVariable(name='trbit',     description='Config8', offset=0x00001008*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='TpsMux',    description='Config8', offset=0x00001008*addrSize, bitSize=4, bitOffset=1, base=pr.UInt,  mode=RegAccessMode),
+            pr.RemoteVariable(name='RoMonost',  description='Config8', offset=0x00001008*addrSize, bitSize=3, bitOffset=5, base=pr.UInt,  mode=RegAccessMode)))     
 
         # CMD = 1, Addr = 9 
         self.add((
-            pr.RemoteVariable(name='TpsGr',       description='Config9', offset=0x00001009*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Balcony_clk', description='Config9', offset=0x00001009*addrSize, bitSize=4, bitOffset=4, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='TpsGr',       description='Config9', offset=0x00001009*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Balcony_clk', description='Config9', offset=0x00001009*addrSize, bitSize=4, bitOffset=4, base=pr.UInt, mode=RegAccessMode)))
   
         # CMD = 1, Addr = 10 : Bit  0   = PP_OCB_S2D
         #                    : Bit  3:1 = OCB[2:0]
         #                    : Bit  6:4 = Monost[2:0]
         #                    : Bit  7   = fastpp_enable
         self.add((
-            pr.RemoteVariable(name='PpOcbS2d',     description='Config10', offset=0x0000100A*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='Ocb',          description='Config10', offset=0x0000100A*addrSize, bitSize=3, bitOffset=1, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Monost',       description='Config10', offset=0x0000100A*addrSize, bitSize=3, bitOffset=4, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='mTest',        description='Config10', offset=0x0000100A*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='WO')))
+            pr.RemoteVariable(name='PpOcbS2d',     description='Config10', offset=0x0000100A*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='Ocb',          description='Config10', offset=0x0000100A*addrSize, bitSize=3, bitOffset=1, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Monost',       description='Config10', offset=0x0000100A*addrSize, bitSize=3, bitOffset=4, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='mTest',        description='Config10', offset=0x0000100A*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode=RegAccessMode)))
      
         # CMD = 1, Addr = 11 : Bit  2:0 = Preamp[2:0]
         #                    : Bit  5:3 = Pixel_CB[2:0]
         #                    : Bit  7:6 = Vld1_b[1:0]
         self.add((
-            pr.RemoteVariable(name='Preamp',  description='Config11', offset=0x0000100B*addrSize, bitSize=3, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='S2D_1_b', description='Config11', offset=0x0000100B*addrSize, bitSize=3, bitOffset=3, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Vld1_b',  description='Config11', offset=0x0000100B*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='Preamp',  description='Config11', offset=0x0000100B*addrSize, bitSize=3, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='S2D_1_b', description='Config11', offset=0x0000100B*addrSize, bitSize=3, bitOffset=3, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Vld1_b',  description='Config11', offset=0x0000100B*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 12 : Bit  0   = S2D_tcomp
         #                    : Bit  6:1 = Filter_Dac[5:0]
         self.add((
-            pr.RemoteVariable(name='CompTH_DAC',    description='Config12', offset=0x0000100C*addrSize, bitSize=6, bitOffset=0, base=pr.UInt,  mode='WO')))
+            pr.RemoteVariable(name='CompTH_DAC',    description='Config12', offset=0x0000100C*addrSize, bitSize=6, bitOffset=0, base=pr.UInt,  mode=RegAccessMode)))
 #        self.add((
 #            pr.RemoteVariable(name='TS_mux',        description='Config12', offset=0x0000100C*addrSize, bitSize=2, bitOffset=0, base=pr.UInt,  mode='RW'),
 #            pr.RemoteVariable(name='TS_clk_sel',    description='Config12', offset=0x0000100C*addrSize, bitSize=1, bitOffset=2, base=pr.Bool, mode='RW'),
@@ -931,22 +931,22 @@ class EpixHr10kTV3Asic(pr.Device):
         #                    : Bit  4:2 = S2D[2:0]
         #                    : Bit  7:5 = S2D_DAC_BIAS[2:0]
         self.add((
-            pr.RemoteVariable(name='TC',         description='Config13', offset=0x0000100D*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='S2d',        description='Config13', offset=0x0000100D*addrSize, bitSize=3, bitOffset=2, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='S2dDacBias', description='Config13', offset=0x0000100D*addrSize, bitSize=3, bitOffset=5, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='TC',         description='Config13', offset=0x0000100D*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='S2d',        description='Config13', offset=0x0000100D*addrSize, bitSize=3, bitOffset=2, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='S2dDacBias', description='Config13', offset=0x0000100D*addrSize, bitSize=3, bitOffset=5, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 14 : Bit  1:0 = tps_tcDAC[1:0]
         #                    : Bit  7:2 = TPS_DAC[5:0]
         self.add((
-            pr.RemoteVariable(name='Tsd_Tser',   description='Config14', offset=0x0000100E*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Tps_DAC',    description='Config14', offset=0x0000100E*addrSize, bitSize=6, bitOffset=2, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='Tsd_Tser',   description='Config14', offset=0x0000100E*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Tps_DAC',    description='Config14', offset=0x0000100E*addrSize, bitSize=6, bitOffset=2, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 15 : Bit  1:0 = S2D0_tcDAC[1:0]
         #                    : Bit  7:2 = S2D0_DAC[5:0]
         self.add((
-            #pr.RemoteVariable(name='PLL_RO_filter1',   description='Config15', offset=0x0000100F*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='PLL_RO_filter2',   description='Config15', offset=0x0000100F*addrSize, bitSize=3, bitOffset=2, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='PLL_RO_divider',   description='Config15', offset=0x0000100F*addrSize, bitSize=3, bitOffset=5, base=pr.UInt, mode='WO')))
+            #pr.RemoteVariable(name='PLL_RO_filter1',   description='Config15', offset=0x0000100F*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='PLL_RO_filter2',   description='Config15', offset=0x0000100F*addrSize, bitSize=3, bitOffset=2, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='PLL_RO_divider',   description='Config15', offset=0x0000100F*addrSize, bitSize=3, bitOffset=5, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 16 : Bit  0   = test_BE
         #                    : Bit  1   = is_en
@@ -954,14 +954,14 @@ class EpixHr10kTV3Asic(pr.Device):
         #                    : Bit  3   = delCCkreg
         #                    : Bit  4   = ro_rst_exten
         self.add((
-            pr.RemoteVariable(name='TestBe',         description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='RSTreg',         description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=1, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='DelExec',        description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=2, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='DelCCKReg',      description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=3, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='RO_rst_en',      description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=4, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='SlvdsBit',       description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=5, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='FELmode',        description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='CompEnOn',       description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='WO')))
+            pr.RemoteVariable(name='TestBe',         description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=0, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='RSTreg',         description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=1, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='DelExec',        description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=2, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='DelCCKReg',      description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=3, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='RO_rst_en',      description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=4, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='SlvdsBit',       description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=5, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='FELmode',        description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='CompEnOn',       description='Config16', offset=0x00001010*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 17 : Row start  address[8:0]
         # CMD = 1, Addr = 18 : Row stop  address[8:0]
@@ -979,44 +979,44 @@ class EpixHr10kTV3Asic(pr.Device):
 
         # CMD = 1, Addr = 22 
         self.add((
-            pr.RemoteVariable(name='DCycle_DAC',    description='Config22', offset=0x00001016*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='DCycle_en',     description='Config22', offset=0x00001016*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='DCycle_bypass', description='Config22', offset=0x00001016*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='WO')))
+            pr.RemoteVariable(name='DCycle_DAC',    description='Config22', offset=0x00001016*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='DCycle_en',     description='Config22', offset=0x00001016*addrSize, bitSize=1, bitOffset=6, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='DCycle_bypass', description='Config22', offset=0x00001016*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode=RegAccessMode)))
         
         # CMD = 1, Addr = 23
         self.add((
-            pr.RemoteVariable(name='Debug_bit',    description='', offset=0x00001017*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='OSRsel',       description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=2, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='SecondOrder',  description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=3, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='DHg',          description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=4, base=pr.Bool, mode='WO'),
-            pr.RemoteVariable(name='RefGenC',      description='', offset=0x00001017*addrSize, bitSize=2, bitOffset=5, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='dbus_del_sel', description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode='WO')))
+            pr.RemoteVariable(name='Debug_bit',    description='', offset=0x00001017*addrSize, bitSize=2, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='OSRsel',       description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=2, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='SecondOrder',  description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=3, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='DHg',          description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=4, base=pr.Bool, mode=RegAccessMode),
+            pr.RemoteVariable(name='RefGenC',      description='', offset=0x00001017*addrSize, bitSize=2, bitOffset=5, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='dbus_del_sel', description='', offset=0x00001017*addrSize, bitSize=1, bitOffset=7, base=pr.Bool, mode=RegAccessMode)))
         
         # CMD = 1, Addr = 24
         self.add((
-            pr.RemoteVariable(name='SDclk_b',      description='', offset=0x00001018*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='SDrst_b',      description='', offset=0x00001018*addrSize, bitSize=4, bitOffset=4, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='SDclk_b',      description='', offset=0x00001018*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='SDrst_b',      description='', offset=0x00001018*addrSize, bitSize=4, bitOffset=4, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 25
         self.add((
-            pr.RemoteVariable(name='Filter_DAC',   description='', offset=0x00001019*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Rodis01',      description='', offset=0x00001019*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='Filter_DAC',   description='', offset=0x00001019*addrSize, bitSize=6, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Rodis01',      description='', offset=0x00001019*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 26
         self.add((
-            pr.RemoteVariable(name='CompEn',      description='', offset=0x0000101a*addrSize, bitSize=3, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='Pixel_CB',    description='', offset=0x0000101a*addrSize, bitSize=3, bitOffset=3, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='rodis34',     description='', offset=0x0000101a*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='CompEn',      description='', offset=0x0000101a*addrSize, bitSize=3, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='Pixel_CB',    description='', offset=0x0000101a*addrSize, bitSize=3, bitOffset=3, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='rodis34',     description='', offset=0x0000101a*addrSize, bitSize=2, bitOffset=6, base=pr.UInt, mode=RegAccessMode)))
         
         # CMD = 1, Addr = 27
         self.add((
-            pr.RemoteVariable(name='rowCK2matrix_delay',   description='', offset=0x0000101b*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='ro_mode',              description='', offset=0x0000101b*addrSize, bitSize=3, bitOffset=4, base=pr.UInt, mode='WO'),
-            pr.RemoteVariable(name='rodis5',               description='', offset=0x0000101b*addrSize, bitSize=1, bitOffset=7, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='rowCK2matrix_delay',   description='', offset=0x0000101b*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='ro_mode',              description='', offset=0x0000101b*addrSize, bitSize=3, bitOffset=4, base=pr.UInt, mode=RegAccessMode),
+            pr.RemoteVariable(name='rodis5',               description='', offset=0x0000101b*addrSize, bitSize=1, bitOffset=7, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 1, Addr = 28
         self.add((
-            pr.RemoteVariable(name='pipoclk_delay',   description='', offset=0x0000101c*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode='WO')))
+            pr.RemoteVariable(name='pipoclk_delay',   description='', offset=0x0000101c*addrSize, bitSize=4, bitOffset=0, base=pr.UInt, mode=RegAccessMode)))
 
         # CMD = 6, Addr = 17 : Row counter[8:0]
         self.add((

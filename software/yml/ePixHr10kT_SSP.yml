@@ -1,0 +1,9 @@
+ePixHr10kT:
+  enable: True
+  ForceWrite: False
+  InitAfterConfig: False
+  EpixHR:
+    enable: True
+    SspLowSpeedDecoderReg:
+      enable: True
+      LockingCntCfg: 255

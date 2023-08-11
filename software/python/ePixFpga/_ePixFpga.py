@@ -53,7 +53,7 @@ except ImportError:
 #######################################################
 
 class EpixHR10kT(pr.Device):
-    def __init__(self, asicVersion=2, **kwargs):
+    def __init__(self, asicVersion=4, **kwargs):
         if 'description' not in kwargs:
             kwargs['description'] = "HR Gen1 FPGA attached to ePixHr and ePix M test board"
 
@@ -84,16 +84,23 @@ class EpixHR10kT(pr.Device):
 #            axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False)))
         if (self.asicVersion == 2):
             self.add((
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False)))
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V2 Asic Configuration', offset=0x88000000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V2 Asic Configuration', offset=0x88400000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V2 Asic Configuration', offset=0x88800000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V2 Asic Configuration', offset=0x88C00000, expand=False, enabled=False)))
         if (self.asicVersion == 3):
             self.add((
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              offset=0x88000000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              offset=0x88400000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              offset=0x88800000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              offset=0x88C00000, expand=False, enabled=False)))
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V3 Asic Configuration', offset=0x88000000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V3 Asic Configuration', offset=0x88400000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V3 Asic Configuration', offset=0x88800000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V3 Asic Configuration', offset=0x88C00000, expand=False, enabled=False)))
+        if (self.asicVersion == 4):
+            self.add((
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V4 Asic Configuration', offset=0x88000000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V4 Asic Configuration', offset=0x88400000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V4 Asic Configuration', offset=0x88800000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V4 Asic Configuration', offset=0x88C00000, expand=False, enabled=False, RegAccessMode='RW')))
+
         self.add((
             #When using fw without timing, Register control class changes
             EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
@@ -240,6 +247,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_320MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_320MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_320MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 2:
@@ -250,6 +258,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 3:
@@ -260,6 +269,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 4:
@@ -270,6 +280,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 5:
@@ -280,8 +291,20 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
-            self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.ymlself.root.top_level + "                    
+            self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
+        if arguments[0] == 6:
+            self.filenameMMCM              = self.root.top_level + "/yml/ePixHr10kT_MMCM_320MHz.yml"
+            self.filenamePowerSupply       = self.root.top_level + "/yml/ePixHr10kT_PowerSupply_Enable.yml"
+            self.filenameRegisterControl   = self.root.top_level + "/yml/ePixHr10kT_RegisterControl_R0Width12us_AcqWidth24us_5p18kHz.yml"
+            self.filenameASIC0             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_0.yml"
+            self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
+            self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
+            self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
+            self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
+            self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"                    
         if arguments[0] == 11:
             self.filenameMMCM              = self.root.top_level + "/yml/ePixHr10kT_MMCM_307MHz.yml"
             self.filenamePowerSupply       = self.root.top_level + "/yml/ePixHr10kT_PowerSupply_Enable.yml"
@@ -290,6 +313,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 12:
@@ -300,6 +324,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.ymlself.root.top_level + "           
         if arguments[0] == 13:
@@ -310,6 +335,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 14:
@@ -320,6 +346,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 15:
@@ -330,6 +357,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 16:
@@ -350,6 +378,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 18:
@@ -360,6 +389,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 21:
@@ -370,6 +400,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 22:
@@ -380,6 +411,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 23:
@@ -390,6 +422,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 31:
@@ -400,6 +433,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_160MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_160MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_160MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         
@@ -532,13 +566,16 @@ class EpixHR10kT(pr.Device):
                 self.Hr10kTAsic3.RSTreg.set(False)
 
         
-        if (self.asicVersion== 3):
+        if (self.asicVersion>= 3):
             self.RegisterControl.RoLogicRst.set(False)
             time.sleep(delay)
             self.RegisterControl.RoLogicRst.set(True)
 
         # starting clock inside the ASIC
         self.RegisterControl.ClkSyncEn.set(True)
+
+        # loading ssp config
+        self.root.LoadConfig(self.filenameSSP)
         
         ## load config for the asic
         print("Loading Trigger settings")
@@ -887,31 +924,31 @@ class EPixHr10kTAppCoreFpgaRegisters(pr.Device):
       self.add(pr.RemoteVariable(name='ClkSyncEn',       description='Enables clock to be available inside ASIC.',   offset=0x00000100, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SyncPolarity',    description='SyncPolarity',      offset=0x00000104, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SyncDelay',       description='SyncDelay',         offset=0x00000108, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='SyncDelay_us',    description='SyncDelay in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SyncDelay]))
+      self.add(pr.LinkVariable(  name='SyncDelay_us',    description='SyncDelay in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.SyncDelay]))
       self.add(pr.RemoteVariable(name='SyncWidth',       description='SyncWidth',         offset=0x0000010C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='SR0Polarity',     description='SR0Polarity',       offset=0x00000110, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SR0Delay1',       description='SR0Delay1',         offset=0x00000114, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='SR0Delay_us',     description='SR0Delay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SR0Delay1]))
+      self.add(pr.LinkVariable(  name='SR0Delay_us',     description='SR0Delay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.SR0Delay1]))
       self.add(pr.RemoteVariable(name='SR0Width1',       description='SR0Width1',         offset=0x00000118, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='SR0Width1_us',    description='SR0 width in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SR0Width1]))
+      self.add(pr.LinkVariable(  name='SR0Width1_us',    description='SR0 width in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.SR0Width1]))
       self.add(pr.RemoteVariable(name='ePixAdcSHPeriod', description='Period',            offset=0x0000011C, bitSize=16, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='ePixAdcSHOffset', description='Offset',            offset=0x00000120, bitSize=16, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
 
       self.add(pr.RemoteVariable(name='asicRefClockFreq',description='reference clock requency to the ASIC',     offset=0x00000268, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))      
       self.add(pr.RemoteVariable(name='AcqPolarity',     description='AcqPolarity',       offset=0x00000200, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='AcqDelay1',       description='AcqDelay',          offset=0x00000204, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='AcqDelay1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqDelay1, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='AcqDelay1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.AcqDelay1, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqWidth1',       description='AcqWidth',          offset=0x00000208, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='AcqWidth1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqWidth1, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='AcqWidth1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.AcqWidth1, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqDelay2',       description='AcqDelay',          offset=0x0000020C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='AcqDelay2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqDelay2, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='AcqDelay2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.AcqDelay2, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqWidth2',       description='AcqWidth',          offset=0x00000210, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='AcqWidth2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqWidth2, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='AcqWidth2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.AcqWidth2, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='R0Polarity',      description='Polarity',          offset=0x00000214, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='R0Delay',         description='Delay',             offset=0x00000218, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='R0Delay_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.R0Delay, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='R0Delay_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.R0Delay, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='R0Width',         description='Width',             offset=0x0000021C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='R0Width_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.R0Width, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='R0Width_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.R0Width, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='PPbePolarity',    description='PPbePolarity',      offset=0x00000220, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='PPbeDelay',       description='PPbeDelay',         offset=0x00000224, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='PPbeWidth',       description='PPbeWidth',         offset=0x00000228, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
@@ -1003,36 +1040,35 @@ class EPixHr10kTAppCoreRegLCLS(pr.Device):
       #Setup registers & variables
       
       self.add(pr.RemoteVariable(name='Version',         description='Version',           offset=0x00000000, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{:#x}',  verify = False, mode='RW'))
+      self.add(pr.RemoteVariable(name='asicRefClockFreq',description='reference clock requency to the ASIC',     offset=0x00000268, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))      
       self.add(pr.RemoteVariable(name='GlblRstPolarity', description='GlblRstPolarity',   offset=0x00000100, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='ClkSyncEn',       description='Enables clock to be available inside ASIC.',   offset=0x00000100, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='RoLogicRst',      description='Enables digital rodout clock.',                offset=0x00000100, bitSize=1,  bitOffset=2, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SyncPolarity',    description='SyncPolarity',      offset=0x00000104, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SyncDelay',       description='SyncDelay',         offset=0x00000108, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='SyncDelay_us',    description='SyncDelay in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SyncDelay]))
+      self.add(pr.LinkVariable(  name='SyncDelay_us',    description='SyncDelay in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.SyncDelay, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='SyncWidth',       description='SyncWidth',         offset=0x0000010C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='SR0Polarity',     description='SR0Polarity',       offset=0x00000110, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='SR0Delay1',       description='SR0Delay1',         offset=0x00000114, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='SR0Delay_us',     description='SR0Delay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SR0Delay1]))
+      self.add(pr.LinkVariable(  name='SR0Delay_us',     description='SR0Delay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.SR0Delay1, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='SR0Width1',       description='SR0Width1',         offset=0x00000118, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='SR0Width1_us',    description='SR0 width in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.SR0Width1]))
+      self.add(pr.LinkVariable(  name='SR0Width1_us',    description='SR0 width in us',   mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.SR0Width1, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='ePixAdcSHPeriod', description='Period',            offset=0x0000011C, bitSize=16, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='ePixAdcSHOffset', description='Offset',            offset=0x00000120, bitSize=16, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-
-      self.add(pr.RemoteVariable(name='asicRefClockFreq',description='reference clock requency to the ASIC',     offset=0x00000268, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))      
       self.add(pr.RemoteVariable(name='AcqPolarity',     description='AcqPolarity',       offset=0x00000200, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='AcqDelay1',       description='AcqDelay',          offset=0x00000204, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='AcqDelay1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqDelay1, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='AcqDelay1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.AcqDelay1, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqWidth1',       description='AcqWidth',          offset=0x00000208, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='AcqWidth1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqWidth1, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='AcqWidth1_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.AcqWidth1, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqDelay2',       description='AcqDelay',          offset=0x0000020C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='AcqDelay2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqDelay2, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='AcqDelay2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.AcqDelay2, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='AcqWidth2',       description='AcqWidth',          offset=0x00000210, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='AcqWidth2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.AcqWidth2, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='AcqWidth2_us',    description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.AcqWidth2, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='R0Polarity',      description='Polarity',          offset=0x00000214, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='R0Delay',         description='Delay',             offset=0x00000218, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='R0Delay_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.R0Delay, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='R0Delay_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.R0Delay, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='R0Width',         description='Width',             offset=0x0000021C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
-      self.add(pr.LinkVariable(  name='R0Width_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverter, dependencies = [self.R0Width, self.asicRefClockFreq]))
+      self.add(pr.LinkVariable(  name='R0Width_us',      description='AcqDelay in us',    mode='RO', units='uS', disp='{:1.3f}', linkedGet=self.timeConverterAppClock, dependencies = [self.R0Width, self.asicRefClockFreq]))
       self.add(pr.RemoteVariable(name='PPbePolarity',    description='PPbePolarity',      offset=0x00000220, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='PPbeDelay',       description='PPbeDelay',         offset=0x00000224, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))
       self.add(pr.RemoteVariable(name='PPbeWidth',       description='PPbeWidth',         offset=0x00000228, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW'))

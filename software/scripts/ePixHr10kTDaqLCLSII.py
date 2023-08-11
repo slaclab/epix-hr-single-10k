@@ -115,7 +115,7 @@ parser.add_argument(
     "--asicVersion", 
     type     = int,
     required = False,
-    default  = 2,
+    default  = 4,
     help     = "same port defined in the vhdl testbench",
 )  
 

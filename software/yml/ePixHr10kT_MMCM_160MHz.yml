@@ -27,10 +27,10 @@ ePixHr10kT:
       CLKOUT2NoCount: 0
       CLKOUT2DelayTime: 0
       CLKOUT3PhaseMux: 0
-      CLKOUT3HighTime: 1
-      CLKOUT3LowTime: 1
-      CLKOUT3Edge: 0
-      CLKOUT3NoCount: 1
+      CLKOUT3HighTime: 2
+      CLKOUT3LowTime: 3
+      CLKOUT3Edge: 1
+      CLKOUT3NoCount: 0
       CLKOUT3DelayTime: 0
       CLKOUT4PhaseMux: 0
       CLKOUT4HighTime: 1

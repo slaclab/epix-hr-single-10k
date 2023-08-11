@@ -29,6 +29,7 @@ create_generated_clock -name sysClk [get_pins  U_Core/GEN_PLL.U_Mmcm/PllGen.U_Pl
 create_generated_clock -name refClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT0]
 create_generated_clock -name adcClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT1]
 create_generated_clock -name appClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT2]
+create_generated_clock -name hlsClk [get_pins U_App/U_CoreClockGen/MmcmGen.U_Mmcm/CLKOUT3]
 
 create_generated_clock -name asicClk  [get_pins U_App/U_Deser/GEN_REAL.U_PLL/CLKOUT0]
 create_generated_clock -name deserClk [get_pins U_App/U_Deser/U_Bufg/O]
@@ -49,7 +50,8 @@ set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks adcMonDoClkP] \
    -group [get_clocks -include_generated_clocks adcBitClk] \
    -group [get_clocks -include_generated_clocks adcBitClkDiv4] \
-   -group [get_clocks -include_generated_clocks gtRefClk]
+   -group [get_clocks -include_generated_clocks gtRefClk] \
+   -group [get_clocks -include_generated_clocks hlsClk] \
 
 set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks sysClk] \
