@@ -27,13 +27,16 @@ import ePixFpga as fpga
 
 
 class RootLCLSIITiming(pr.Root):
-    def __init__(self, top_level, sim, asicVersion, dev = '/dev/datadev_0',  **kwargs):
+    def __init__(self, top_level, sim, asicVersion, dev = '/dev/datadev_0', simPort = 11000,  **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
 
         self.top_level = top_level
         self._sim = sim
         self._dev = dev
         self._asicVersion = asicVersion
+        self._tcpPort = simPort
+
+        print("Simulation mode :", self._sim)
 
         # Create arrays to be filled
         self.dmaStreams = [None for lane in range(3)]
@@ -41,15 +44,23 @@ class RootLCLSIITiming(pr.Root):
         self.unbatchers = [rogue.protocols.batcher.SplitterV1() for lane in range(3)]
         self.dataFilter = [rogue.interfaces.stream.Filter(False, dataCh+3) for dataCh in range(3)]
 
+        if ( self._sim == False ):
+            # Create the PGP interfaces for ePix hr camera
+            for lane in range(3):
+                self.dmaStreams[lane] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*lane)+1,1)
 
-        # Create the PGP interfaces for ePix hr camera
-        for lane in range(3):
-            self.dmaStreams[lane] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*lane)+1,1)
+            # connect
+            self.dmaCtrlStreams[0] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+0,1)# Registers  
+            self.dmaCtrlStreams[1] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+2,1)# PseudoScope
+            self.dmaCtrlStreams[2] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+3,1)# Monitoring (Slow ADC)
+        else:
+            for lane in range(3):
+                self.dmaStreams[lane] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*lane)+2*1)
 
-        # connect
-        self.dmaCtrlStreams[0] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+0,1)# Registers  
-        self.dmaCtrlStreams[1] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+2,1)# PseudoScope
-        self.dmaCtrlStreams[2] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+3,1)# Monitoring (Slow ADC)
+            # connect
+            self.dmaCtrlStreams[0] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*0)+2*0)# Registers  
+            self.dmaCtrlStreams[1] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*0)+2*2)# PseudoScope
+            self.dmaCtrlStreams[2] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*0)+2*3)# Monitoring (Slow ADC)
 
         
         # Add data stream to file as channel 1 File writer
@@ -66,13 +77,11 @@ class RootLCLSIITiming(pr.Root):
         pyrogue.streamConnectBiDir(self.dmaCtrlStreams[0],self._srp)
 
       
-        # Create arrays to be filled
-        self.dmaStream   = [None for x in range(4)]
-
         @self.command()
         def Trigger():
             self._cmd.sendCmd(0, 0)
-        
+            
+        #if ( self._sim == False ):
         self.add(epixHrCore.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,numberOfLanes=3))
         self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True, asicVersion=self._asicVersion))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
@@ -81,20 +90,24 @@ class RootLCLSIITiming(pr.Root):
 def start (self,**kwargs):
         super(Root, self).start(**kwargs)
 
-        self.EpixHR.FastADCsDebug.enable.set(True)   
-        self.EpixHR.FastADCsDebug.DelayAdc0.set(15)
-        self.EpixHR.FastADCsDebug.enable.set(False)
+        if ( self._sim == False ):
+            print("Init ADC")
+            self.EpixHR.FastADCsDebug.enable.set(True)   
+            self.EpixHR.FastADCsDebug.DelayAdc0.set(15)
+            self.EpixHR.FastADCsDebug.enable.set(False)
 
-        self.EpixHR.Ad9249Config_Adc_0.enable.set(True)
-        self.readBlocks()
-        self.EpixHR.FastADCsDebug.DelayAdc0.set(15)
-        self.EpixHR.FastADCsDebug.enable.set(False)
+            self.EpixHR.Ad9249Config_Adc_0.enable.set(True)
+            self.readBlocks()
+            self.EpixHR.FastADCsDebug.DelayAdc0.set(15)
+            self.EpixHR.FastADCsDebug.enable.set(False)
 
-        self.EpixHR.Ad9249Config_Adc_0.enable.set(True)
-        self.readBlocks()
-        self.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(3)
-        self.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(0)
-        self.EpixHR.Ad9249Config_Adc_0.OutputFormat.set(0)
-        self.readBlocks()
-        self.EpixHR.Ad9249Config_Adc_0.enable.set(False)
-        self.readBlocks()
+            self.EpixHR.Ad9249Config_Adc_0.enable.set(True)
+            self.readBlocks()
+            self.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(3)
+            self.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(0)
+            self.EpixHR.Ad9249Config_Adc_0.OutputFormat.set(0)
+            self.readBlocks()
+            self.EpixHR.Ad9249Config_Adc_0.enable.set(False)
+            self.readBlocks()
+        else:
+            print("Simulation - ADC not started")

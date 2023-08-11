@@ -1336,7 +1336,8 @@ begin
          acqNo             => boardConfig.acqCnt,
 
          -- clock fo the HLS core only
-         hlsClk           => hlsClk,
+         hlsClk            => hlsClk,
+         hlsRst            => hlsRst,
       
          -- start of readout strobe
          startRdout        => dataSendStreched

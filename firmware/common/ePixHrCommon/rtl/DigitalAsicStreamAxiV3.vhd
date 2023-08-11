@@ -63,7 +63,8 @@ entity DigitalAsicStreamAxiV3 is
       acqNo             : in  slv(31 downto 0);
 
       -- clock fo the HLS core only
-      hlsClk         : in sl;
+      hlsClk            : in sl;
+      hlsRst            : in sl;
       
       -- readout request input
       startRdout        : in  sl
@@ -178,7 +179,7 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    signal axilReadMaster   : AxiLiteReadMasterType;
    signal axilReadSlave    : AxiLiteReadSlaveType;
 
-   signal hlsRst           : sl;
+
    signal hlsCoreRstSync   : sl;
 
    
@@ -194,7 +195,6 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    
 begin
 
-   hlsRst <= deserRst;
    ----------------------------------------------------------------------------
    -- Cross clocking synchronizers
    ----------------------------------------------------------------------------
