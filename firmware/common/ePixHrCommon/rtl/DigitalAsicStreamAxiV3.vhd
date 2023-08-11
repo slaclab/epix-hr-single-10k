@@ -226,6 +226,9 @@ begin
    );
    
    AxilSync_U : entity surf.AxiLiteAsync
+   generic map(
+       PIPE_STAGES_G => 2
+   )
    port map (
       -- Slave Port
       sAxiClk         => axilClk,
