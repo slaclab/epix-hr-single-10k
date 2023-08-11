@@ -247,6 +247,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_320MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_320MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_320MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 2:
@@ -257,6 +258,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 3:
@@ -267,6 +269,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 4:
@@ -287,6 +290,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 6:
@@ -297,6 +301,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"                    
         if arguments[0] == 11:
@@ -307,6 +312,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 12:
@@ -317,6 +323,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.ymlself.root.top_level + "           
         if arguments[0] == 13:
@@ -327,6 +334,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 14:
@@ -337,6 +345,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 15:
@@ -347,6 +356,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 16:
@@ -367,6 +377,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 18:
@@ -377,6 +388,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 21:
@@ -387,6 +399,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 22:
@@ -397,6 +410,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 23:
@@ -407,6 +421,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 31:
@@ -417,6 +432,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_160MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_160MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_160MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         
@@ -556,6 +572,9 @@ class EpixHR10kT(pr.Device):
 
         # starting clock inside the ASIC
         self.RegisterControl.ClkSyncEn.set(True)
+
+        # loading ssp config
+        self.root.LoadConfig(self.filenameSSP)
         
         ## load config for the asic
         print("Loading Trigger settings")
