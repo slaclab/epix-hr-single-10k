@@ -280,6 +280,7 @@ class EpixHR10kT(pr.Device):
             self.filenameASIC1             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_1.yml"
             self.filenameASIC2             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_2.yml"
             self.filenameASIC3             = self.root.top_level + "/yml/ePixHr10kT_PLLBypass_248MHz_ASIC_3.yml"
+            self.filenameSSP               = self.root.top_level + "/yml/ePixHr10kT_SSP.yml"
             self.filenamePacketReg         = self.root.top_level + "/yml/ePixHr10kT_PacketRegisters.yml"
             self.filenameTriggerReg        = self.root.top_level + "/yml/ePixHr10kT_TriggerRegisters_100Hz.yml"
         if arguments[0] == 5:
