@@ -812,7 +812,7 @@ begin
    ---------------------
    -- Trig control    --
    --------------------- 
-   U_TrigControl : entity work.TrigControlAxi
+   U_TrigControl : entity epix_hr_core.TrigControlAxi
    port map (
       -- Trigger outputs
       appClk            => appClk,
