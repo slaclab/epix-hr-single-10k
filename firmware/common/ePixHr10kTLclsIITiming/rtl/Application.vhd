@@ -28,6 +28,7 @@ use surf.SsiPkg.all;
 use surf.SsiCmdMasterPkg.all;
 use surf.Ad9249Pkg.all;
 use surf.Code8b10bPkg.all;
+use surf.Pgp2bPkg.all;
 
 library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
