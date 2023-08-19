@@ -830,7 +830,9 @@ begin
       -- SW trigger in (from VC)
       ssiCmd            => ssiCmd_i,
       -- Fiber optic trigger (axilClk domain)
-      pgpTrigger        => pgpTrigger,
+      pgpRxOut          => PGP2B_RX_OUT_INIT_C,
+      -- Fiducial code output
+      opCodeOut         => open,
       -- Timing Triggers
       timingRunTrigger  => timingRunTrigger,
       timingDaqTrigger  => timingDaqTrigger,
