@@ -75,7 +75,7 @@ class EpixHR10kT(pr.Device):
             #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane3',            offset=0x05030000, expand=False, enabled=False),
             # app registers
             MMCM7Registers(                   name='MMCMRegisters',            offset=0x80000000, expand=False, enabled=False),
-            TriggerRegisters(                 name="TriggerRegisters",         offset=0x81000000, expand=False, enabled=False)))
+            epixHr.TriggerRegisters(                 name="TriggerRegisters",         offset=0x81000000, expand=False, enabled=False)))
 #            ssiPrbsTxRegisters(               name='ssiPrbs0PktRegisters',     offset=0x82000000, expand=False, enabled=False),
 #            ssiPrbsTxRegisters(               name='ssiPrbs1PktRegisters',     offset=0x83000000, expand=False, enabled=False),
 #            ssiPrbsTxRegisters(               name='ssiPrbs2PktRegisters',     offset=0x84000000, expand=False, enabled=False),

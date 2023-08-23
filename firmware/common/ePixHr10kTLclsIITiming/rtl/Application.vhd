@@ -28,6 +28,7 @@ use surf.SsiPkg.all;
 use surf.SsiCmdMasterPkg.all;
 use surf.Ad9249Pkg.all;
 use surf.Code8b10bPkg.all;
+use surf.Pgp2bPkg.all;
 
 library lcls_timing_core;
 use lcls_timing_core.TimingPkg.all;
@@ -812,7 +813,7 @@ begin
    ---------------------
    -- Trig control    --
    --------------------- 
-   U_TrigControl : entity work.TrigControlAxi
+   U_TrigControl : entity epix_hr_core.TrigControlAxi
    port map (
       -- Trigger outputs
       appClk            => appClk,
@@ -830,7 +831,9 @@ begin
       -- SW trigger in (from VC)
       ssiCmd            => ssiCmd_i,
       -- Fiber optic trigger (axilClk domain)
-      pgpTrigger        => pgpTrigger,
+      pgpRxOut          => PGP2B_RX_OUT_INIT_C,
+      -- Fiducial code output
+      opCodeOut         => open,
       -- Timing Triggers
       timingRunTrigger  => timingRunTrigger,
       timingDaqTrigger  => timingDaqTrigger,
