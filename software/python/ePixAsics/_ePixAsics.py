@@ -422,7 +422,7 @@ class EpixHr10kTAsic(pr.Device):
 class EpixHr10kTV2Asic(pr.Device):
     def __init__(self, **kwargs):
         """Create the ePixHR10kTAsic device"""
-        super().__init__(description='EpixHr10kT V2 Asic Configuration', **kwargs)
+        super().__init__(**kwargs)
 
 
         #In order to easily compare GenDAQ address map with the ePix rogue address map 
