@@ -270,7 +270,7 @@ class EpixHr10kTAsic(pr.Device):
       
         # CMD = 8, Addr = X  : Prepare for row/column/matrix configuration
         self.add(
-            pr.RemoteCommand(name='PrepareMultiConfig', description='PrepareMultiConfig', offset=0x00008000*addrSize, bitSize=32, bitOffset=0, function=pr.Command.touchZero, hidden=False))
+            pr.RemoteCommand(name='PrepareMultiConfig', description='PrepareMultiConfig', offset=0x00008000*addrSize, bitSize=32, bitOffset=0, function=pr.Command.touchZero, hidden=False, verify=False))
 
 
 
@@ -769,8 +769,8 @@ class EpixHr10kTV2Asic(pr.Device):
                       self.RowCounter.set(x) #6011
                       self.ColCounter.set(colToWrite) #6013
                       readBack[x, y] = self.WritePixelData.get() #5000
-                      if readBack[x, y] != 0:
-                         print(readBack[x, y])
+                      #if readBack[x, y] != 0:
+                      #   print(readBack[x, y])
                 print(self.filename)
                 self.CmdPrepForRead() #0000
                 np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
@@ -1163,8 +1163,8 @@ class EpixHr10kTV3Asic(pr.Device):
                       self.RowCounter.set(x) #6011
                       self.ColCounter.set(colToWrite) #6013
                       readBack[x, y] = self.WritePixelData.get() #5000
-                      if readBack[x, y] != 0:
-                         print(readBack[x, y])
+                      #if readBack[x, y] != 0:
+                      #   print(readBack[x, y])
                 print(self.filename)
                 self.CmdPrepForRead() #0000
                 np.savetxt(self.filename, readBack, fmt='%d', delimiter=',', newline='\n')
