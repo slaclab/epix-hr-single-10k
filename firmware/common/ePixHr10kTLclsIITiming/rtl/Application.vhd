@@ -510,6 +510,7 @@ begin
       pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
       acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
       dataSendStreched  when boardConfig.epixhrDbgSel1 = "11000" else
+      timingRunTrigger  when boardConfig.epixhrDbgSel1 = "11001" else
       '0';   
 
    connMps    <= not connMpsMux;        -- required because the board has a
@@ -540,6 +541,7 @@ begin
       pgpTrigger        when boardConfig.epixhrDbgSel1 = "10110" else
       acqStart          when boardConfig.epixhrDbgSel1 = "10111" else
       dataSendStreched  when boardConfig.epixhrDbgSel1 = "11000" else
+      timingDaqTrigger  when boardConfig.epixhrDbgSel1 = "11001" else
       '0';
 
   smaTxP          <= '0';
