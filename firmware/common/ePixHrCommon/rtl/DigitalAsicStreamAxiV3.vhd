@@ -190,6 +190,7 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    attribute keep of dFifoEof    : signal is "true";
    attribute keep of dFifoSof    : signal is "true";
    attribute keep of dFifoValid  : signal is "true";
+   attribute keep of dFifoRd     : signal is "true";   
    
    
    
@@ -257,7 +258,7 @@ begin
       begin
         if (GAIN_BIT_REMAP_G = true) then
           rxDataReMap(i)(13 downto 0)   <= rxData(i)(15 downto 2);
-          rxDataReMap(i)(14)            <= rxData(i)(0);
+          rxDataReMap(i)(14)            <= '0';
           rxDataReMap(i)(15)            <= rxData(i)(0);
         else
           rxDataReMap(i) <= rxData(i);
