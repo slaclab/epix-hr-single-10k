@@ -33,7 +33,7 @@ CreateDebugCore ${ilaName}
 #######################
 ## Set the record depth
 #######################
-set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
+set_property C_DATA_DEPTH 4096 [get_debug_cores ${ilaName}]
 
 #################################
 ## Set the clock for the ILA core
