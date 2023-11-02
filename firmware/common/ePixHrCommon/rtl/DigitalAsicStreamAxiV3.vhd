@@ -370,7 +370,14 @@ begin
       end if;
       
       case r.state is
-         when IDLE_S =>
+        when IDLE_S =>
+            -- flushes data since it should not exist in the fifo before a trigger
+            for i in 0 to (LANES_NO_G-1) loop
+               if dFifoValid(i) = '1' then
+                  v.dFifoRd(i) := '1';
+               end if;             
+            end loop;
+            
             if startRdSync = '1' then
               v.state := WAIT_SOF_S;
               -- provides a 1 clock cycle hls core reset before new frame arrives
