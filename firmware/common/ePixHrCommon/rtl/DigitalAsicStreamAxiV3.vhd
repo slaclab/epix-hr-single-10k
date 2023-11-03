@@ -190,6 +190,7 @@ architecture RTL of DigitalAsicStreamAxiV3 is
    attribute keep of dFifoEof    : signal is "true";
    attribute keep of dFifoSof    : signal is "true";
    attribute keep of dFifoValid  : signal is "true";
+   attribute keep of dFifoRd     : signal is "true";   
    
    
    
@@ -257,7 +258,7 @@ begin
       begin
         if (GAIN_BIT_REMAP_G = true) then
           rxDataReMap(i)(13 downto 0)   <= rxData(i)(15 downto 2);
-          rxDataReMap(i)(14)            <= rxData(i)(0);
+          rxDataReMap(i)(14)            <= '0';
           rxDataReMap(i)(15)            <= rxData(i)(0);
         else
           rxDataReMap(i) <= rxData(i);
@@ -369,7 +370,14 @@ begin
       end if;
       
       case r.state is
-         when IDLE_S =>
+        when IDLE_S =>
+            -- flushes data since it should not exist in the fifo before a trigger
+            for i in 0 to (LANES_NO_G-1) loop
+               if dFifoValid(i) = '1' then
+                  v.dFifoRd(i) := '1';
+               end if;             
+            end loop;
+            
             if startRdSync = '1' then
               v.state := WAIT_SOF_S;
               -- provides a 1 clock cycle hls core reset before new frame arrives

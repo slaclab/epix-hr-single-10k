@@ -33,7 +33,7 @@ CreateDebugCore ${ilaName}
 #######################
 ## Set the record depth
 #######################
-set_property C_DATA_DEPTH 2048 [get_debug_cores ${ilaName}]
+set_property C_DATA_DEPTH 4096 [get_debug_cores ${ilaName}]
 
 #################################
 ## Set the clock for the ILA core
@@ -68,11 +68,21 @@ SetDebugCoreClk ${ilaName} {U_App/deserClk}
 #ConfigProbe ${ilaName} {U_App/rxData[*]}
 #ConfigProbe ${ilaName} {U_App/rxSof[*]}
 #ConfigProbe ${ilaName} {U_App/rxEofe[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[txMaster][*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[dFifoRd][*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[txMaster][*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/startRdSync}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoRd[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoEof[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoSof[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/r[state][*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoValid[*]}
+#
+ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/startRdSync}
+ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoRd[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoEof[*]}
+ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoSof[*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[state][*]}
 ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoValid[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/hlsTxMaster[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/hlsTxMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisSlave[*]}

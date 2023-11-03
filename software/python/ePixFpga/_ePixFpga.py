@@ -1035,7 +1035,7 @@ class EPixHr10kTAppCoreRegLCLS(pr.Device):
       #############################################
       # Create block / variable combinations
       #############################################
-      debugChEnum={0:'Asic01DM', 1:'AsicSync', 2:'AsicAcq', 3:'AsicSR0', 4:'AsicSaciClk', 5:'AsicSaciCmd', 6:'AsicSaciResp', 7:'AsicSaciSelL(0)', 8:'AsicSaciSelL(1)', 9:'AsicRdClk', 10:'deserClk', 11:'WFdacDin', 12:'WFdacSclk', 13:'WFdacCsL', 14:'WFdacLdacL', 15: 'WFdacCrtlL', 16: 'AsicGRst', 17: 'AsicR0', 18: 'SlowAdcDin', 19: 'SlowAdcDrdy', 20: 'SlowAdcDout', 21: 'slowAdcRefClk', 22: 'pgpTrigger', 23: 'acqStart'}
+      debugChEnum={0:'Asic01DM', 1:'AsicSync', 2:'AsicAcq', 3:'AsicSR0', 4:'AsicSaciClk', 5:'AsicSaciCmd', 6:'AsicSaciResp', 7:'AsicSaciSelL(0)', 8:'AsicSaciSelL(1)', 9:'AsicRdClk', 10:'deserClk', 11:'WFdacDin', 12:'WFdacSclk', 13:'WFdacCsL', 14:'WFdacLdacL', 15: 'WFdacCrtlL', 16: 'AsicGRst', 17: 'AsicR0', 18: 'SlowAdcDin', 19: 'SlowAdcDrdy', 20: 'SlowAdcDout', 21: 'slowAdcRefClk', 22: 'pgpTrigger', 23: 'acqStart', 24: 'dataSend', 25: 'timingRun@tg_Daq@MPS_Trigger'}
 
       #Setup registers & variables
       
