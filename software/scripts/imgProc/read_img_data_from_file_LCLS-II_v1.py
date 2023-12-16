@@ -25,7 +25,7 @@ import ePixViewer.Cameras as cameras
 import ePixViewer.imgProcessing as imgPr
 # 
 import matplotlib   
-matplotlib.use('QT4Agg')
+#matplotlib.use('QT4Agg')
 import matplotlib.pyplot as plt
 import h5py
 
@@ -41,7 +41,7 @@ PAYLOAD_TS           = 7360
 ##################################################
 # Global variables
 ##################################################
-cameraType            = 'ePixHr10kT'
+cameraType            = 'ePixHr10kTBatcher'
 bitMask               = 0xffff
 PLOT_IMAGE            = True
 PLOT_ADC9_VS_N        = False
@@ -135,13 +135,16 @@ if (len(sys.argv[1])>0):
 else:
     filename = ''
 
+currentCam = cameras.Camera(cameraType = cameraType)
+
 f = open(filename, mode = 'rb')
 imgDesc = []
 for i in range(200):
     print("Starting to get data set %d" % (i))
-    allFrames = getData(f)
+    allFrames = currentCam.getData(f,8)
+    print("all Frames", allFrames.shape)
     
-    imgDesc2 = getDescImaData(allFrames)
+    imgDesc2 = getDescImaData(allFrames[:,:-8])
     if i == 0:
         headers = allFrames[:,0:6]
         imgDesc = imgDesc2
