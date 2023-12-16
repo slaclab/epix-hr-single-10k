@@ -33,7 +33,7 @@ import h5py
 #matplotlib.pyplot.ion()
 NUMBER_OF_PACKETS_PER_FRAME = 2
 #MAX_NUMBER_OF_FRAMES_PER_BATCH  = 1500*NUMBER_OF_PACKETS_PER_FRAME
-MAX_NUMBER_OF_FRAMES_PER_BATCH  = 10
+MAX_NUMBER_OF_FRAMES_PER_BATCH  = 1000
 
 PAYLOAD_SERIAL_FRAME = 4112 #2064
 PAYLOAD_TS           = 7360
@@ -139,7 +139,7 @@ currentCam = cameras.Camera(cameraType = cameraType)
 
 f = open(filename, mode = 'rb')
 imgDesc = []
-for i in range(1):
+for i in range(200):
     print("Starting to get data set %d" % (i))
     allFrames = currentCam.getData(f,8)
     print("all Frames", allFrames.shape)
