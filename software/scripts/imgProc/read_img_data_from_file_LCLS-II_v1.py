@@ -25,7 +25,7 @@ import ePixViewer.Cameras as cameras
 import ePixViewer.imgProcessing as imgPr
 # 
 import matplotlib   
-matplotlib.use('QT4Agg')
+#matplotlib.use('QT4Agg')
 import matplotlib.pyplot as plt
 import h5py
 
@@ -33,7 +33,7 @@ import h5py
 #matplotlib.pyplot.ion()
 NUMBER_OF_PACKETS_PER_FRAME = 2
 #MAX_NUMBER_OF_FRAMES_PER_BATCH  = 1500*NUMBER_OF_PACKETS_PER_FRAME
-MAX_NUMBER_OF_FRAMES_PER_BATCH  = 1000
+MAX_NUMBER_OF_FRAMES_PER_BATCH  = 10
 
 PAYLOAD_SERIAL_FRAME = 4112 #2064
 PAYLOAD_TS           = 7360
@@ -41,7 +41,7 @@ PAYLOAD_TS           = 7360
 ##################################################
 # Global variables
 ##################################################
-cameraType            = 'ePixHr10kT'
+cameraType            = 'ePixHr10kTBatcher'
 bitMask               = 0xffff
 PLOT_IMAGE            = True
 PLOT_ADC9_VS_N        = False
@@ -135,13 +135,16 @@ if (len(sys.argv[1])>0):
 else:
     filename = ''
 
+currentCam = cameras.Camera(cameraType = cameraType)
+
 f = open(filename, mode = 'rb')
 imgDesc = []
-for i in range(200):
+for i in range(1):
     print("Starting to get data set %d" % (i))
-    allFrames = getData(f)
+    allFrames = currentCam.getData(f,8)
+    print("all Frames", allFrames.shape)
     
-    imgDesc2 = getDescImaData(allFrames)
+    imgDesc2 = getDescImaData(allFrames[:,:-8])
     if i == 0:
         headers = allFrames[:,0:6]
         imgDesc = imgDesc2
