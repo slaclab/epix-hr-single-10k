@@ -6,7 +6,7 @@ ePixHr10kT:
     enable: True
     Hr10kTAsic1:
       enable: True
-      shvc_DAC: 0x3d
+      shvc_DAC: 0x1e
       fastPP_enable: False
       PulserSync: False
       Pll_RO_Reset: True
@@ -16,8 +16,8 @@ ePixHr10kT:
       Pll_filter1MSB: 0x1
       Pulser: 0x200
       pbit: False
-      atest: True
-      test: True
+      atest: False
+      test: False
       sab_test: False
       hrtest: False
       PulserR: False
@@ -25,12 +25,12 @@ ePixHr10kT:
       DigMon2: 0x1
       PulserDac: 0x3
       MonostPulser: 0x0
-      RefGenB: 0x3
+      RefGenB: 0x1
       Dm1En: False
       Dm2En: False
       emph_bd: 0x0
       emph_bc: 0x0
-      VRef_DAC: 0x18
+      VRef_DAC: 0x28
       VRefLow: 0x3
       trbit: True
       TpsMux: 0x0
@@ -70,8 +70,8 @@ ePixHr10kT:
       Debug_bit: 0x3
       OSRsel: False
       SecondOrder: False
-      DHg: True
-      RefGenC: 0x3
+      DHg: False
+      RefGenC: 0x2
       dbus_del_sel: False
       SDclk_b: 0x0
       SDrst_b: 0x2

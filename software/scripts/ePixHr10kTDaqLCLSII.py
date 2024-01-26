@@ -26,7 +26,6 @@ import pyrogue.utilities.prbs
 import pyrogue.utilities.fileio
 import pyrogue.interfaces.simulation
 import pyrogue.gui
-import rogue.hardware.pgp
 import rogue.protocols
 import pyrogue.pydm
 import surf
