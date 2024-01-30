@@ -41,10 +41,10 @@ ePixHr10kT:
       Ocb: 0x3
       Monost: 0x3
       mTest: False
-      Preamp: 0x6
+      Preamp: 0x4
       S2D_1_b: 0x0
       Vld1_b: 0x1
-      CompTH_DAC: 0x35
+      CompTH_DAC: 0x2A
       TC: 0x0
       S2d: 0x3
       S2dDacBias: 0x3
@@ -78,9 +78,9 @@ ePixHr10kT:
       Filter_DAC: 0x26
       Rodis01: 0x0
       CompEn: 0x7
-      Pixel_CB: 0x7
+      Pixel_CB: 0x4
       rodis34: 0x0
       rowCK2matrix_delay: 0x8
       ro_mode: 0x0
       rodis5: 0x0
-      pipoclk_delay: 0x9
+      pipoclk_delay: 0x6
