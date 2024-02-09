@@ -77,7 +77,7 @@ ePixHr10kT:
       SDrst_b: 0x2
       Filter_DAC: 0x14
       Rodis01: 0x0
-      CompEn: 0x2
+      CompEn: 0x1
       Pixel_CB: 0x4
       rodis34: 0x0
       rowCK2matrix_delay: 0x8
