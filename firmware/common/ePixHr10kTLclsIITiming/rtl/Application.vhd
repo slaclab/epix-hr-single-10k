@@ -59,6 +59,7 @@ entity Application is
       ----------------------
       -- Top Level Interface
       ----------------------
+      pcieDaqTrigPause : in    sl;
       -- System Clock and Reset
       sysClk           : in    sl;
       sysRst           : in    sl;
@@ -350,11 +351,11 @@ architecture mapping of Application is
    signal timingRunTrigger: sl;
    signal timingDaqTrigger: sl;
    -- timing event bus
-   signal eventRealAxisMaster       : AxiStreamMasterArray(1 downto 0);
-   signal eventRealAxisMasterArray  : AxiStreamMasterArray(2 downto 0);
-   signal eventRealAxisSlave        : AxiStreamSlaveArray(1 downto 0);
-   signal eventRealAxisSlaveArray   : AxiStreamSlaveArray(2 downto 0);
-   signal eventRealAxisCtrl         : AxiStreamCtrlArray(1 downto 0);
+   signal eventRealAxisMaster       : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal eventRealAxisMasterArray  : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal eventRealAxisSlave        : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal eventRealAxisSlaveArray   : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal eventRealAxisCtrl         : AxiStreamCtrlArray(1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
    
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
@@ -1478,13 +1479,17 @@ begin
          eventAxisCtrl        => eventRealAxisCtrl--NUM_DETECTORS_G
       );
 
-   eventRealAxisCtrl(1).overflow    <= AXI_STREAM_CTRL_INIT_C.overflow;
-   eventRealAxisCtrl(1).idle        <= AXI_STREAM_CTRL_INIT_C.idle;
-   eventRealAxisCtrl(1).pause       <= '0'; --axisRawPause or axisIntPause or axisProcPause;
-   --
-   eventRealAxisSlave(0) <= AXI_STREAM_SLAVE_INIT_C;
-   eventRealAxisCtrl(0)  <= AXI_STREAM_CTRL_INIT_C;
-   --
+   GEN_DAQ_PAUSE :
+   for i in 1 downto 0 generate
+      U_triggerPause : entity surf.Synchronizer
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => sysClk,
+            dataIn  => pcieDaqTrigPause,
+            dataOut => eventRealAxisCtrl(i).pause);
+   end generate GEN_DAQ_PAUSE;
+
    timingRunTrigger      <= iTriggerData(0).valid and iTriggerData(0).l0Accept;
    timingDaqTrigger      <= iTriggerData(1).valid and iTriggerData(1).l0Accept;
 

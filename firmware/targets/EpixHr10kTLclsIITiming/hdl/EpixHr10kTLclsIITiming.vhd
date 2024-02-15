@@ -156,6 +156,8 @@ end EpixHr10kTLclsIITiming;
 
 architecture top_level of EpixHr10kTLclsIITiming is
 
+   signal pcieDaqTrigPause : sl;
+
    -- System Clock and Reset
    signal sysClk          : sl;
    signal sysRst          : sl;
@@ -195,6 +197,7 @@ begin
          ----------------------
          -- Top Level Interface
          ----------------------
+         pcieDaqTrigPause => pcieDaqTrigPause,
          -- System Clock and Reset
          sysClk           => sysClk,
          sysRst           => sysRst,
@@ -317,6 +320,7 @@ begin
          ----------------------
          -- Top Level Interface
          ----------------------
+         pcieDaqTrigPause => pcieDaqTrigPause,
          -- System Clock and Reset
          sysClk           => sysClk,
          sysRst           => sysRst,
