@@ -3,7 +3,6 @@ import pyrogue as pr
 import pyrogue.utilities.prbs
 import pyrogue.utilities.fileio
 import pyrogue.interfaces.simulation
-import pyrogue.gui
 import rogue.protocols
 import pyrogue.pydm
 import surf
@@ -21,7 +20,6 @@ import time
 import argparse
 import sys
 #import testBridge
-import ePixViewer as vi
 import ePixFpga as fpga
 
 

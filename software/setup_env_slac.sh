@@ -5,5 +5,5 @@
 ##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
 ###########################################################################
 
-source /afs/slac.stanford.edu/g/reseng/rogue/v5.18.4/setup_rogue.sh
-conda activate rogue_v5.18.4
+source /afs/slac.stanford.edu/g/reseng/vol31/anaconda/anaconda3/etc/profile.d/conda.sh
+conda activate rogue_v6.1.3

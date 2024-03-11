@@ -106,7 +106,8 @@ class EpixHR10kT(pr.Device):
             EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
             powerSupplyRegisters(                name='PowerSupply',              offset=0x89000000, expand=False, enabled=False),            
             HighSpeedDacRegisters(               name='HSDac',                    offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
-            pr.MemoryDevice(                     name='waveformMem',              offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4, hidden=True),
+            #deprecated, investigating how to program the memory
+            #pr.MemoryDevice(                     name='waveformMem',              offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4, hidden=True),
             sDacRegisters(                       name='SlowDacs'    ,             offset=0x8C000000, expand=False, enabled=False),
             OscilloscopeRegisters(               name='Oscilloscope',             offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
             MonAdcRegisters(                     name='FastADCsDebug',            offset=0x8E000000, expand=False, enabled=False),
