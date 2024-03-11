@@ -28,7 +28,7 @@ import argparse
 #import pyrogue.utilities.fileio
 #import pyrogue.interfaces.simulation
 import rogue.protocols
-#import pyrogue.pydm
+import pyrogue.pydm
 #import surf
 #import surf.axi
 #import surf.protocols.ssi
@@ -75,6 +75,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+        "--pollEn",
+        type     = argBool,
+        required = False,
+        default  = True,
+        help     = "Enable auto-polling",
+    )
+
+parser.add_argument(
     "--start_gui", 
     type     = str,
     required = False,
@@ -112,7 +120,15 @@ parser.add_argument(
     required = False,
     default  = 4,
     help     = "same port defined in the vhdl testbench",
-)  
+)
+
+parser.add_argument(
+        "--guiType",
+        type     = str,
+        required = False,
+        default  = 'PyDM',
+        help     = "Sets the GUI type (PyDM or None)",
+    )
 
 # Get the arguments
 args = parser.parse_args()
@@ -123,10 +139,8 @@ else:
     args.verbose = True
 
 if (args.type == 'SIM'):
-    pollEn = False
     timeout = 5.0
 else:
-    pollEn = True
     timeout = 1.0
 
 #this command can fill up the hard drive /var/log
@@ -299,17 +313,18 @@ with epix_hr_single_10k.RootLCLSIITiming(
         sim=False,
         dev=args.dev,
         asicVersion = 4,
-        pollEn=pollEn,
+        pollEn=args.pollEn,
         timeout=timeout) as ePixHrBoard:
 
     if ( args.type == 'dataFile' or args.type == 'SIM'):
         print("Simulation mode does not initialize monitoring ADC")
-    else:
-        #configure internal ADC        
-        ePixHrBoard.EpixHR.InitHSADC()
-        
-    pyrogue.pydm.runPyDM(
-        root  = ePixHrBoard,
-        sizeX = 800,
-        sizeY = 800,
+    
+    ######################
+    # Development PyDM GUI
+    ######################
+    if (args.guiType == 'PyDM'):
+        pyrogue.pydm.runPyDM(
+            serverList = ePixHrBoard.zmqServer.address,
+            sizeX      = 800,
+            sizeY      = 800,
         )

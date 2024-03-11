@@ -3,6 +3,7 @@ import pyrogue as pr
 import pyrogue.utilities.prbs
 import pyrogue.utilities.fileio
 import pyrogue.interfaces.simulation
+import rogue
 import rogue.protocols
 import pyrogue.pydm
 import surf
@@ -22,9 +23,17 @@ import sys
 #import testBridge
 import ePixFpga as fpga
 
+rogue.Version.minVersion('6.0.0')
 
 class RootLCLSIITiming(pr.Root):
-    def __init__(self, top_level, sim, asicVersion, dev = '/dev/datadev_0', simPort = 11000,  **kwargs):
+    def __init__(self,
+                 top_level,
+                 sim, asicVersion,
+                 dev = '/dev/datadev_0',
+                 simPort = 11000,
+                 zmqSrvEn = True,  # Flag to include the ZMQ server
+                 pollEn   = True,  # Enable automatic polling registers
+                 **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
 
         self.top_level = top_level
@@ -32,8 +41,16 @@ class RootLCLSIITiming(pr.Root):
         self._dev = dev
         self._asicVersion = asicVersion
         self._tcpPort = simPort
+        self._pollEn = pollEn
 
         print("Simulation mode :", self._sim)
+
+        #################################################################
+        if zmqSrvEn:
+            self.zmqServer = pyrogue.interfaces.ZmqServer(root=self, addr='127.0.0.1', port=0)
+            self.addInterface(self.zmqServer)
+
+        #################################################################
 
         # Create arrays to be filled
         self.dmaStreams = [None for lane in range(3)]
@@ -58,6 +75,13 @@ class RootLCLSIITiming(pr.Root):
             self.dmaCtrlStreams[0] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*0)+2*0)# Registers  
             self.dmaCtrlStreams[1] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*0)+2*2)# PseudoScope
             self.dmaCtrlStreams[2] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*0)+2*3)# Monitoring (Slow ADC)
+
+             # Create (Xilinx Virtual Cable) XVC on localhost
+            #self.xvc = rogue.protocols.xilinx.Xvc( 2542 )
+            #self.addProtocol( self.xvc )
+
+            # Connect dmaStream[VC = 2] to XVC
+            #self.dmaStream[2] == self.xvc
 
         
         # Add data stream to file as channel 1 File writer
@@ -89,22 +113,6 @@ def start (self,**kwargs):
 
         if ( self._sim == False ):
             print("Init ADC")
-            self.EpixHR.FastADCsDebug.enable.set(True)   
-            self.EpixHR.FastADCsDebug.DelayAdc0.set(15)
-            self.EpixHR.FastADCsDebug.enable.set(False)
-
-            self.EpixHR.Ad9249Config_Adc_0.enable.set(True)
-            self.readBlocks()
-            self.EpixHR.FastADCsDebug.DelayAdc0.set(15)
-            self.EpixHR.FastADCsDebug.enable.set(False)
-
-            self.EpixHR.Ad9249Config_Adc_0.enable.set(True)
-            self.readBlocks()
-            self.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(3)
-            self.EpixHR.Ad9249Config_Adc_0.InternalPdwnMode.set(0)
-            self.EpixHR.Ad9249Config_Adc_0.OutputFormat.set(0)
-            self.readBlocks()
-            self.EpixHR.Ad9249Config_Adc_0.enable.set(False)
-            self.readBlocks()
+            EpixHR.InitHSADC()            
         else:
             print("Simulation - ADC not started")
