@@ -74,8 +74,8 @@ class EpixHR10kT(pr.Device):
             #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane2',            offset=0x05020000, expand=False, enabled=False),
             #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane3',            offset=0x05030000, expand=False, enabled=False),
             # app registers
-            MMCM7Registers(                   name='MMCMRegisters',            offset=0x80000000, expand=False, enabled=False),
-            epixHr.TriggerRegisters(                 name="TriggerRegisters",         offset=0x81000000, expand=False, enabled=False)))
+            MMCM7Registers(                   name='MMCMRegisters',            offset=0x00000000, expand=False, enabled=False),
+            epixHr.TriggerRegisters(                 name="TriggerRegisters",         offset=0x01000000, expand=False, enabled=False)))
 #            ssiPrbsTxRegisters(               name='ssiPrbs0PktRegisters',     offset=0x82000000, expand=False, enabled=False),
 #            ssiPrbsTxRegisters(               name='ssiPrbs1PktRegisters',     offset=0x83000000, expand=False, enabled=False),
 #            ssiPrbsTxRegisters(               name='ssiPrbs2PktRegisters',     offset=0x84000000, expand=False, enabled=False),
@@ -84,47 +84,47 @@ class EpixHR10kT(pr.Device):
 #            axi.AxiMemTester(                 name='AxiMemTester',             offset=0x87000000, expand=False, enabled=False)))
         if (self.asicVersion == 2):
             self.add((
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V2 Asic Configuration', offset=0x88000000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V2 Asic Configuration', offset=0x88400000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V2 Asic Configuration', offset=0x88800000, expand=False, enabled=False),
-                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V2 Asic Configuration', offset=0x88C00000, expand=False, enabled=False)))
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V2 Asic Configuration', offset=0x08000000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V2 Asic Configuration', offset=0x08400000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V2 Asic Configuration', offset=0x08800000, expand=False, enabled=False),
+                epix.EpixHr10kTV2Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V2 Asic Configuration', offset=0x08C00000, expand=False, enabled=False)))
         if (self.asicVersion == 3):
             self.add((
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V3 Asic Configuration', offset=0x88000000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V3 Asic Configuration', offset=0x88400000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V3 Asic Configuration', offset=0x88800000, expand=False, enabled=False),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V3 Asic Configuration', offset=0x88C00000, expand=False, enabled=False)))
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V3 Asic Configuration', offset=0x08000000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V3 Asic Configuration', offset=0x08400000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V3 Asic Configuration', offset=0x08800000, expand=False, enabled=False),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V3 Asic Configuration', offset=0x08C00000, expand=False, enabled=False)))
         if (self.asicVersion == 4):
             self.add((
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V4 Asic Configuration', offset=0x88000000, expand=False, enabled=False, RegAccessMode='RW'),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V4 Asic Configuration', offset=0x88400000, expand=False, enabled=False, RegAccessMode='RW'),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V4 Asic Configuration', offset=0x88800000, expand=False, enabled=False, RegAccessMode='RW'),
-                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V4 Asic Configuration', offset=0x88C00000, expand=False, enabled=False, RegAccessMode='RW')))
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic0',              description='EpixHr10kT V4 Asic Configuration', offset=0x08000000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic1',              description='EpixHr10kT V4 Asic Configuration', offset=0x08400000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic2',              description='EpixHr10kT V4 Asic Configuration', offset=0x08800000, expand=False, enabled=False, RegAccessMode='RW'),
+                epix.EpixHr10kTV3Asic(            name='Hr10kTAsic3',              description='EpixHr10kT V4 Asic Configuration', offset=0x08C00000, expand=False, enabled=False, RegAccessMode='RW')))
 
         self.add((
             #When using fw without timing, Register control class changes
-            EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x96000000, expand=False, enabled=False),
-            powerSupplyRegisters(                name='PowerSupply',              offset=0x89000000, expand=False, enabled=False),            
-            HighSpeedDacRegisters(               name='HSDac',                    offset=0x8A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
+            EPixHr10kTAppCoreRegLCLS(            name="RegisterControl",          offset=0x16000000, expand=False, enabled=False),
+            powerSupplyRegisters(                name='PowerSupply',              offset=0x09000000, expand=False, enabled=False),            
+            HighSpeedDacRegisters(               name='HSDac',                    offset=0x0A000000, expand=False, enabled=False,HsDacEnum=HsDacEnum),
             #deprecated, investigating how to program the memory
             #pr.MemoryDevice(                     name='waveformMem',              offset=0x8B000000, expand=False, wordBitSize=16, stride=4, size=1024*4, hidden=True),
-            sDacRegisters(                       name='SlowDacs'    ,             offset=0x8C000000, expand=False, enabled=False),
-            OscilloscopeRegisters(               name='Oscilloscope',             offset=0x8D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
-            MonAdcRegisters(                     name='FastADCsDebug',            offset=0x8E000000, expand=False, enabled=False),
-            analog_devices.Ad9249ConfigGroup(    name='Ad9249Config_Adc_0',       offset=0x8F000000, expand=False, enabled=False),
-            SlowAdcRegisters(                    name="SlowAdcRegisters",         offset=0x90000000, expand=False, enabled=False),
-            ssp.SspLowSpeedDecoderReg(           name="SspLowSpeedDecoderReg",    offset=0x94010000, expand=False, enabled=False, numberLanes=24),
-            DigitalAsicStreamAxi(                name="PacketRegisters0",         offset=0x95000000, expand=False, enabled=False, numberLanes=12), 
-            DigitalAsicStreamAxi(                name="PacketRegisters1",         offset=0x95100000, expand=False, enabled=False, numberLanes=12),
+            sDacRegisters(                       name='SlowDacs'    ,             offset=0x0C000000, expand=False, enabled=False),
+            OscilloscopeRegisters(               name='Oscilloscope',             offset=0x0D000000, expand=False, enabled=False, trigChEnum=trigChEnum, inChaEnum=inChaEnum, inChbEnum=inChbEnum),
+            MonAdcRegisters(                     name='FastADCsDebug',            offset=0x0E000000, expand=False, enabled=False),
+            analog_devices.Ad9249ConfigGroup(    name='Ad9249Config_Adc_0',       offset=0x0F000000, expand=False, enabled=False),
+            SlowAdcRegisters(                    name="SlowAdcRegisters",         offset=0x10000000, expand=False, enabled=False),
+            ssp.SspLowSpeedDecoderReg(           name="SspLowSpeedDecoderReg",    offset=0x14010000, expand=False, enabled=False, numberLanes=24),
+            DigitalAsicStreamAxi(                name="PacketRegisters0",         offset=0x15000000, expand=False, enabled=False, numberLanes=12), 
+            DigitalAsicStreamAxi(                name="PacketRegisters1",         offset=0x15100000, expand=False, enabled=False, numberLanes=12),
             # TimingCore
-            LclsTimingCore.GthRxAlignCheck(                                       offset=0x97000000, expand=False, enabled=False),
-            LclsTimingCore.TimingFrameRx(                                         offset=0x97100000, expand=False, enabled=False),
+            LclsTimingCore.GthRxAlignCheck(                                       offset=0x17000000, expand=False, enabled=False),
+            LclsTimingCore.TimingFrameRx(                                         offset=0x17100000, expand=False, enabled=False),
             # XPM Mini Core
-            l2si.XpmMiniWrapper(                                                  offset=0x97200000, expand=False, enabled=False),
-            l2si.TriggerEventManager(                                             offset=0x97300000, numDetectors=2, enLclsI=False, enLclsII=True, expand=False),
-            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder0",     offset=0x98000000, expand=False, numberSlaves = 2),
-            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder1",     offset=0x99000000, expand=False, numberSlaves = 2),
-            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder2",     offset=0x9A000000, expand=False, numberSlaves = 2)
+            l2si.XpmMiniWrapper(                                                  offset=0x17200000, expand=False, enabled=False),
+            l2si.TriggerEventManager(                                             offset=0x17300000, numDetectors=2, enLclsI=False, enLclsII=True, expand=False, enabled=False),
+            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder0",     offset=0x18000000, expand=False, enabled=False, numberSlaves = 2),
+            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder1",     offset=0x19000000, expand=False, enabled=False, numberSlaves = 2),
+            batcher.AxiStreamBatcherEventBuilder(name="BatcherEventBuilder2",     offset=0x1A000000, expand=False, enabled=False, numberSlaves = 2)
         ))
 
         self.add(pr.LocalCommand(name='SetWaveform',description='Set test waveform for high speed DAC', function=self.fnSetWaveform))
