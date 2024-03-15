@@ -78,7 +78,7 @@ class Root(pr.Root):
             if (self._justCtrl == False) :
                 for lane in range(3):
                     self.dmaStreams[lane] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*lane)+1,1)
-                    self.add(ePixHrDuo10kT.DataReceiverEpixHrSingle10kT(name = f"DataReceiver{lane}"))
+                    self.add(ePixHrDuo10kT.DataReceiverEpixHrDuo10kT(name = f"DataReceiver{lane}"))
                     self.dmaStreams[lane] >> self.rate[lane] >> self.unbatchers[lane] >>  self.dataFilter[lane] >> getattr(self, f"DataReceiver{lane}")
 
             # connect
@@ -89,7 +89,7 @@ class Root(pr.Root):
             if (self._justCtrl == False) :
                 for lane in range(3):
                     self.dmaStreams[lane] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*lane)+2*1)
-                    self.add(ePixHrDuo10kT.DataReceiverEpixHrSingle10kT(name = f"DataReceiver{lane}"))
+                    self.add(ePixHrDuo10kT.DataReceiverEpixHrDuo10kT(name = f"DataReceiver{lane}"))
                     self.dmaStreams[lane] >> self.rate[lane] >> self.unbatchers[lane] >>  self.dataFilter[lane] >> getattr(self, f"DataReceiver{lane}")
 
             # connect
@@ -132,11 +132,11 @@ class Root(pr.Root):
 
         @self.command()
         def DisplayViewer0():
-            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver0", "image", "--title", "DataReceiver0",  "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
+            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver0", "image", "--title", "DataReceiver0",  "--sizeY", "144", "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
 
         @self.command()
         def DisplayViewer1():
-            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver1", "image", "--title", "DataReceiver1",  "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
+            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver1", "image", "--title", "DataReceiver1",  "--sizeY", "144", "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
 
 
 
