@@ -13,26 +13,34 @@ import epix_hr_single_10k as epixHrRoot
 import epix_hr_core as epixHrCore
 
 
-import threading
-import signal
-import atexit
-import yaml
+import subprocess
 import time
 import argparse
 import sys
 #import testBridge
 import ePixFpga as fpga
 
+try :
+    from ePixViewer.asics import ePixHrDuo10kT
+    from ePixViewer import EnvDataReceiver
+    from ePixViewer import ScopeDataReceiver
+except ImportError:
+    print("Import ePixViewer failed")
+    pass
+
+
 rogue.Version.minVersion('6.0.0')
 
-class RootLCLSIITiming(pr.Root):
+class Root(pr.Root):
     def __init__(self,
                  top_level,
-                 sim, asicVersion,
+                 sim,
+                 asicVersion,
                  dev = '/dev/datadev_0',
                  simPort = 11000,
                  zmqSrvEn = True,  # Flag to include the ZMQ server
                  pollEn   = True,  # Enable automatic polling registers
+                 justCtrl = False, # Enable if you only require Root for accessing AXI registers (no data)
                  **kwargs):
         super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
 
@@ -42,8 +50,10 @@ class RootLCLSIITiming(pr.Root):
         self._asicVersion = asicVersion
         self._tcpPort = simPort
         self._pollEn = pollEn
+        self._justCtrl = justCtrl 
 
         print("Simulation mode :", self._sim)
+        print("justCtrl mode :", self._justCtrl)
 
         #################################################################
         if zmqSrvEn:
@@ -52,24 +62,35 @@ class RootLCLSIITiming(pr.Root):
 
         #################################################################
 
-        # Create arrays to be filled
-        self.dmaStreams = [None for lane in range(3)]
+        # Create the PGP interfaces for ePix hr camer
+        if (self._justCtrl == False) :
+            # Create arrays to be filled
+            self.dmaStreams     = [None for lane in range(3)]
+            self.unbatchers     = [rogue.protocols.batcher.SplitterV1() for lane in range(3)]
+            self.dataFilter     = [rogue.interfaces.stream.Filter(False, 2) for dataCh in range(3)]
+            self.rate           = [rogue.interfaces.stream.RateDrop(True, 0.1) for lane in range(3)]
+
         self.dmaCtrlStreams = [None for lane in range(3)]
-        self.unbatchers = [rogue.protocols.batcher.SplitterV1() for lane in range(3)]
-        self.dataFilter = [rogue.interfaces.stream.Filter(False, dataCh+3) for dataCh in range(3)]
+
 
         if ( self._sim == False ):
             # Create the PGP interfaces for ePix hr camera
-            for lane in range(3):
-                self.dmaStreams[lane] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*lane)+1,1)
+            if (self._justCtrl == False) :
+                for lane in range(3):
+                    self.dmaStreams[lane] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*lane)+1,1)
+                    self.add(ePixHrDuo10kT.DataReceiverEpixHrSingle10kT(name = f"DataReceiver{lane}"))
+                    self.dmaStreams[lane] >> self.rate[lane] >> self.unbatchers[lane] >>  self.dataFilter[lane] >> getattr(self, f"DataReceiver{lane}")
 
             # connect
             self.dmaCtrlStreams[0] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+0,1)# Registers  
             self.dmaCtrlStreams[1] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+2,1)# PseudoScope
             self.dmaCtrlStreams[2] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+3,1)# Monitoring (Slow ADC)
         else:
-            for lane in range(3):
-                self.dmaStreams[lane] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*lane)+2*1)
+            if (self._justCtrl == False) :
+                for lane in range(3):
+                    self.dmaStreams[lane] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*lane)+2*1)
+                    self.add(ePixHrDuo10kT.DataReceiverEpixHrSingle10kT(name = f"DataReceiver{lane}"))
+                    self.dmaStreams[lane] >> self.rate[lane] >> self.unbatchers[lane] >>  self.dataFilter[lane] >> getattr(self, f"DataReceiver{lane}")
 
             # connect
             self.dmaCtrlStreams[0] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*0)+2*0)# Registers  
@@ -86,8 +107,9 @@ class RootLCLSIITiming(pr.Root):
         
         # Add data stream to file as channel 1 File writer
         self.add(pyrogue.utilities.fileio.StreamWriter(name='dataWriter'))
-        for lane in range(3):
-            pyrogue.streamConnect(self.dmaStreams[lane], self.dataWriter.getChannel(0x10*lane + 0x01))
+        if (self._justCtrl == False) :        
+            for lane in range(3):
+                pyrogue.streamConnect(self.dmaStreams[lane], self.dataWriter.getChannel(0x10*lane + 0x01))
 
 
         self._cmd = rogue.protocols.srp.Cmd()
@@ -106,6 +128,16 @@ class RootLCLSIITiming(pr.Root):
         self.add(epixHrCore.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,numberOfLanes=3))
         self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True, asicVersion=self._asicVersion))
         self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
+
+
+        @self.command()
+        def DisplayViewer0():
+            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver0", "image", "--title", "DataReceiver0",  "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
+
+        @self.command()
+        def DisplayViewer1():
+            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver1", "image", "--title", "DataReceiver1",  "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
+
 
 
 def start (self,**kwargs):

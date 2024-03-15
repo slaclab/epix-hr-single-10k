@@ -24,22 +24,8 @@ import setupLibPaths
 import pyrogue as pr
 import epix_hr_single_10k
 import argparse
-#import pyrogue.utilities.prbs
-#import pyrogue.utilities.fileio
-#import pyrogue.interfaces.simulation
 import rogue.protocols
 import pyrogue.pydm
-#import surf
-#import surf.axi
-#import surf.protocols.ssi
-#import epix_hr_core as epixHr
-#import threading
-#import signal
-#import atexit
-#import yaml
-#import time
-#import sys
-#import ePixFpga as fpga
 
 
 try:
@@ -91,11 +77,11 @@ parser.add_argument(
 )  
 
 parser.add_argument(
-    "--start_viewer", 
+    "--justCtrl", 
     type     = str,
     required = False,
     default  = 'False',
-    help     = "true to show gui",
+    help     = "true to include data",
 )  
 
 parser.add_argument(
@@ -137,6 +123,11 @@ if (args.verbose == 'False'):
     args.verbose = False
 else:
     args.verbose = True
+
+if (args.justCtrl == 'False'):
+    args.justCtrl = False
+else:
+    args.justCtrl = True
 
 if (args.type == 'SIM'):
     timeout = 5.0
@@ -196,125 +187,16 @@ class DataDebug(rogue.interfaces.stream.Slave):
         if self.enPrint:
             print()
 
-                
-##############################
-# Set base
-##############################
-#class Board(pr.Root):
-#    def __init__(self,
-#                 args,
-#                 top_level,
-#                 dev    = '/dev/datadev_0',
-#                 dataVc = 1,
-#                 simPort = 11000,
-#                 **kwargs):
-#        super().__init__(name='ePixHr10kT',description='ePixHrGen1 board', **kwargs)
-#        self.args = args
-#        self._sim = (args.type == 'SIM');
-#        self.simPort = simPort
-#        self.top_level = top_level
-#
-#        # Create arrays to be filled
-#        self.dmaStreams = [None for lane in range(3)]
-#        self.dmaCtrlStreams = [None for lane in range(3)]
-#        self._dbg       = [DataDebug(name='DataDebug',enPrint=True) for lane in range(3)]
-#        self.unbatchers = [rogue.protocols.batcher.SplitterV1() for lane in range(3)]
-#        self.dataFilter = [rogue.interfaces.stream.Filter(False, dataCh+3) for dataCh in range(3)]
-#
-#        
-#        # Add PGP virtual channels
-#        if ( self.args.type == 'kcu1500' ):
-#            # Connect the streams
-#            for lane in range(3):
-#                self.dmaStreams[lane] = rogue.hardware.axi.AxiStreamDma(dev,(0x100*lane)+dataVc,1)
-#                self.dmaStreams[lane] >> self.unbatchers[lane] >> self._dbg[lane]
-#            # connect
-#            self.dmaCtrlStreams[0] = rogue.hardware.axi.AxiStreamDma(dev,(0x100*0)+0,1)# Registers  
-#            self.dmaCtrlStreams[1] = rogue.hardware.axi.AxiStreamDma(dev,(0x100*0)+2,1)# PseudoScope
-#            self.dmaCtrlStreams[2] = rogue.hardware.axi.AxiStreamDma(dev,(0x100*0)+3,1)# Monitoring (Slow ADC)
-#             
-#
-#        elif ( self.args.type == 'SIM' ):          
-#            print('Sim mode')
-#            
-#            rogue.Logging.setFilter('pyrogue.SrpV3', rogue.Logging.Debug)
-#            # Connect the streams
-#            for lane in range(3):
-#                self.dmaStreams[lane] = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*lane)+2*1) # VC1
-#                self.dmaStreams[lane] >> self.unbatchers[lane] >> self._dbg[lane]
-#            # connect
-#            self.dmaCtrlStreams[0] = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*0) # VC0, Registers  
-#            self.dmaCtrlStreams[1] = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*2) # VC2, PseudoScope
-#            self.dmaCtrlStreams[2] = rogue.interfaces.stream.TcpClient('localhost',args.tcpPort+(34*0)+2*3) # VC3, Monitoring (Slow ADC)
-#   
-#        else:
-#            raise ValueError("Invalid type (%s)" % (args.type) )
-#
-#        # Add data stream to file as channel 1 File writer
-#        self.add(pyrogue.utilities.fileio.StreamWriter(name='dataWriter'))
-#        for lane in range(3):
-#            pyrogue.streamConnect(self.dmaStreams[lane], self.dataWriter.getChannel(0x10*lane + 0x01))
-#
-#
-#        self.cmd = rogue.protocols.srp.Cmd()
-#        if ( self.args.type != 'dataFile' ):
-#            pyrogue.streamConnect(self.cmd, self.dmaStreams[0])
-#
-#        # Create and Connect SRP to VC1 to send commands
-#        self._srp = rogue.protocols.srp.SrpV3()
-#        pyrogue.streamConnectBiDir(self.dmaCtrlStreams[0],self._srp)
-#
-#        
-#        # Viewer gui
-#        self.onlineViewers = [None for lane in range(3)]
-#        for viewerNum in range(3):
-#            self.onlineViewers[viewerNum] = vi.Window(cameraType='ePixHr10kTBatcher', verbose=self.args.verbose)
-#            self.onlineViewers[viewerNum].eventReader.frameIndex = 0
-#            self.onlineViewers[viewerNum].setReadDelay(0)
-#            self.onlineViewers[viewerNum].setWindowTitle("ePix image viewer ASIC %d" % (viewerNum))
-#            self.onlineViewers[viewerNum].eventReader.setDataDisplayParameters(2,viewerNum)
-#            self.unbatchers[viewerNum]  >> self.dataFilter[viewerNum] >> self.onlineViewers[viewerNum].eventReader
-#            self.unbatchers[viewerNum]  >> self.onlineViewers[viewerNum].eventReader
-#            self.dmaCtrlStreams[1] >> self.onlineViewers[viewerNum].eventReaderScope
-#            self.dmaCtrlStreams[2] >> self.onlineViewers[viewerNum].eventReaderMonitoring
-#
-#        @self.command()
-#        def Trigger():
-#            self.cmd.sendCmd(0, 0)
-#        
-#        @self.command()
-#        def DisplayViewer0():
-#            self.onlineViewers[0].show()
-#        @self.command()
-#        def DisplayViewer1():
-#            self.onlineViewers[1].show()
-#        @self.command()
-#        def DisplayViewer2():
-#            self.onlineViewers[2].show()
-#        
-#        if (self.args.start_viewer == 'False'):
-#            for viewerNum in range(3):
-#                self.onlineViewers[viewerNum].hide()
-#
-#
-#        # Add Devices
-#        if ( self.args.type == 'kcu1500' ):
-#            self.add(epixHr.SysReg(name='Core', memBase=self._srp, offset=0x00000000, sim=self._sim, expand=False, pgpVersion=4,numberOfLanes=3))
-#        self.add(fpga.EpixHR10kT(name='EpixHR', memBase=self._srp, offset=0x80000000, hidden=False, enabled=True, asicVersion=args.asicVersion))
-#        self.add(pyrogue.RunControl(name = 'runControl', description='Run Controller hr', cmd=self.Trigger, rates={1:'1 Hz', 2:'2 Hz', 4:'4 Hz', 8:'8 Hz', 10:'10 Hz', 30:'30 Hz', 60:'60 Hz', 120:'120 Hz'}))
-
-
-        
-
-
 # Create GUI
-with epix_hr_single_10k.RootLCLSIITiming(
+with epix_hr_single_10k.Root(
         top_level=top_level,
         sim=False,
-        dev=args.dev,
         asicVersion = 4,
+        dev=args.dev,
         pollEn=args.pollEn,
-        timeout=timeout) as ePixHrBoard:
+        justCtrl = args.justCtrl,
+        timeout=timeout
+        ) as ePixHrBoard:
 
     if ( args.type == 'dataFile' or args.type == 'SIM'):
         print("Simulation mode does not initialize monitoring ADC")
