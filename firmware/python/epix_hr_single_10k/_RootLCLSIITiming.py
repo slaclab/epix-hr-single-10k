@@ -132,12 +132,11 @@ class Root(pr.Root):
 
         @self.command()
         def DisplayViewer0():
-            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver0", "image", "--title", "DataReceiver0",  "--sizeY", "144", "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
+            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver0", "image", "--title", "DataReceiver0",  "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
 
         @self.command()
         def DisplayViewer1():
-            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver1", "image", "--title", "DataReceiver1",  "--sizeY", "144", "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
-
+            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver1", "image", "--title", "DataReceiver1",  "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
 
 
 def start (self,**kwargs):
