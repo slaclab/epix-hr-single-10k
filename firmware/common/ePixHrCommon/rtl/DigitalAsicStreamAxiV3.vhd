@@ -257,8 +257,8 @@ begin
       U_GainBitReMap : process (rxData, r)
       begin
         if (GAIN_BIT_REMAP_G = true) then
-          rxDataReMap(i)(13 downto 0)   <= rxData(i)(15 downto 2);
-          rxDataReMap(i)(14)            <= '0';
+          rxDataReMap(i)(11 downto 0)   <= rxData(i)(15 downto 4);
+          rxDataReMap(i)(14 downto 12)  <= (others => '0');
           rxDataReMap(i)(15)            <= rxData(i)(0);
         else
           rxDataReMap(i) <= rxData(i);
