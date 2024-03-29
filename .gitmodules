@@ -16,3 +16,6 @@
 [submodule "firmware/submodules/lcls-timing-core"]
 	path = firmware/submodules/lcls-timing-core
 	url = git@github.com:slaclab/lcls-timing-core.git
+[submodule "firmware/submodules/ePixViewer"]
+	path = firmware/submodules/ePixViewer
+	url = git@github.com:slaclab/ePixViewer.git

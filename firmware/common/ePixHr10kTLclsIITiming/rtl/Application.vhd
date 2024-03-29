@@ -1479,16 +1479,14 @@ begin
          eventAxisCtrl        => eventRealAxisCtrl--NUM_DETECTORS_G
       );
 
-   GEN_DAQ_PAUSE :
-   for i in 1 downto 0 generate
-      U_triggerPause : entity surf.Synchronizer
-         generic map (
-            TPD_G => TPD_G)
-         port map (
-            clk     => sysClk,
-            dataIn  => pcieDaqTrigPause,
-            dataOut => eventRealAxisCtrl(i).pause);
-   end generate GEN_DAQ_PAUSE;
+  U_triggerPause : entity surf.Synchronizer
+    generic map (
+      TPD_G => TPD_G)
+    port map (
+      clk     => sysClk,
+      dataIn  => pcieDaqTrigPause,
+      dataOut => eventRealAxisCtrl(1).pause);
+  eventRealAxisCtrl(0).pause <= '0';
 
    timingRunTrigger      <= iTriggerData(0).valid and iTriggerData(0).l0Accept;
    timingDaqTrigger      <= iTriggerData(1).valid and iTriggerData(1).l0Accept;

@@ -42,19 +42,6 @@ create_clock -name gtRefClk -period  2.691 [get_ports {qsfpTimingClkP}]
 
 set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks sysClk] \
-   -group [get_clocks -include_generated_clocks refClk] \
-   -group [get_clocks -include_generated_clocks adcClk] \
-   -group [get_clocks -include_generated_clocks appClk] \
-   -group [get_clocks -include_generated_clocks asicClk] \
-   -group [get_clocks -include_generated_clocks deserClk] \
-   -group [get_clocks -include_generated_clocks adcMonDoClkP] \
-   -group [get_clocks -include_generated_clocks adcBitClk] \
-   -group [get_clocks -include_generated_clocks adcBitClkDiv4] \
-   -group [get_clocks -include_generated_clocks gtRefClk] \
-   -group [get_clocks -include_generated_clocks hlsClk] \
-
-set_clock_groups -asynchronous \
-   -group [get_clocks -include_generated_clocks sysClk] \
    -group [get_clocks -include_generated_clocks divClk_1]
 
 create_generated_clock -name clk186 [get_pins {U_App/U_LCLSTimingReceiver/U_IBUFDS_GTE3/ODIV2}]
@@ -88,12 +75,25 @@ create_generated_clock -name muxTimingGtTxOutClk \
 set_clock_groups -physically_exclusive -group muxTimingGtTxOutClk -group muxTxClk186
 set_false_path -to [get_pins {U_App/U_LCLSTimingReceiver/U_TXCLK/CE*}]
 
+
 set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks sysClk] \
+   -group [get_clocks -include_generated_clocks refClk] \
+   -group [get_clocks -include_generated_clocks adcClk] \
    -group [get_clocks -include_generated_clocks appClk] \
+   -group [get_clocks -include_generated_clocks asicClk] \
+   -group [get_clocks -include_generated_clocks deserClk] \
+   -group [get_clocks -include_generated_clocks adcMonDoClkP] \
+   -group [get_clocks -include_generated_clocks adcBitClk] \
+   -group [get_clocks -include_generated_clocks adcBitClkDiv4] \
+   -group [get_clocks -include_generated_clocks gtRefClk] \
+   -group [get_clocks -include_generated_clocks hlsClk] \
    -group [get_clocks -include_generated_clocks timingGtRxOutClk] \
    -group [get_clocks -include_generated_clocks timingGtTxOutClk] \
-   -group [get_clocks -include_generated_clocks clk186]
+   -group [get_clocks -include_generated_clocks clk186] \
+   -group [get_clocks -include_generated_clocks muxTimingGtRxOutClk] \
+   -group [get_clocks -include_generated_clocks muxTimingGtTxOutClk] \
+   -group [get_clocks -include_generated_clocks muxTxClk186] 
 
 # ASIC Gbps Ports
 
@@ -109,42 +109,42 @@ set_property -dict {PACKAGE_PIN R27 IOSTANDARD LVDS} [get_ports {asicDataP[4]}]
 set_property -dict {PACKAGE_PIN R28 IOSTANDARD LVDS} [get_ports {asicDataN[4]}]
 set_property -dict {PACKAGE_PIN T24 IOSTANDARD LVDS} [get_ports {asicDataP[5]}]
 set_property -dict {PACKAGE_PIN T25 IOSTANDARD LVDS} [get_ports {asicDataN[5]}]
-set_property -dict {PACKAGE_PIN R23 IOSTANDARD LVDS} [get_ports {asicDataP[6]}]
-set_property -dict {PACKAGE_PIN P23 IOSTANDARD LVDS} [get_ports {asicDataN[6]}]
-set_property -dict {PACKAGE_PIN P20 IOSTANDARD LVDS} [get_ports {asicDataP[7]}]
-set_property -dict {PACKAGE_PIN P21 IOSTANDARD LVDS} [get_ports {asicDataN[7]}]
-set_property -dict {PACKAGE_PIN M20 IOSTANDARD LVDS} [get_ports {asicDataP[8]}]
-set_property -dict {PACKAGE_PIN M21 IOSTANDARD LVDS} [get_ports {asicDataN[8]}]
-set_property -dict {PACKAGE_PIN P28 IOSTANDARD LVDS} [get_ports {asicDataP[9]}]
-set_property -dict {PACKAGE_PIN N28 IOSTANDARD LVDS} [get_ports {asicDataN[9]}]
-set_property -dict {PACKAGE_PIN P25 IOSTANDARD LVDS} [get_ports {asicDataP[10]}]
-set_property -dict {PACKAGE_PIN P26 IOSTANDARD LVDS} [get_ports {asicDataN[10]}]
-set_property -dict {PACKAGE_PIN M24 IOSTANDARD LVDS} [get_ports {asicDataP[11]}]
-set_property -dict {PACKAGE_PIN M25 IOSTANDARD LVDS} [get_ports {asicDataN[11]}]
-set_property -dict {PACKAGE_PIN K20 IOSTANDARD LVDS} [get_ports {asicDataP[12]}]
-set_property -dict {PACKAGE_PIN K21 IOSTANDARD LVDS} [get_ports {asicDataN[12]}]
-set_property -dict {PACKAGE_PIN K23 IOSTANDARD LVDS} [get_ports {asicDataP[13]}]
-set_property -dict {PACKAGE_PIN J24 IOSTANDARD LVDS} [get_ports {asicDataN[13]}]
-set_property -dict {PACKAGE_PIN H24 IOSTANDARD LVDS} [get_ports {asicDataP[14]}]
-set_property -dict {PACKAGE_PIN G24 IOSTANDARD LVDS} [get_ports {asicDataN[14]}]
-set_property -dict {PACKAGE_PIN K27 IOSTANDARD LVDS} [get_ports {asicDataP[15]}]
-set_property -dict {PACKAGE_PIN K28 IOSTANDARD LVDS} [get_ports {asicDataN[15]}]
-set_property -dict {PACKAGE_PIN H27 IOSTANDARD LVDS} [get_ports {asicDataP[16]}]
-set_property -dict {PACKAGE_PIN H28 IOSTANDARD LVDS} [get_ports {asicDataN[16]}]
-set_property -dict {PACKAGE_PIN G25 IOSTANDARD LVDS} [get_ports {asicDataP[17]}]
-set_property -dict {PACKAGE_PIN G26 IOSTANDARD LVDS} [get_ports {asicDataN[17]}]
-set_property -dict {PACKAGE_PIN E25 IOSTANDARD LVDS} [get_ports {asicDataP[18]}]
-set_property -dict {PACKAGE_PIN E26 IOSTANDARD LVDS} [get_ports {asicDataN[18]}]
-set_property -dict {PACKAGE_PIN F28 IOSTANDARD LVDS} [get_ports {asicDataP[19]}]
-set_property -dict {PACKAGE_PIN E28 IOSTANDARD LVDS} [get_ports {asicDataN[19]}]
-set_property -dict {PACKAGE_PIN D24 IOSTANDARD LVDS} [get_ports {asicDataP[20]}]
-set_property -dict {PACKAGE_PIN D25 IOSTANDARD LVDS} [get_ports {asicDataN[20]}]
-set_property -dict {PACKAGE_PIN C26 IOSTANDARD LVDS} [get_ports {asicDataP[21]}]
-set_property -dict {PACKAGE_PIN C27 IOSTANDARD LVDS} [get_ports {asicDataN[21]}]
-set_property -dict {PACKAGE_PIN A27 IOSTANDARD LVDS} [get_ports {asicDataP[22]}]
-set_property -dict {PACKAGE_PIN A28 IOSTANDARD LVDS} [get_ports {asicDataN[22]}]
-set_property -dict {PACKAGE_PIN B25 IOSTANDARD LVDS} [get_ports {asicDataP[23]}]
-set_property -dict {PACKAGE_PIN A25 IOSTANDARD LVDS} [get_ports {asicDataN[23]}]
+set_property -dict {PACKAGE_PIN K20 IOSTANDARD LVDS} [get_ports {asicDataP[6]}]
+set_property -dict {PACKAGE_PIN K21 IOSTANDARD LVDS} [get_ports {asicDataN[6]}]
+set_property -dict {PACKAGE_PIN K23 IOSTANDARD LVDS} [get_ports {asicDataP[7]}]
+set_property -dict {PACKAGE_PIN J24 IOSTANDARD LVDS} [get_ports {asicDataN[7]}]
+set_property -dict {PACKAGE_PIN H24 IOSTANDARD LVDS} [get_ports {asicDataP[8]}]
+set_property -dict {PACKAGE_PIN G24 IOSTANDARD LVDS} [get_ports {asicDataN[8]}]
+set_property -dict {PACKAGE_PIN K27 IOSTANDARD LVDS} [get_ports {asicDataP[9]}]
+set_property -dict {PACKAGE_PIN K28 IOSTANDARD LVDS} [get_ports {asicDataN[9]}]
+set_property -dict {PACKAGE_PIN H27 IOSTANDARD LVDS} [get_ports {asicDataP[10]}]
+set_property -dict {PACKAGE_PIN H28 IOSTANDARD LVDS} [get_ports {asicDataN[10]}]
+set_property -dict {PACKAGE_PIN G25 IOSTANDARD LVDS} [get_ports {asicDataP[11]}]
+set_property -dict {PACKAGE_PIN G26 IOSTANDARD LVDS} [get_ports {asicDataN[11]}]
+set_property -dict {PACKAGE_PIN E25 IOSTANDARD LVDS} [get_ports {asicDataP[12]}]
+set_property -dict {PACKAGE_PIN E26 IOSTANDARD LVDS} [get_ports {asicDataN[12]}]
+set_property -dict {PACKAGE_PIN F28 IOSTANDARD LVDS} [get_ports {asicDataP[13]}]
+set_property -dict {PACKAGE_PIN E28 IOSTANDARD LVDS} [get_ports {asicDataN[13]}]
+set_property -dict {PACKAGE_PIN D24 IOSTANDARD LVDS} [get_ports {asicDataP[14]}]
+set_property -dict {PACKAGE_PIN D25 IOSTANDARD LVDS} [get_ports {asicDataN[14]}]
+set_property -dict {PACKAGE_PIN C26 IOSTANDARD LVDS} [get_ports {asicDataP[15]}]
+set_property -dict {PACKAGE_PIN C27 IOSTANDARD LVDS} [get_ports {asicDataN[15]}]
+set_property -dict {PACKAGE_PIN A27 IOSTANDARD LVDS} [get_ports {asicDataP[16]}]
+set_property -dict {PACKAGE_PIN A28 IOSTANDARD LVDS} [get_ports {asicDataN[16]}]
+set_property -dict {PACKAGE_PIN B25 IOSTANDARD LVDS} [get_ports {asicDataP[17]}]
+set_property -dict {PACKAGE_PIN A25 IOSTANDARD LVDS} [get_ports {asicDataN[17]}]
+set_property -dict {PACKAGE_PIN R23 IOSTANDARD LVDS} [get_ports {asicDataP[18]}]
+set_property -dict {PACKAGE_PIN P23 IOSTANDARD LVDS} [get_ports {asicDataN[18]}]
+set_property -dict {PACKAGE_PIN P20 IOSTANDARD LVDS} [get_ports {asicDataP[19]}]
+set_property -dict {PACKAGE_PIN P21 IOSTANDARD LVDS} [get_ports {asicDataN[19]}]
+set_property -dict {PACKAGE_PIN M20 IOSTANDARD LVDS} [get_ports {asicDataP[20]}]
+set_property -dict {PACKAGE_PIN M21 IOSTANDARD LVDS} [get_ports {asicDataN[20]}]
+set_property -dict {PACKAGE_PIN P28 IOSTANDARD LVDS} [get_ports {asicDataP[21]}]
+set_property -dict {PACKAGE_PIN N28 IOSTANDARD LVDS} [get_ports {asicDataN[21]}]
+set_property -dict {PACKAGE_PIN P25 IOSTANDARD LVDS} [get_ports {asicDataP[22]}]
+set_property -dict {PACKAGE_PIN P26 IOSTANDARD LVDS} [get_ports {asicDataN[22]}]
+set_property -dict {PACKAGE_PIN M24 IOSTANDARD LVDS} [get_ports {asicDataP[23]}]
+set_property -dict {PACKAGE_PIN M25 IOSTANDARD LVDS} [get_ports {asicDataN[23]}]
 set_property -dict {DIFF_TERM_ADV TERM_100} [get_ports {asicDataP[0]}]
 set_property -dict {DIFF_TERM_ADV TERM_100} [get_ports {asicDataP[1]}]
 set_property -dict {DIFF_TERM_ADV TERM_100} [get_ports {asicDataP[2]}]
