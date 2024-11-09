@@ -232,6 +232,9 @@ architecture arch of ePixHr10kT_full_tb is
   -- AXI Stream, one per QSFP lane (sysClk domain)
   signal axisMasters     : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
   signal axisSlaves      : AxiStreamSlaveArray(NUMBER_OF_LANES_C-1 downto 0);
+  -- AXI Stream, DAQ to detector FPGA (Rx), lane 2 vc 0..1
+  signal axisL2Masters   : AxiStreamMasterArray(1 downto 0);
+  signal axisL2Slaves    : AxiStreamSlaveArray(1 downto 0);
   -- Auxiliary AXI Stream, (sysClk domain)
   signal sAuxAxisMasters : AxiStreamMasterArray(1 downto 0);
   signal sAuxAxisSlaves  : AxiStreamSlaveArray(1 downto 0);
@@ -560,6 +563,9 @@ begin  --
          -- AXI Stream, one per QSFP lane (sysClk domain)
          mAxisMasters     => axisMasters,
          mAxisSlaves      => axisSlaves,
+         -- AXI Stream, DAQ to detector FPGA (Rx), lane 2 vc 0..1
+         sAxisL2Masters   => axisL2Masters,
+         sAxisL2Slaves    => axisL2Slaves,
          -- Auxiliary AXI Stream, (sysClk domain)
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,
@@ -680,6 +686,9 @@ begin  --
          -- AXI Stream, one per QSFP lane (sysClk domain)
          sAxisMasters     => axisMasters,
          sAxisSlaves      => axisSlaves,
+         -- AXI Stream, DAQ to detector FPGA (Rx), lane 2 vc 0..1
+         mAxisL2Masters   => axisL2Masters,
+         mAxisL2Slaves    => axisL2Slaves,
          -- Auxiliary AXI Stream, (sysClk domain)
          sAuxAxisMasters  => sAuxAxisMasters,
          sAuxAxisSlaves   => sAuxAxisSlaves,

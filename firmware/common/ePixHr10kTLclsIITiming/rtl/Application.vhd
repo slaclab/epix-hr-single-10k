@@ -72,6 +72,9 @@ entity Application is
       -- AXI Stream, one per QSFP lane (sysClk domain)
       mAxisMasters     : out   AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
       mAxisSlaves      : in    AxiStreamSlaveArray(NUMBER_OF_LANES_C-1 downto 0);
+      -- AXI Stream, DAQ to detector FPGA (Rx), lane 2 vc 0..1
+      sAxisL2Masters   : in    AxiStreamMasterArray(1 downto 0);
+      sAxisL2Slaves    : out   AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
       -- Auxiliary AXI Stream, (sysClk domain)
       -- 0 is pseudo scope, 1 is slow adc monitoring
       sAuxAxisMasters  : out   AxiStreamMasterArray(1 downto 0);
@@ -1213,9 +1216,33 @@ begin
     end generate;
     
     PRBS_NOT_GEN : if (not PRBS_GEN_G) generate
-          -- route streams
-          dataAxisMasters   <= mAxisMastersASIC;
-          mAxisSlavesASIC   <= dataAxisSlaves;
+        -- route streams
+        dataAxisMasters(1 downto 0)   <= mAxisMastersASIC(1 downto 0);
+        mAxisSlavesASIC(1 downto 0)   <= dataAxisSlaves(1 downto 0);
+        -- route inbound stream to outbound
+        U_STREAM_MUX : entity surf.AxiStreamMux 
+        generic map(
+          TPD_G                => TPD_G,
+          NUM_SLAVES_G         => 2,
+          PIPE_STAGES_G        => 0,
+          MODE_G               =>"ROUTED",
+          TDEST_ROUTES_G       => (0=>x"01", 1=>x"00"),
+          TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
+          ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
+          ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
+          ILEAVE_REARB_G       => 0)  -- Max number of transactions between arbitrations, 0 = unlimited
+        port map(
+          -- Clock and reset
+          axisClk      => sysClk,
+          axisRst      => sysRst,
+          -- Slaves
+          sAxisMasters(0) => sAxisL2Masters(0),
+          sAxisMasters(1) => sAxisL2Masters(1),
+          sAxisSlaves(0)  => sAxisL2Slaves(0),
+          sAxisSlaves(1)  => sAxisL2Slaves(1),
+          -- Master
+          mAxisMaster  => dataAxisMasters(2),
+          mAxisSlave   => dataAxisSlaves(2));
           -- init unused axiLite
           mAxiWriteSlaves(PRBS0_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
           mAxiWriteSlaves(PRBS1_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);

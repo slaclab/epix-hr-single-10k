@@ -190,7 +190,7 @@ class DataDebug(rogue.interfaces.stream.Slave):
 # Create GUI
 with epix_hr_single_10k.Root(
         top_level=top_level,
-        sim=False,
+        sim=(args.type == 'SIM'),
         asicVersion = 4,
         dev=args.dev,
         pollEn=args.pollEn,

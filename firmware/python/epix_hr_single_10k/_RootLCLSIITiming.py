@@ -62,7 +62,7 @@ class Root(pr.Root):
 
         #################################################################
 
-        # Create the PGP interfaces for ePix hr camer
+        # Create the PGP interfaces for ePix hr camera
         if (self._justCtrl == False) :
             # Create arrays to be filled
             self.dmaStreams     = [None for lane in range(3)]
@@ -71,6 +71,7 @@ class Root(pr.Root):
             self.rate           = [rogue.interfaces.stream.RateDrop(True, 0.1) for lane in range(3)]
 
         self.dmaCtrlStreams = [None for lane in range(3)]
+        self.dmaCalibStreams= [None for lane in range(2)]
 
 
         if ( self._sim == False ):
@@ -80,6 +81,10 @@ class Root(pr.Root):
                     self.dmaStreams[lane] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*lane)+1,1)
                     self.add(ePixHrDuo10kT.DataReceiverEpixHrDuo10kT(name = f"DataReceiver{lane}"))
                     self.dmaStreams[lane] >> self.rate[lane] >> self.unbatchers[lane] >>  self.dataFilter[lane] >> getattr(self, f"DataReceiver{lane}")
+                for vc in range(2):
+                    lane = 2
+                    vcOffset = 2
+                    self.dmaCalibStreams[vc] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*lane)+(vc+vcOffset),1)
 
             # connect
             self.dmaCtrlStreams[0] = rogue.hardware.axi.AxiStreamDma(self._dev,(0x100*0)+0,1)# Registers  
@@ -91,6 +96,10 @@ class Root(pr.Root):
                     self.dmaStreams[lane] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*lane)+2*1)
                     self.add(ePixHrDuo10kT.DataReceiverEpixHrDuo10kT(name = f"DataReceiver{lane}"))
                     self.dmaStreams[lane] >> self.rate[lane] >> self.unbatchers[lane] >>  self.dataFilter[lane] >> getattr(self, f"DataReceiver{lane}")
+                for vc in range(2):
+                    lane = 2
+                    vcOffset = 2
+                    self.dmaCalibStreams[vc] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*lane)+2*(vc+vcOffset))
 
             # connect
             self.dmaCtrlStreams[0] = rogue.interfaces.stream.TcpClient('localhost',self._tcpPort+(34*0)+2*0)# Registers  
@@ -119,6 +128,14 @@ class Root(pr.Root):
         self._srp = rogue.protocols.srp.SrpV3()
         pyrogue.streamConnectBiDir(self.dmaCtrlStreams[0],self._srp)
 
+        # Create Dummy RX/TX
+        self.dummyGen0 = epixHrRoot.SendCustomFrame()
+        self.dummyGen1 = epixHrRoot.SendCustomFrame()
+
+        # Connect Dummy RX/TX to DMA stream
+        self.dummyGen0 == self.dmaCalibStreams[0]
+        self.dummyGen1 == self.dmaCalibStreams[1]
+
       
         @self.command()
         def Trigger():
@@ -137,6 +154,22 @@ class Root(pr.Root):
         @self.command()
         def DisplayViewer1():
             subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver1", "image", "--title", "DataReceiver1",  "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
+
+        @self.command()
+        def DisplayViewer2():
+            subprocess.Popen(["python", self.top_level+"/../firmware/submodules/ePixViewer/python/ePixViewer/runLiveDisplay.py", "--dataReceiver", "rogue://0/root.DataReceiver2", "image", "--title", "DataReceiver2",  "--sizeX", "384", "--serverList","localhost:{}".format(self.zmqServer.port()) ], shell=False)
+
+
+        @self.command()
+        def SendCalibParam0():
+            self.dummyGen0.SendCustomFrame()
+        @self.command()
+        def SendCalibParam1():
+            self.dummyGen1.SendCustomFrame()
+
+        #@self.command()
+        #def SendCalibParam1():
+        #    self.dummyGen1.SendCalibFrame()
 
 
 def start (self,**kwargs):

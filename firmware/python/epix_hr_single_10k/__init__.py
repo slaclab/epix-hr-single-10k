@@ -18,4 +18,5 @@
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from epix_hr_single_10k._SendCustomFrame     import *
 from epix_hr_single_10k._RootLCLSIITiming     import *
