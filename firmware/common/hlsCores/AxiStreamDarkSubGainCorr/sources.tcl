@@ -9,10 +9,10 @@
 ##############################################################################
 
 ## Set the top level module
-set_top AxiStreamDarkSubGainCorrP2
+set_top AxiStreamDarkSubGainCorr
 
 ## Add source code
-add_files ${PROJ_DIR}/src/AxiStreamDarkSubGainCorrP2.cpp
+add_files ${PROJ_DIR}/src/AxiStreamDarkSubGainCorr.cpp
 
 ## Add testbed files
-add_files -tb ${PROJ_DIR}/src/AxiStreamDarkSubGainCorrP2_test.cpp
+add_files -tb ${PROJ_DIR}/src/AxiStreamDarkSubGainCorr_test.cpp

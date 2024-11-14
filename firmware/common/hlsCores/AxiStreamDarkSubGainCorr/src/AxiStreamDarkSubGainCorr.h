@@ -8,8 +8,8 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef _AXI_STREAM_DARKSUBGAINCORR_P2_H_
-#define _AXI_STREAM_DARKSUBGAINCORR_P2_H_
+#ifndef _AXI_STREAM_DARKSUBGAINCORR_H_
+#define _AXI_STREAM_DARKSUBGAINCORR_H_
 
 
 #include "ap_axi_sdata.h"
@@ -613,7 +613,7 @@ using CalibHls = CalibHlsCfg<Tile,    // Tile configuration
                                14,    // Gain       bit widht
                                 7>;   // Normalization shift
 
-extern void AxiStreamDarkSubGainCorrP2(Ib ::Stream                          &ibStream,
+extern void AxiStreamDarkSubGainCorr  (Ib ::Stream                          &ibStream,
                                        Ob ::Stream                          &obStream,
                                        Clb::Stream                         &clbStream,
                                        ConfigRegs                         &configRegs);

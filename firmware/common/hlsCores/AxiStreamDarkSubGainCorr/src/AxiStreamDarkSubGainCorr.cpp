@@ -8,7 +8,7 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-#include "AxiStreamDarkSubGainCorrP2.h"
+#include "AxiStreamDarkSubGainCorr.h"
 #include <iostream>
 #include <ap_int.h>
 
@@ -177,7 +177,7 @@ static void process_row (Ib::Stream            &ibStream,
  *   the 15 MSBs.
  *                                                                          */
 /* ------------------------------------------------------------------------ */
-void AxiStreamDarkSubGainCorrP2 (Ib ::Stream   &ibStream,
+void AxiStreamDarkSubGainCorr   (Ib ::Stream   &ibStream,
                                  Ob ::Stream   &obStream,
                                  Clb::Stream  &clbStream,
                                  ConfigRegs  &configRegs)

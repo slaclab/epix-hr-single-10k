@@ -20,7 +20,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-entity AxiStreamDarkSubGainCorrP2Wrapper is
+entity AxiStreamDarkSubGainCorrWrapper is
    generic (
       TPD_G : time := 1 ns;
       G_S_AXI_CRTL_ADDR_WIDTH : positive := 5);
@@ -38,13 +38,13 @@ entity AxiStreamDarkSubGainCorrP2Wrapper is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType);
-end AxiStreamDarkSubGainCorrP2Wrapper;
+end AxiStreamDarkSubGainCorrWrapper;
 
-architecture rtl of AxiStreamDarkSubGainCorrP2Wrapper is
+architecture rtl of AxiStreamDarkSubGainCorrWrapper is
 
    constant C_S_AXI_CRTL_ADDR_WIDTH : positive := G_S_AXI_CRTL_ADDR_WIDTH;
 
-   component AxiStreamDarkSubGainCorrP2_0
+   component AxiStreamDarkSubGainCorr_0
       port (
          ap_clk          : in  std_logic;
          ap_rst_n        : in  std_logic;
@@ -110,7 +110,7 @@ begin
    axisRstL    <= not(axisRst);
    --mAxisMaster <= axisMaster;
 
-   U_HLS : AxiStreamDarkSubGainCorrP2_0
+   U_HLS : AxiStreamDarkSubGainCorr_0
       port map (
          ap_clk            => axisClk,
          ap_rst_n          => axisRstL,

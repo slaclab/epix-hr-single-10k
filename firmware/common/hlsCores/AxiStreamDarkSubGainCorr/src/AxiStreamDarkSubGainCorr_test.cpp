@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 #include <iostream>
-#include "AxiStreamDarkSubGainCorrP2.h"
+#include "AxiStreamDarkSubGainCorr.h"
 
 template<typename DATA_TYPE>
 static int readTile (char const            *fileName,
@@ -56,16 +56,16 @@ int main(int argc, char *argv[]) {
 
 #if TEST_PATTERN
 	   //test parameter set 1
-	   static const char    RawTile[] = "/u1/ddoering/localGit/hdl-cores-lib-dev/firmware/shared/AxiStreamDarkSubGainCorrP2/tb_data/raw145by384.csv";
-	   static const char   DarkTile[] = "/u1/ddoering/localGit/hdl-cores-lib-dev/firmware/shared/AxiStreamDarkSubGainCorrP2/tb_data/dark145by384.csv";
-	   static const char      Gains[] = "/u1/ddoering/localGit/hdl-cores-lib-dev/firmware/shared/AxiStreamDarkSubGainCorrP2/tb_data/gains145by384.csv";
-	   static const char GoldenTile[] = "/u1/ddoering/localGit/hdl-cores-lib-dev/firmware/shared/AxiStreamDarkSubGainCorrP2/tb_data/goldenImage145by384.csv";
+	   static const char    RawTile[] = "/u1/ddoering/localGit/epix-hr-single-10k/firmware/common/hlsCores/AxiStreamDarkSubGainCorr/tb_data/raw145by384.csv";
+	   static const char   DarkTile[] = "/u1/ddoering/localGit/epix-hr-single-10k/firmware/common/hlsCores/AxiStreamDarkSubGainCorr/tb_data/dark145by384.csv";
+	   static const char      Gains[] = "/u1/ddoering/localGit/epix-hr-single-10k/firmware/common/hlsCores/AxiStreamDarkSubGainCorr/tb_data/gains145by384.csv";
+	   static const char GoldenTile[] = "/u1/ddoering/localGit/epix-hr-single-10k/firmware/common/hlsCores/AxiStreamDarkSubGainCorr/tb_data/goldenImage145by384.csv";
 #else
 	   //test parameter set 2
-      static const char    RawTile[] = "/u1/ddoering/localGit/hdl-cores-lib-dev/firmware/shared/AxiStreamDarkSubGainCorrP2/tb_data/raw145by384.csv";
-      static const char   DarkTile[] = "/u1/ddoering/localGit/hdl-cores-lib-dev/firmware/shared/AxiStreamDarkSubGainCorrP2/tb_data/raw145by384.csv";
-      static const char      Gains[] = "/u1/ddoering/localGit/hdl-cores-lib-dev/firmware/shared/AxiStreamDarkSubGainCorrP2/tb_data/gains145by384.csv";
-      static const char GoldenTile[] = "/u1/ddoering/localGit/hdl-cores-lib-dev/firmware/shared/AxiStreamDarkSubGainCorrP2/tb_data/zeros145by384.csv";
+      static const char    RawTile[] = "/u1/ddoering/localGit/epix-hr-single-10k/firmware/common/hlsCores/AxiStreamDarkSubGainCorr/tb_data/raw145by384.csv";
+      static const char   DarkTile[] = "/u1/ddoering/localGit/epix-hr-single-10k/firmware/common/hlsCores/AxiStreamDarkSubGainCorr/tb_data/raw145by384.csv";
+      static const char      Gains[] = "/u1/ddoering/localGit/epix-hr-single-10k/firmware/common/hlsCores/AxiStreamDarkSubGainCorr/tb_data/gains145by384.csv";
+      static const char GoldenTile[] = "/u1/ddoering/localGit/epix-hr-single-10k/firmware/common/hlsCores/AxiStreamDarkSubGainCorr/tb_data/zeros145by384.csv";
 #endif
 
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 
    bool verbose = false;
 
-   std::cout << "AxiStreamDarkSubGainCorrP2_test" << std::endl;
+   std::cout << "AxiStreamDarkSubGainCorr_test" << std::endl;
 
    //------------------------------------------
    // Builds tile and creates scrambled stream
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
    // First call just loads the calibration constants
    //------------------------------------------------
    std::cout << "Start HW process" << std::endl;
-   AxiStreamDarkSubGainCorrP2 (ibStream, obStream, clbStream, configRegs);
+   AxiStreamDarkSubGainCorr (ibStream, obStream, clbStream, configRegs);
    configRegs.clearLoadCalib ();
 
    //------------------------------------------
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
    initGoldenTile (GoldenTile, golden_tile);
    initStream     (chkStream,  golden_tile, verbose);
 
-   AxiStreamDarkSubGainCorrP2 (ibStream, obStream, clbStream, configRegs);
+   AxiStreamDarkSubGainCorr (ibStream, obStream, clbStream, configRegs);
 
    //--------------------
    // Compare the results

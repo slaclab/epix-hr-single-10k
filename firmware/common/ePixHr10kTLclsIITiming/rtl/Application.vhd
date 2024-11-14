@@ -51,6 +51,7 @@ entity Application is
       APP_CONFIG_G     : AppConfigType   := APP_CONFIG_INIT_C;
       SIMULATION_G     : boolean         := false;
       PRBS_GEN_G       : boolean         := false;
+      PREPROC_GEN_G    : boolean         := true;
       DDR_GEN_G        : boolean         := false;
       BUILD_INFO_G     : BuildInfoType;
       AXI_ERROR_RESP_G : slv(1 downto 0) := AXI_RESP_SLVERR_C;
@@ -326,6 +327,9 @@ architecture mapping of Application is
 
    -- ASIC signals
    constant STREAMS_PER_ASIC_C : natural := 6;
+   constant AXI_STREAM_DATA_BUS_C : AxiStreamConfigType   := ssiAxiStreamConfig(2*STREAMS_PER_ASIC_C, TKEEP_COMP_C); --192 bits
+   constant AXIS_CLB_CONFIG_C : AxiStreamConfigType   := ssiAxiStreamConfig(8, TKEEP_COMP_C); --64 bits
+   
    --
    --signal adcSerial         : HrAdcSerialGroupArray(NUMBER_OF_ASICS_C-1 downto 0);
 
@@ -359,6 +363,14 @@ architecture mapping of Application is
    signal eventRealAxisSlave        : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
    signal eventRealAxisSlaveArray   : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
    signal eventRealAxisCtrl         : AxiStreamCtrlArray(1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+   
+   signal dataToHLSAxisMasterArray  : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal dataToHLSAxisSlaveArray   : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal rxMaster                  : AxiStreamMasterArray(1 downto 0) := (others => axiStreamMasterInit(AXI_STREAM_DATA_BUS_C));
+   signal rxSlave                   : AxiStreamSlaveArray(1 downto 0);
+   signal txMaster                  : AxiStreamMasterType := axiStreamMasterInit(AXI_STREAM_DATA_BUS_C);
+   signal txSlave                   : AxiStreamSlaveType;
+   
    
    attribute keep of appClk            : signal is "true";
    attribute keep of asicRdClk         : signal is "true";
@@ -1157,100 +1169,242 @@ begin
    --     PRBS LOOP                          --
    --------------------------------------------
    --------------------------------------------
-   PRBS_GEN : if (PRBS_GEN_G) generate
-    G_PRBS : for i in 0 to NUMBER_OF_LANES_C-1 generate 
-      -------------------------------------------------------
-      -- ASIC AXI stream framers
-      -------------------------------------------------------
-      U_AXI_PRBS : entity surf.SsiPrbsTx 
-      generic map(         
-         TPD_G                      => TPD_G,
-         MASTER_AXI_PIPE_STAGES_G   => 1,
-         PRBS_SEED_SIZE_G           => 128,
-         MASTER_AXI_STREAM_CONFIG_G => COMM_AXIS_CONFIG_C)
-      port map(
-         -- Master Port (mAxisClk)
-         mAxisClk        => sysClk,
-         mAxisRst        => sysRst,
-         mAxisMaster     => mAxisMastersPRBS(i),
-         mAxisSlave      => mAxisSlavesPRBS(i),
-         -- Trigger Signal (locClk domain)
-         locClk          => appClk,
-         locRst          => appRst,
-         trig            => acqStart,
-         packetLength    => X"FFFFFFFF",
-         forceEofe       => '0',
-         busy            => prbsBusy(i),
-         tDest           => X"00",
-         tId             => X"00",
-         -- Optional: Axi-Lite Register Interface (locClk domain)
-         axilReadMaster  => mAxiReadMasters(PRBS0_AXI_INDEX_C+i),
-         axilReadSlave   => mAxiReadSlaves(PRBS0_AXI_INDEX_C+i),
-         axilWriteMaster => mAxiWriteMasters(PRBS0_AXI_INDEX_C+i),
-         axilWriteSlave  => mAxiWriteSlaves(PRBS0_AXI_INDEX_C+i));
+   -- PRBS_GEN : if (PRBS_GEN_G) generate
+   --   G_PRBS : for i in 0 to NUMBER_OF_LANES_C-1 generate
+   --    -------------------------------------------------------
+   --    -- ASIC AXI stream framers
+   --    -------------------------------------------------------
+   --    U_AXI_PRBS : entity surf.SsiPrbsTx 
+   --    generic map(         
+   --       TPD_G                      => TPD_G,
+   --       MASTER_AXI_PIPE_STAGES_G   => 1,
+   --       PRBS_SEED_SIZE_G           => 128,
+   --       MASTER_AXI_STREAM_CONFIG_G => COMM_AXIS_CONFIG_C)
+   --    port map(
+   --       -- Master Port (mAxisClk)
+   --       mAxisClk        => sysClk,
+   --       mAxisRst        => sysRst,
+   --       mAxisMaster     => mAxisMastersPRBS(i),
+   --       mAxisSlave      => mAxisSlavesPRBS(i),
+   --       -- Trigger Signal (locClk domain)
+   --       locClk          => appClk,
+   --       locRst          => appRst,
+   --       trig            => acqStart,
+   --       packetLength    => X"FFFFFFFF",
+   --       forceEofe       => '0',
+   --       busy            => prbsBusy(i),
+   --       tDest           => X"00",
+   --       tId             => X"00",
+   --       -- Optional: Axi-Lite Register Interface (locClk domain)
+   --       axilReadMaster  => mAxiReadMasters(PRBS0_AXI_INDEX_C+i),
+   --       axilReadSlave   => mAxiReadSlaves(PRBS0_AXI_INDEX_C+i),
+   --       axilWriteMaster => mAxiWriteMasters(PRBS0_AXI_INDEX_C+i),
+   --       axilWriteSlave  => mAxiWriteSlaves(PRBS0_AXI_INDEX_C+i));
       
-      U_STREAM_MUX : entity surf.AxiStreamMux 
-        generic map(
-          TPD_G                => TPD_G,
-          NUM_SLAVES_G         => 2,
-          PIPE_STAGES_G        => 0,
-          MODE_G               =>"ROUTED",
-          TDEST_ROUTES_G       => (0=>x"01", 1=>x"00"),
-          TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
-          ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
-          ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
-          ILEAVE_REARB_G       => 0)  -- Max number of transactions between arbitrations, 0 = unlimited
-        port map(
-          -- Clock and reset
-          axisClk      => sysClk,
-          axisRst      => sysRst,
-          -- Slaves
-          sAxisMasters(0) => mAxisMastersPRBS(i),
-          sAxisMasters(1) => mAxisMastersASIC(i),
-          sAxisSlaves(0)  => mAxisSlavesPRBS(i),          
-          sAxisSlaves(1)  => mAxisSlavesASIC(i),
-          -- Master
-          mAxisMaster  => dataAxisMasters(i),
-          mAxisSlave   => dataAxisSlaves(i));
-     end generate;
-    end generate;
-    
-    PRBS_NOT_GEN : if (not PRBS_GEN_G) generate
-        -- route streams
-        dataAxisMasters(1 downto 0)   <= mAxisMastersASIC(1 downto 0);
-        mAxisSlavesASIC(1 downto 0)   <= dataAxisSlaves(1 downto 0);
-        -- route inbound stream to outbound
-        U_STREAM_MUX : entity surf.AxiStreamMux 
-        generic map(
-          TPD_G                => TPD_G,
-          NUM_SLAVES_G         => 2,
-          PIPE_STAGES_G        => 0,
-          MODE_G               =>"ROUTED",
-          TDEST_ROUTES_G       => (0=>x"01", 1=>x"00"),
-          TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
-          ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
-          ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
-          ILEAVE_REARB_G       => 0)  -- Max number of transactions between arbitrations, 0 = unlimited
-        port map(
-          -- Clock and reset
-          axisClk      => sysClk,
-          axisRst      => sysRst,
-          -- Slaves
-          sAxisMasters(0) => sAxisL2Masters(0),
-          sAxisMasters(1) => sAxisL2Masters(1),
-          sAxisSlaves(0)  => sAxisL2Slaves(0),
-          sAxisSlaves(1)  => sAxisL2Slaves(1),
-          -- Master
-          mAxisMaster  => dataAxisMasters(2),
-          mAxisSlave   => dataAxisSlaves(2));
-          -- init unused axiLite
-          mAxiWriteSlaves(PRBS0_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
-          mAxiWriteSlaves(PRBS1_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
-          mAxiWriteSlaves(PRBS2_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
-          mAxiReadSlaves(PRBS0_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
-          mAxiReadSlaves(PRBS1_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
-          mAxiReadSlaves(PRBS2_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
-    end generate;
+   --    U_STREAM_MUX : entity surf.AxiStreamMux 
+   --      generic map(
+   --        TPD_G                => TPD_G,
+   --        NUM_SLAVES_G         => 2,
+   --        PIPE_STAGES_G        => 0,
+   --        MODE_G               =>"ROUTED",
+   --        TDEST_ROUTES_G       => (0=>x"01", 1=>x"00"),
+   --        TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
+   --        ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
+   --        ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
+   --        ILEAVE_REARB_G       => 0)  -- Max number of transactions between arbitrations, 0 = unlimited
+   --      port map(
+   --        -- Clock and reset
+   --        axisClk      => sysClk,
+   --        axisRst      => sysRst,
+   --        -- Slaves
+   --        sAxisMasters(0) => mAxisMastersPRBS(i),
+   --        sAxisMasters(1) => mAxisMastersASIC(i),
+   --        sAxisSlaves(0)  => mAxisSlavesPRBS(i),          
+   --        sAxisSlaves(1)  => mAxisSlavesASIC(i),
+   --        -- Master
+   --        mAxisMaster  => dataAxisMasters(i),
+   --        mAxisSlave   => dataAxisSlaves(i));
+   --   end generate;
+   --  end generate;
+
+    -- adding core to dark sub and gain correct images in realtime
+     PREPROC_GEN : if (PREPROC_GEN_G) generate
+
+       -- route streams throug repeater
+       -------------------------------------------------
+       -- AxiStream repeater
+       -------------------------------------------------
+       U_AxiStreamRepeater_asic_data : entity surf.AxiStreamRepeater
+         generic map(
+           TPD_G                => TPD_G,
+           NUM_MASTERS_G        => 2,
+           INCR_AXIS_ID_G       => false,  -- true = overwrites the TID with a counter that increments after each TLAST (help with frame alignment down stream)
+           INPUT_PIPE_STAGES_G  => 0,
+           OUTPUT_PIPE_STAGES_G => 0)
+         port map(
+           -- Clock and reset
+           axisClk      => sysClk,
+           axisRst      => sysRst,
+           -- Slave
+           sAxisMaster  => mAxisMastersASIC(0),
+           sAxisSlave   => mAxisSlavesASIC(0),
+           -- Masters
+           mAxisMasters(0) => dataAxisMasters(0), --to raw data lane
+           mAxisSlaves(0)  => dataAxisSlaves(0),
+           mAxisMasters(1) => dataToHLSAxisMasterArray(0),
+           mAxisSlaves(1)  => dataToHLSAxisSlaveArray(0));
+
+       -- only correcting one side of the detector (two ASICs)
+       -- therefore direct wiring is done for the second half
+       dataAxisMasters(1)   <= mAxisMastersASIC(1);
+       mAxisSlavesASIC(1)   <= dataAxisSlaves(1);
+      
+       U_ASIC_TO_PREPROC_FIFO : entity surf.AxiStreamFifoV2
+         generic map (
+           -- General Configurations
+           TPD_G               => TPD_G,
+           INT_PIPE_STAGES_G   => 1,
+           PIPE_STAGES_G       => 1,
+           SLAVE_READY_EN_G    => true,
+           VALID_THOLD_G       => 0,  -- Hold until you have a full frame in FIFO
+           -- FIFO configurations
+           MEMORY_TYPE_G       => "block",
+           GEN_SYNC_FIFO_G     => false,
+           FIFO_ADDR_WIDTH_G   => 16,
+           -- AXI Stream Port Configurations
+           SLAVE_AXI_CONFIG_G  => COMM_AXIS_CONFIG_C,--128 to 192 bus width
+           MASTER_AXI_CONFIG_G => AXI_STREAM_DATA_BUS_C)
+         port map (
+           -- Slave Port
+           sAxisClk    => sysClk,
+           sAxisRst    => sysRst,
+           sAxisMaster => dataToHLSAxisMasterArray(0),
+           sAxisSlave  => dataToHLSAxisSlaveArray(0),
+           -- Master Port
+           mAxisClk    => sysClk,
+           mAxisRst    => sysRst,
+           mAxisMaster => rxMaster(0),
+           mAxisSlave  => rxSlave(0));
+
+       U_DMA_TO_PREPROC_LANE2_VC2 : entity surf.AxiStreamFifoV2
+         generic map (
+           -- General Configurations
+           TPD_G               => TPD_G,
+           INT_PIPE_STAGES_G   => 1,
+           PIPE_STAGES_G       => 1,
+           SLAVE_READY_EN_G    => true,
+           VALID_THOLD_G       => 0,  -- Hold until you have a full frame in FIFO
+           -- FIFO configurations
+           MEMORY_TYPE_G       => "block",
+           GEN_SYNC_FIFO_G     => false,
+           FIFO_ADDR_WIDTH_G   => 16,
+           -- AXI Stream Port Configurations
+           SLAVE_AXI_CONFIG_G  => COMM_AXIS_CONFIG_C,--128 TO 64 bus width
+           MASTER_AXI_CONFIG_G => AXIS_CLB_CONFIG_C)
+         port map (
+           -- Slave Port
+           sAxisClk    => sysClk,
+           sAxisRst    => sysRst,
+           sAxisMaster => sAxisL2Masters(0),
+           sAxisSlave  => sAxisL2Slaves(0),
+           -- Master Port
+           mAxisClk    => sysClk,
+           mAxisRst    => sysRst,
+           mAxisMaster => rxMaster(1),
+           mAxisSlave  => rxSlave(1));
+
+       U_HLS : entity work.AxiStreamDarkSubGainCorrWrapper
+         generic map(
+           G_S_AXI_CRTL_ADDR_WIDTH => 5
+           )
+         port map (
+           axisClk     => sysClk,
+           axisRst     => sysRst,
+           -- Slave Port
+           sAxisMaster => rxMaster,
+           sAxisSlave  => rxSlave,
+           -- Master Port
+           mAxisMaster => txMaster,
+           mAxisSlave  => txSlave,
+           -- Axilite
+           axiReadMaster  => mAxiReadMasters(HLS0_AXI_INDEX_C),
+           axiReadSlave   => mAxiReadSlaves(HLS0_AXI_INDEX_C),
+           axiWriteMaster => mAxiWriteMasters(HLS0_AXI_INDEX_C),
+           axiWriteSlave  => mAxiWriteSlaves(HLS0_AXI_INDEX_C));   
+
+       
+       U_PREPROC_TO_DMA : entity surf.AxiStreamFifoV2
+         generic map (
+           -- General Configurations
+           TPD_G               => TPD_G,
+           INT_PIPE_STAGES_G   => 1,
+           PIPE_STAGES_G       => 1,
+           SLAVE_READY_EN_G    => true,
+           VALID_THOLD_G       => 0,
+           -- FIFO configurations
+           MEMORY_TYPE_G       => "block",
+           GEN_SYNC_FIFO_G     => false,
+           FIFO_ADDR_WIDTH_G   => 14,
+           INT_WIDTH_SELECT_G  => "NARROW",
+           -- AXI Stream Port Configurations
+           SLAVE_AXI_CONFIG_G  => AXI_STREAM_DATA_BUS_C, --192 to 128
+           MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
+         port map (
+           -- Slave Port
+           sAxisClk    => sysClk,
+           sAxisRst    => sysRst,
+           sAxisMaster => txMaster,
+           sAxisSlave  => txSlave,
+           -- Master Port
+           mAxisClk    => sysClk,
+           mAxisRst    => sysRst,
+           mAxisMaster => dataAxisMasters(2),
+           mAxisSlave  => dataAxisSlaves(2));
+
+       mAxiWriteSlaves(HLS1_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
+       mAxiReadSlaves(HLS1_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
+       mAxiWriteSlaves(PRBS2_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
+       mAxiReadSlaves(PRBS2_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
+
+   end generate PREPROC_GEN;
+
+
+   -- PRBS_NOT_GEN : if ((not PRBS_GEN_G) and (not PREPROC_GEN_G)) generate
+   --      -- route streams
+   --      dataAxisMasters(1 downto 0)   <= mAxisMastersASIC(1 downto 0);
+   --      mAxisSlavesASIC(1 downto 0)   <= dataAxisSlaves(1 downto 0);
+   --      -- route inbound stream to outbound
+   --      U_STREAM_MUX : entity surf.AxiStreamMux 
+   --      generic map(
+   --        TPD_G                => TPD_G,
+   --        NUM_SLAVES_G         => 2,
+   --        PIPE_STAGES_G        => 0,
+   --        MODE_G               =>"ROUTED",
+   --        TDEST_ROUTES_G       => (0=>x"01", 1=>x"00"),
+   --        TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
+   --        ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
+   --        ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
+   --        ILEAVE_REARB_G       => 0)  -- Max number of transactions between arbitrations, 0 = unlimited
+   --      port map(
+   --        -- Clock and reset
+   --        axisClk      => sysClk,
+   --        axisRst      => sysRst,
+   --        -- Slaves
+   --        sAxisMasters(0) => sAxisL2Masters(0),
+   --        sAxisMasters(1) => sAxisL2Masters(1),
+   --        sAxisSlaves(0)  => sAxisL2Slaves(0),
+   --        sAxisSlaves(1)  => sAxisL2Slaves(1),
+   --        -- Master
+   --        mAxisMaster  => dataAxisMasters(2),
+   --        mAxisSlave   => dataAxisSlaves(2));
+   --        -- init unused axiLite
+   --        mAxiWriteSlaves(PRBS0_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
+   --        mAxiWriteSlaves(PRBS1_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
+   --        mAxiWriteSlaves(PRBS2_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
+   --        mAxiReadSlaves(PRBS0_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
+   --        mAxiReadSlaves(PRBS1_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
+   --        mAxiReadSlaves(PRBS2_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
+   --  end generate;
   
    --
 

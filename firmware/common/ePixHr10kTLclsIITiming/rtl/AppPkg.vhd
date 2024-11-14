@@ -31,8 +31,8 @@ package AppPkg is
    
    constant PLLREGS_AXI_INDEX_C            : natural := 0;
    constant TRIG_REG_AXI_INDEX_C           : natural := 1;
-   constant PRBS0_AXI_INDEX_C              : natural := 2;
-   constant PRBS1_AXI_INDEX_C              : natural := 3;
+   constant HLS0_AXI_INDEX_C               : natural := 2;
+   constant HLS1_AXI_INDEX_C               : natural := 3;
    constant PRBS2_AXI_INDEX_C              : natural := 4;
    constant AXI_STREAM_MON_INDEX_C         : natural := 5;
    constant DDR_MEM_INDEX_C                : natural := 6;
@@ -58,8 +58,8 @@ package AppPkg is
    
    constant PLLREGS_AXI_BASE_ADDR_C         : slv(31 downto 0) := X"80000000";--0
    constant TRIG_REG_AXI_BASE_ADDR_C        : slv(31 downto 0) := X"81000000";--1
-   constant PRBS0_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"82000000";--2
-   constant PRBS1_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"83000000";--3
+   constant HLS0_AXI_BASE_ADDR_C            : slv(31 downto 0) := X"82000000";--2
+   constant HLS1_AXI_BASE_ADDR_C            : slv(31 downto 0) := X"83000000";--3
    constant PRBS2_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"84000000";--4
 -- constant PRBS3_AXI_BASE_ADDR_C           : slv(31 downto 0) := X"85000000";--5
    constant AXI_STREAM_MON_BASE_ADDR_C      : slv(31 downto 0) := X"86000000";--6
@@ -92,12 +92,12 @@ package AppPkg is
          baseAddr             => TRIG_REG_AXI_BASE_ADDR_C,
          addrBits             => 24,
          connectivity         => x"FFFF"),
-      PRBS0_AXI_INDEX_C                 => ( 
-         baseAddr             => PRBS0_AXI_BASE_ADDR_C,
+      HLS0_AXI_INDEX_C                 => ( 
+         baseAddr             => HLS0_AXI_BASE_ADDR_C,
          addrBits             => 24,
          connectivity         => x"FFFF"),
-      PRBS1_AXI_INDEX_C                 => ( 
-         baseAddr             => PRBS1_AXI_BASE_ADDR_C,
+      HLS1_AXI_INDEX_C                 => ( 
+         baseAddr             => HLS1_AXI_BASE_ADDR_C,
          addrBits             => 24,
          connectivity         => x"FFFF"),
       PRBS2_AXI_INDEX_C                 => ( 

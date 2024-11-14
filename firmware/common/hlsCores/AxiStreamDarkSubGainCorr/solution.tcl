@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 ## Set default part
-set_part {XCU200-FSGD2104-2-E}
+set_part {XCKU035-SFVA784-1-C}
 
 ## Set default clock (units of ns)
 create_clock -period 10 -name clk

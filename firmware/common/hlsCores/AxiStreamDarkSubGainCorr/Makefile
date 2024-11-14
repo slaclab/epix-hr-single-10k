@@ -25,7 +25,7 @@ export CFLAGS  =
 export LDFLAGS = 
 
 # Set TOP_DIR to be the base directory for which the build directory resides
-export TOP_DIR  = $(abspath $(PWD)/../..)
+export TOP_DIR  = $(abspath $(PWD)/../../..)
 
 # Need to modify the component.xml
 #export ALL_XIL_FAMILY = 1

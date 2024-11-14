@@ -24,6 +24,10 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
+library epix_hr_core;
+use epix_hr_core.EpixHrCorePkg.all;
+
+
 entity DigitalAsicStreamAxiV3 is 
    generic (
       TPD_G           	   : time := 1 ns;
@@ -622,7 +626,7 @@ begin
       READY_EN_G => true,
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_W_C,
-      MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_O_C
+      MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C -- same as AXI_STREAM_CONFIG_O_C
       )
    port map(
       -- Clock and reset
