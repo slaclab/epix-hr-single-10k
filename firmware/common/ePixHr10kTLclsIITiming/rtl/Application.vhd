@@ -1250,8 +1250,8 @@ begin
            sAxisSlave   => mAxisSlavesASIC(0),
            -- Masters
            mAxisMasters(0) => dataAxisMasters(0), --to raw data lane
-           mAxisSlaves(0)  => dataAxisSlaves(0),
            mAxisMasters(1) => dataToHLSAxisMasterArray(0),
+           mAxisSlaves(0)  => dataAxisSlaves(0),
            mAxisSlaves(1)  => dataToHLSAxisSlaveArray(0));
 
        -- only correcting one side of the detector (two ASICs)
@@ -1270,7 +1270,7 @@ begin
            -- FIFO configurations
            MEMORY_TYPE_G       => "block",
            GEN_SYNC_FIFO_G     => false,
-           FIFO_ADDR_WIDTH_G   => 16,
+           FIFO_ADDR_WIDTH_G   => 4,
            -- AXI Stream Port Configurations
            SLAVE_AXI_CONFIG_G  => COMM_AXIS_CONFIG_C,--128 to 192 bus width
            MASTER_AXI_CONFIG_G => AXI_STREAM_DATA_BUS_C)
@@ -1297,7 +1297,7 @@ begin
            -- FIFO configurations
            MEMORY_TYPE_G       => "block",
            GEN_SYNC_FIFO_G     => false,
-           FIFO_ADDR_WIDTH_G   => 16,
+           FIFO_ADDR_WIDTH_G   => 4,
            -- AXI Stream Port Configurations
            SLAVE_AXI_CONFIG_G  => COMM_AXIS_CONFIG_C,--128 TO 64 bus width
            MASTER_AXI_CONFIG_G => AXIS_CLB_CONFIG_C)
@@ -1344,7 +1344,7 @@ begin
            -- FIFO configurations
            MEMORY_TYPE_G       => "block",
            GEN_SYNC_FIFO_G     => false,
-           FIFO_ADDR_WIDTH_G   => 14,
+           FIFO_ADDR_WIDTH_G   => 4,
            INT_WIDTH_SELECT_G  => "NARROW",
            -- AXI Stream Port Configurations
            SLAVE_AXI_CONFIG_G  => AXI_STREAM_DATA_BUS_C, --192 to 128
