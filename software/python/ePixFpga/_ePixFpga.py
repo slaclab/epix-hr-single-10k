@@ -75,7 +75,9 @@ class EpixHR10kT(pr.Device):
             #pgp.Pgp4AxiL(                     name='Pgp4Axi_lane3',            offset=0x05030000, expand=False, enabled=False),
             # app registers
             MMCM7Registers(                   name='MMCMRegisters',            offset=0x00000000, expand=False, enabled=False),
-            epixHr.TriggerRegisters(                 name="TriggerRegisters",         offset=0x01000000, expand=False, enabled=False)))
+            epixHr.TriggerRegisters(          name="TriggerRegisters",         offset=0x01000000, expand=False, enabled=False)))
+        self.add((
+             EpixHLSCorrectorRegisters(       name='DataCorrectionHLS',         offset=0x02000000, expand=False, enabled=False)))
 #            ssiPrbsTxRegisters(               name='ssiPrbs0PktRegisters',     offset=0x82000000, expand=False, enabled=False),
 #            ssiPrbsTxRegisters(               name='ssiPrbs1PktRegisters',     offset=0x83000000, expand=False, enabled=False),
 #            ssiPrbsTxRegisters(               name='ssiPrbs2PktRegisters',     offset=0x84000000, expand=False, enabled=False),
@@ -2825,3 +2827,27 @@ class AsicDeser14bDataRegisters(pr.Device):
          self.add(pr.RemoteVariable(name='14bData_'+str(i),   description='Sample N_'+str(i),  offset=0x00000000+i*4, bitSize=14, bitOffset=0, base=pr.UInt,  disp = '{:#x}', mode='RO'))
 
       
+
+class EpixHLSCorrectorRegisters(pr.Device):
+   def __init__(self, **kwargs):
+      """Create the configuration device for HLS data corrector module (dark and gain equalization) registers"""
+      super().__init__(description='HLS data corrector module (dark and gain equalization', **kwargs)
+      
+      # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+      # contains this object. In most cases the parent and memBase are the same but they can be 
+      # different in more complex bus structures. They will also be different for the top most node.
+      # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+      # blocks will be updated.
+      
+      #############################################
+      # Create block / variable combinations
+      #############################################
+      hlsCorrEnum={0:'No correction', 1:'Load calib', 2:'Dark sub', 4:'Gain equalize', 6:'Dark and gain'}
+
+      #Setup registers & variables
+      self.add(pr.RemoteVariable(name='HLSAxiLileReg',         description='firstRegister',           offset=0x0000_0010, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RW', enum=hlsCorrEnum))
+
+      @self.command(description="Load calibration constants")
+      def LoadCalibCtes():
+          print ( 'LoadCalibCtes()' )
+        

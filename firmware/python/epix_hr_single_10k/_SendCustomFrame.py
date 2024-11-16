@@ -23,10 +23,10 @@ class SendCustomFrame(rogue.interfaces.stream.Master, rogue.interfaces.stream.Sl
         # 28x28x4byte (32-bit input data interface)
         self.ibSize = 384*384*2
 
-        # 120x2byte (16-bit output data interface)
-        self.obSize = 384*384*4
+        # 145x384x8byte (16-bit output data interface) 445,440
+        self.obSize = 145*384*8 
 
-        self.testImage = np.ones((145,384),dtype=np.uint16)*4
+        self.testImage = np.ones((145,384),dtype=np.uint64)*12
         self.testImage[100,:] = 0
         self._width = 384
         self._height = 145
@@ -35,7 +35,7 @@ class SendCustomFrame(rogue.interfaces.stream.Master, rogue.interfaces.stream.Sl
 
     def SendCustomFrame(self):
         # Here we request a frame capable of holding `self.ibSize` bytes
-        frame = self._reqFrame(self.ibSize, True)
+        frame = self._reqFrame(self.obSize, True)
 
         # Fill the frame with the test image
         for i in range(self._height):
@@ -51,7 +51,7 @@ class SendCustomFrame(rogue.interfaces.stream.Master, rogue.interfaces.stream.Sl
 
     def SendCalibFrame(self):
         # Here we request a frame capable of holding `self.ibSize` bytes
-        frame = self._reqFrame(self.ibSize, True)
+        frame = self._reqFrame(self.obSize, True)
 
         # Fill the frame with the test image
         for i in range(self._height):

@@ -221,6 +221,12 @@ architecture mapping of Application is
    signal axilBatcherReadSlave   : AxiLiteReadSlaveArray(2 downto 0);
    signal axilBatcherWriteMaster : AxiLiteWriteMasterArray(2 downto 0);
    signal axilBatcherWriteSlave  : AxiLiteWriteSlaveArray(2 downto 0);
+   -- AXI-Lite corrector hls
+   signal axilCorrectorReadMaster  : AxiLiteReadMasterArray(0 downto 0);
+   signal axilCorrectorReadSlave   : AxiLiteReadSlaveArray(0 downto 0);
+   signal axilCorrectorWriteMaster : AxiLiteWriteMasterArray(0 downto 0);
+   signal axilCorrectorWriteSlave  : AxiLiteWriteSlaveArray(0 downto 0);
+
 
    --constant AXI_STREAM_CONFIG_O_C : AxiStreamConfigType   := ssiAxiStreamConfig(4, TKEEP_COMP_C);
    signal imAxisMasters    : AxiStreamMasterArray(NUMBER_OF_LANES_C-1 downto 0);
@@ -654,6 +660,7 @@ begin
    -- clkOut(0) : 160.00 MHz ASIC ref clock
    -- clkOut(1) : 50.00  MHz adc clock
    -- clkOut(2) : 100.00 MHz app clock
+   -- clkOut(3) : 200.00 MHz app clock
    U_CoreClockGen : entity surf.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
@@ -665,7 +672,7 @@ begin
       SIMULATION_G           => SIMULATION_G,
       -- MMCM attributes
       BANDWIDTH_G            => "OPTIMIZED",
-      CLKIN_PERIOD_G         => 6.4,    -- Input period in ns );
+      CLKIN_PERIOD_G         => 6.4,      -- Input period in ns );
       DIVCLK_DIVIDE_G        => 5,        -- 1000 Base clk
       CLKFBOUT_MULT_F_G      => 32.0,     -- 1000 Base clk
       CLKFBOUT_MULT_G        => 5,
@@ -673,7 +680,7 @@ begin
       CLKOUT0_DIVIDE_G       => 1,
       CLKOUT1_DIVIDE_G       => 20,       -- 1000 Base clk
       CLKOUT2_DIVIDE_G       => 10,       -- 1000 Base clk
-      CLKOUT3_DIVIDE_G       => 5,       -- 1000 Base clk
+      CLKOUT3_DIVIDE_G       => 5,        -- 1000 Base clk
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
@@ -1228,7 +1235,34 @@ begin
    --  end generate;
 
     -- adding core to dark sub and gain correct images in realtime
-     PREPROC_GEN : if (PREPROC_GEN_G) generate
+    PREPROC_GEN : if (PREPROC_GEN_G) generate
+
+       ---------------------------------------------
+       -- AXI Lite Async - cross clock domain     --
+       ---------------------------------------------
+       U_AxiLiteCorrectorAsync : entity surf.AxiLiteAsync 
+         generic map(
+           TPD_G            => 1 ns,
+           AXI_ERROR_RESP_G => AXI_RESP_SLVERR_C,
+           COMMON_CLK_G     => false,
+           NUM_ADDR_BITS_G  => 32,
+           PIPE_STAGES_G    => 0)
+         port map(
+           -- Slave Port
+           sAxiClk         => appClk,
+           sAxiClkRst      => appRst,
+           sAxiReadMaster  => mAxiReadMasters(HLS0_AXI_INDEX_C),
+           sAxiReadSlave   => mAxiReadSlaves(HLS0_AXI_INDEX_C),
+           sAxiWriteMaster => mAxiWriteMasters(HLS0_AXI_INDEX_C),
+           sAxiWriteSlave  => mAxiWriteSlaves(HLS0_AXI_INDEX_C),
+           -- Master Port
+           mAxiClk         => sysClk,
+           mAxiClkRst      => sysRst,
+           mAxiReadMaster  => axilCorrectorReadMaster(0),
+           mAxiReadSlave   => axilCorrectorReadSlave(0),
+           mAxiWriteMaster => axilCorrectorWriteMaster(0),
+           mAxiWriteSlave  => axilCorrectorWriteSlave(0)
+           );
 
        -- route streams throug repeater
        -------------------------------------------------
@@ -1327,11 +1361,10 @@ begin
            mAxisMaster => txMaster,
            mAxisSlave  => txSlave,
            -- Axilite
-           axiReadMaster  => mAxiReadMasters(HLS0_AXI_INDEX_C),
-           axiReadSlave   => mAxiReadSlaves(HLS0_AXI_INDEX_C),
-           axiWriteMaster => mAxiWriteMasters(HLS0_AXI_INDEX_C),
-           axiWriteSlave  => mAxiWriteSlaves(HLS0_AXI_INDEX_C));   
-
+           axiReadMaster  => axilCorrectorReadMaster(0),
+           axiReadSlave   => axilCorrectorReadSlave(0),
+           axiWriteMaster => axilCorrectorWriteMaster(0),
+           axiWriteSlave  => axilCorrectorWriteSlave(0));
        
        U_PREPROC_TO_DMA : entity surf.AxiStreamFifoV2
          generic map (
