@@ -45,7 +45,9 @@ entity RegisterControlDualClock is
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
       -- Register Inputs/Outputs (axiClk domain)
-      boardConfig     : out AppConfigType;
+      boardConfig    : out AppConfigType;
+      --preprocessing
+      preProcCrtl    : out slv(31 downto 0);
       -- 1-wire board ID interfaces
       serialIdIo     : inout slv(1 downto 0);
       -- ASICs acquisition signals
@@ -175,6 +177,7 @@ architecture rtl of RegisterControlDualClock is
    
    type RegType is record
       usrRst            : sl;
+      preProcCrtl       : slv(31 downto 0);
       resetCounters     : sl; 
       saciPrepRdoutCnt  : slv(31 downto 0);
       boardRegOut       : appConfigType;
@@ -193,6 +196,7 @@ architecture rtl of RegisterControlDualClock is
    
    constant REG_INIT_C : RegType := (
       usrRst            => '0',
+      preProcCrtl       => (others=>'0'),
       resetCounters     => '0',
       saciPrepRdoutCnt  => (others=>'0'),
       boardRegOut       => APP_CONFIG_INIT_C,
@@ -281,6 +285,8 @@ begin
       axiSlaveRegisterR(regCon, x"0010",  0, ite(idValids(1) = '1',idValues(1)(63 downto 32), x"00000000")); --Analog card ID high
       axiSlaveRegisterR(regCon, x"0014",  0, ite(idValids(2) = '1',idValues(2)(31 downto  0), x"00000000")); --Carrier card ID low
       axiSlaveRegisterR(regCon, x"0018",  0, ite(idValids(2) = '1',idValues(2)(63 downto 32), x"00000000")); --Carrier card ID high
+      --preprocessing
+      axiSlaveRegister(regCon,  x"001C",  0, v.preProcCrtl);
       -- Register used in the sys clock domain
       axiSlaveRegister(regCon,  x"0100",  0, v.asicAcqReg2.GlblRstPolarity);
       axiSlaveRegister(regCon,  x"0100",  1, v.asicAcqReg2.ClkSyncEn);
@@ -440,6 +446,7 @@ begin
       rxUserRst      <= r.rxUserRst;
       txUserRst      <= r.txUserRst;
       useMiniTpg     <= r.useMiniTpg;
+      preProcCrtl    <= r.preProcCrtl;
 
       
    end process comb;

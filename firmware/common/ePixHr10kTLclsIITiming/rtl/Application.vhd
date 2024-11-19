@@ -199,7 +199,8 @@ architecture mapping of Application is
    signal dummyRst       : slv(1 downto 0);
    --
    signal hlsClk         : sl;
-   signal hlsRst         : sl;    
+   signal hlsRst         : sl;
+   signal dsgcRst        : slv(1 downto 0);
    --
    -- AXI-Lite Signals
    signal sAxiReadMaster  : AxiLiteReadMasterArray(HR_FD_NUM_AXI_SLAVE_SLOTS_C-1 downto 0);
@@ -396,6 +397,8 @@ architecture mapping of Application is
 
 begin
 
+
+  dsgcRst(1) <= sysRst or dsgcRst(0);
   -----------------------------------------------------------------------------
   -- remaps data lines into adapter board control/status lines
   -----------------------------------------------------------------------------
@@ -808,6 +811,8 @@ begin
       axiWriteSlave  => mAxiWriteSlaves(APP_REG_AXI_INDEX_C),
       -- Register Inputs/Outputs (axiClk domain)
       boardConfig    => boardConfig,
+      --preprocessing
+      preProcCrtl(0) => dsgcRst(0),
       -- 1-wire board ID interfaces
       serialIdIo     => serialIdIo,
       -- ASICs acquisition signals
@@ -1331,7 +1336,7 @@ begin
            -- FIFO configurations
            MEMORY_TYPE_G       => "block",
            GEN_SYNC_FIFO_G     => false,
-           FIFO_ADDR_WIDTH_G   => 4,
+           FIFO_ADDR_WIDTH_G   => 10,
            -- AXI Stream Port Configurations
            SLAVE_AXI_CONFIG_G  => COMM_AXIS_CONFIG_C,--128 TO 64 bus width
            MASTER_AXI_CONFIG_G => AXIS_CLB_CONFIG_C)
@@ -1353,7 +1358,7 @@ begin
            )
          port map (
            axisClk     => sysClk,
-           axisRst     => sysRst,
+           axisRst     => dsgcRst(1),
            -- Slave Port
            sAxisMaster => rxMaster,
            sAxisSlave  => rxSlave,
