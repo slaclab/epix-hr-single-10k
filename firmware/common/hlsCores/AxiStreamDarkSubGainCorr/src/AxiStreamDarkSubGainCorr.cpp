@@ -217,6 +217,7 @@ void AxiStreamDarkSubGainCorr   (Ib ::Stream   &ibStream,
 	   if (!clbStream_empty)
 	   {
 		   calibHls.constructStream (clbStream);
+		   configRegs.setLoadCalib(false);
 		   loadCalib = false;
 	   }
    }
