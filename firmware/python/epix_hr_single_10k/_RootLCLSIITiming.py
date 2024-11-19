@@ -165,7 +165,7 @@ class Root(pr.Root):
             self.dummyGen0.SendCalibFrame()
         @self.command()
         def SendCalibParam1():
-            self.dummyGen1.SendCustomFrame()
+            self.dummyGen1.SendCalibFrame()
 
         #@self.command()
         #def SendCalibParam1():

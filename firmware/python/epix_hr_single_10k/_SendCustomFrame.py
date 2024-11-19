@@ -24,12 +24,20 @@ class SendCustomFrame(rogue.interfaces.stream.Master, rogue.interfaces.stream.Sl
         self.ibSize = 384*384*2
 
         # 145x384x8byte (16-bit output data interface) 445,440
-        self.obSize = 145*384*8 
+        self.obSize = 145*384*8
 
-        self.testImage = np.ones((145,384),dtype=np.uint64)*12
-        self.testImage[100,:] = 0
+        #this function gets 4 16 bit matrix and returns one 64 bit matrix
+        #np.set_printoptions(formatter={'int':hex})
         self._width = 384
         self._height = 145
+
+        darkHigh = np.ones((self._height,self._width),dtype=np.uint64)*1000
+        gainHigh = np.ones((self._height,self._width),dtype=np.uint64)*64
+        darkLow  = np.ones((self._height,self._width),dtype=np.uint64)*2000
+        gainLow  = np.ones((self._height,self._width),dtype=np.uint64)*256
+
+        self.testImage = self.setCalibArray(gainLow,darkLow,gainHigh,darkHigh)
+
         self._fullData = []
 
 
@@ -87,6 +95,10 @@ class SendCustomFrame(rogue.interfaces.stream.Master, rogue.interfaces.stream.Sl
             frame.read(fullData,0)
             self._fullData = fullData
             #print(fullData)
+
+    def setCalibArray(self,gainLow,darkLow,gainHigh,darkHigh):
+        calib = np.left_shift(gainLow,48)+np.left_shift(darkLow,32)+np.left_shift(gainHigh,16)+np.left_shift(darkHigh,0)
+        return calib
 
     def __eq__(self,other):
         pyrogue.streamConnectBiDir(other,self)

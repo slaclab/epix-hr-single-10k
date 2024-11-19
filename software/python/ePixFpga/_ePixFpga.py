@@ -585,6 +585,14 @@ class EpixHR10kT(pr.Device):
         self.root.LoadConfig(self.filenameTriggerReg)
         print(self.filenameTriggerReg)
 
+        ## batcher config
+        self.BatcherEventBuilder0.enable.set(True)
+        self.BatcherEventBuilder0.Bypass.set(1)
+        self.BatcherEventBuilder1.enable.set(True)
+        self.BatcherEventBuilder1.Bypass.set(1)
+        self.BatcherEventBuilder2.enable.set(True)
+        self.BatcherEventBuilder2.Bypass.set(1)
+
         print("Initialization routine completed.")
 
     def fnAcqDataWithSaciClkRstScript(self, dev,cmd,arg):
