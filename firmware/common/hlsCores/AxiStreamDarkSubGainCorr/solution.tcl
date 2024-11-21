@@ -11,4 +11,4 @@
 set_part {XCKU035-SFVA784-1-C}
 
 ## Set default clock (units of ns)
-create_clock -period 10 -name clk
+create_clock -period 5 -name clk
