@@ -18,22 +18,22 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 ############################
 ## Open the synthesis design
 ############################
-open_run synth_1
+#open_run synth_1
 
 ###############################
 ## Set the name of the ILA core
 ###############################
-set ilaName u_ila_1
+#set ilaName u_ila_1
 
 ##################
 ## Create the core
 ##################
-CreateDebugCore ${ilaName}
+#CreateDebugCore ${ilaName}
 
 #######################
 ## Set the record depth
 #######################
-set_property C_DATA_DEPTH 4096 [get_debug_cores ${ilaName}]
+#set_property C_DATA_DEPTH 4096 [get_debug_cores ${ilaName}]
 
 #################################
 ## Set the clock for the ILA core
@@ -41,7 +41,7 @@ set_property C_DATA_DEPTH 4096 [get_debug_cores ${ilaName}]
 #SetDebugCoreClk ${ilaName} {U_App/asicRdClk}
 #SetDebugCoreClk ${ilaName} {U_App/appClk}
 #SetDebugCoreClk ${ilaName} {U_App/sysClk}
-SetDebugCoreClk ${ilaName} {U_App/deserClk}
+#SetDebugCoreClk ${ilaName} {U_App/deserClk}
 
 #######################
 ## Set the debug Probes
@@ -69,19 +69,19 @@ SetDebugCoreClk ${ilaName} {U_App/deserClk}
 #ConfigProbe ${ilaName} {U_App/rxSof[*]}
 #ConfigProbe ${ilaName} {U_App/rxEofe[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[txMaster][*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/startRdSync}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoRd[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoEof[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoSof[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/r[state][*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoValid[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/startRdSync}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoRd[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoEof[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoSof[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/r[state][*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/dFifoValid[*]}
 #
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/startRdSync}
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoRd[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoEof[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoSof[*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[state][*]}
-ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoValid[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/startRdSync}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoRd[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoEof[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoSof[*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/r[state][*]}
+#ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoValid[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/hlsTxMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/sAxisMaster[*]}
 #ConfigProbe ${ilaName} {U_App/G_ASICS[0].U_Framers/imAxisMaster[*]}
@@ -105,5 +105,5 @@ ConfigProbe ${ilaName} {U_App/G_ASICS[1].U_Framers/dFifoValid[*]}
 ##########################
 ## Write the port map file
 ##########################
-WriteDebugProbes ${ilaName}
+#WriteDebugProbes ${ilaName}
 
