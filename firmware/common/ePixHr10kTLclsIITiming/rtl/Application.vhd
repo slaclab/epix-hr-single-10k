@@ -335,7 +335,7 @@ architecture mapping of Application is
 
    -- ASIC signals
    constant STREAMS_PER_ASIC_C : natural := 6;
-   constant AXI_STREAM_DATA_BUS_C : AxiStreamConfigType   := ssiAxiStreamConfig(2*STREAMS_PER_ASIC_C, TKEEP_COMP_C); --192 bits
+   constant AXI_STREAM_DATA_BUS_C : AxiStreamConfigType   := ssiAxiStreamConfig(2*2*STREAMS_PER_ASIC_C, TKEEP_COMP_C); --192 bits
    constant AXIS_CLB_CONFIG_C : AxiStreamConfigType   := ssiAxiStreamConfig(8, TKEEP_COMP_C); --64 bits
    
    --

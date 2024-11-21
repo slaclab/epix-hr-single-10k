@@ -1052,6 +1052,7 @@ class EPixHr10kTAppCoreRegLCLS(pr.Device):
       
       self.add(pr.RemoteVariable(name='Version',         description='Version',           offset=0x00000000, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{:#x}',  verify = False, mode='RW'))
       self.add(pr.RemoteVariable(name='asicRefClockFreq',description='reference clock requency to the ASIC',     offset=0x00000268, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{}', mode='RO'))      
+      self.add(pr.RemoteVariable(name='preProcCrtl',     description='Version',           offset=0x0000001C, bitSize=32, bitOffset=0, base=pr.UInt, disp = '{:#x}',  verify = False, mode='RW'))
       self.add(pr.RemoteVariable(name='GlblRstPolarity', description='GlblRstPolarity',   offset=0x00000100, bitSize=1,  bitOffset=0, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='ClkSyncEn',       description='Enables clock to be available inside ASIC.',   offset=0x00000100, bitSize=1,  bitOffset=1, base=pr.Bool, mode='RW'))
       self.add(pr.RemoteVariable(name='RoLogicRst',      description='Enables digital rodout clock.',                offset=0x00000100, bitSize=1,  bitOffset=2, base=pr.Bool, mode='RW'))
