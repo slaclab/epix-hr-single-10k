@@ -1337,7 +1337,7 @@ begin
            -- FIFO configurations
            MEMORY_TYPE_G       => "block",
            GEN_SYNC_FIFO_G     => false,
-           FIFO_ADDR_WIDTH_G   => 10,
+           FIFO_ADDR_WIDTH_G   => 13,
            -- AXI Stream Port Configurations
            SLAVE_AXI_CONFIG_G  => COMM_AXIS_CONFIG_C,--128 TO 64 bus width
            MASTER_AXI_CONFIG_G => AXIS_CLB_CONFIG_C)
