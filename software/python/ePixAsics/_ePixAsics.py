@@ -1082,8 +1082,8 @@ class EpixHr10kTV3Asic(pr.Device):
         addrSize = 4
         #set r0mode in order to have saci cmd to work properly on legacy firmware
         #self.root.Epix10ka.EpixFpgaRegisters.AsicR0Mode.set(True)
-        if self._size == 0:
-            self._size = 0xfffff
+#        if self._size == 0:
+#            self._size = 0xfffff
 
         if (self.enable.get()):
             self.reportCmd(dev,cmd,arg)

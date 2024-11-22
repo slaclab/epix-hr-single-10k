@@ -31,8 +31,8 @@ entity AxiStreamDarkSubGainCorrWrapper is
       sAxisMaster : in  AxiStreamMasterArray(1 downto 0);
       sAxisSlave  : out AxiStreamSlaveArray(1 downto 0);
       -- Master Port
-      mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType;
+      mAxisMaster : out AxiStreamMasterArray(1 downto 0);
+      mAxisSlave  : in  AxiStreamSlaveArray(1 downto 0);
        -- Axilite Port
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
@@ -68,6 +68,16 @@ architecture rtl of AxiStreamDarkSubGainCorrWrapper is
          clbStream_TUSER  : in  std_logic_vector(1 downto 0);
          clbStream_TLAST  : in  std_logic_vector(0 downto 0);
          clbStream_TID    : in  std_logic_vector(0 downto 0);
+         --
+         clbStreamRtrn_TVALID : out std_logic;
+         clbStreamRtrn_TREADY : in  std_logic;
+         clbStreamRtrn_TDEST  : out std_logic_vector(0 downto 0);
+         clbStreamRtrn_TDATA  : out std_logic_vector(63 downto 0);
+         clbStreamRtrn_TKEEP  : out std_logic_vector(7 downto 0);
+         clbStreamRtrn_TSTRB  : out std_logic_vector(7 downto 0);
+         clbStreamRtrn_TUSER  : out std_logic_vector(1 downto 0);
+         clbStreamRtrn_TLAST  : out std_logic_vector(0 downto 0);
+         clbStreamRtrn_TID    : out std_logic_vector(0 downto 0);
          --
          obStream_TVALID : out std_logic;
          obStream_TREADY : in  std_logic;
@@ -136,15 +146,25 @@ begin
          clbStream_TDEST    => sAxisMaster(1).tDest(0 downto 0),
          clbStream_TREADY   => sAxisSlave(1).tReady,
          -- Outbound Interface
-         obStream_TVALID   => mAxisMaster.tValid,
-         obStream_TDATA    => mAxisMaster.tData(191 downto 0),
-         obStream_TKEEP    => mAxisMaster.tKeep(23 downto 0),
-         obStream_TSTRB    => mAxisMaster.tStrb(23 downto 0),
-         obStream_TUSER    => mAxisMaster.tUser(1 downto 0),
-         obStream_TLAST(0) => mAxisMaster.tLast,
-         obStream_TID      => mAxisMaster.tId(0 downto 0),
-         obStream_TDEST    => mAxisMaster.tDest(0 downto 0),
-         obStream_TREADY   => mAxisSlave.tReady,
+         obStream_TVALID   => mAxisMaster(0).tValid,
+         obStream_TDATA    => mAxisMaster(0).tData(191 downto 0),
+         obStream_TKEEP    => mAxisMaster(0).tKeep(23 downto 0),
+         obStream_TSTRB    => mAxisMaster(0).tStrb(23 downto 0),
+         obStream_TUSER    => mAxisMaster(0).tUser(1 downto 0),
+         obStream_TLAST(0) => mAxisMaster(0).tLast,
+         obStream_TID      => mAxisMaster(0).tId(0 downto 0),
+         obStream_TDEST    => mAxisMaster(0).tDest(0 downto 0),
+         obStream_TREADY   => mAxisSlave(0).tReady,
+         -- Outbound Interface
+         clbStreamRtrn_TVALID   => mAxisMaster(1).tValid,
+         clbStreamRtrn_TDATA    => mAxisMaster(1).tData(63 downto 0),
+         clbStreamRtrn_TKEEP    => mAxisMaster(1).tKeep(7 downto 0),
+         clbStreamRtrn_TSTRB    => mAxisMaster(1).tStrb(7 downto 0),
+         clbStreamRtrn_TUSER    => mAxisMaster(1).tUser(1 downto 0),
+         clbStreamRtrn_TLAST(0) => mAxisMaster(1).tLast,
+         clbStreamRtrn_TID      => mAxisMaster(1).tId(0 downto 0),
+         clbStreamRtrn_TDEST    => mAxisMaster(1).tDest(0 downto 0),
+         clbStreamRtrn_TREADY   => mAxisSlave(1).tReady,
          -- AxiLite
          s_axi_crtl_AWVALID => axiWriteMaster.awvalid,
          s_axi_crtl_AWREADY => axiWriteSlave.awready,

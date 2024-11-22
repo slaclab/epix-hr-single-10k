@@ -566,6 +566,39 @@ public:
    }
    // ------------------------------------------------------------------
 
+   // -----------------------------------------------------------------------
+  // Transfer the calibration constants from their
+  // external to their internal representations
+  // ----------------------------------------------
+  template    <typename STREAM>
+  void constructStreamfb (STREAM &stream, STREAM &streamOut)
+  {
+	 #pragma HLS INLINE off
+
+	  calib_construct_loop: for (int ipixel = 0; ipixel < NPixels; ++ipixel)
+	 {
+		// -------------------------------------------------------
+		// No reason for high performance in loading the constants
+		// -------------------------------------------------------
+		#pragma HLS UNROLL factor=1
+
+		auto ibVar     = stream.read();
+		auto pixel = ibVar.data;
+
+		// Lo gain
+		m_prms[ipixel][0].m_dark = pixel.m_constants[0].m_dark;
+		m_prms[ipixel][0].m_gain = pixel.m_constants[0].m_gain;
+
+		// Hi gain
+		m_prms[ipixel][1].m_dark = pixel.m_constants[1].m_dark;
+		m_prms[ipixel][1].m_gain = pixel.m_constants[1].m_gain;
+		auto obVar = ibVar;
+		streamOut.write(obVar);
+	 }
+	 return;
+  }
+  // ------------------------------------------------------------------
+
 public:
    Prms   m_prms[NPixels][2];  /*!< Storage for lo/Hi dark & gains       */
 };
@@ -613,9 +646,10 @@ using CalibHls = CalibHlsCfg<Tile,    // Tile configuration
                                14,    // Gain       bit widht
                                 7>;   // Normalization shift
 
-extern void AxiStreamDarkSubGainCorr  (Ib ::Stream                          &ibStream,
-                                       Ob ::Stream                          &obStream,
-                                       Clb::Stream                         &clbStream,
+extern void AxiStreamDarkSubGainCorr  (Ib ::Stream                        &ibStream,
+                                       Ob ::Stream                        &obStream,
+                                       Clb::Stream                        &clbStream,
+									   Clb::Stream                        &clbStreamRtrn,
                                        ConfigRegs                         &configRegs);
 
 

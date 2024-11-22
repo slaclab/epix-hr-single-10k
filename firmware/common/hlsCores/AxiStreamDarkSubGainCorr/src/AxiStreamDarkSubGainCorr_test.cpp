@@ -82,6 +82,7 @@ int main(int argc, char *argv[]) {
    Ob ::Stream  obStream;
    Ob ::Stream chkStream;
    Clb::Stream clbStream;
+   Clb::Stream clbStreamRtrn;
 
 
    bool verbose = false;
@@ -106,7 +107,7 @@ int main(int argc, char *argv[]) {
    // First call just loads the calibration constants
    //------------------------------------------------
    std::cout << "Start HW process" << std::endl;
-   AxiStreamDarkSubGainCorr (ibStream, obStream, clbStream, configRegs);
+   AxiStreamDarkSubGainCorr (ibStream, obStream, clbStream, clbStreamRtrn, configRegs);
    configRegs.clearLoadCalib ();
 
    //------------------------------------------
@@ -118,7 +119,7 @@ int main(int argc, char *argv[]) {
    initGoldenTile (GoldenTile, golden_tile);
    initStream     (chkStream,  golden_tile, verbose);
 
-   AxiStreamDarkSubGainCorr (ibStream, obStream, clbStream, configRegs);
+   AxiStreamDarkSubGainCorr (ibStream, obStream, clbStream, clbStreamRtrn, configRegs);
 
    //--------------------
    // Compare the results

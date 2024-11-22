@@ -374,10 +374,12 @@ architecture mapping of Application is
    
    signal dataToHLSAxisMasterArray  : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal dataToHLSAxisSlaveArray   : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal dataHToFAxisMasterArray   : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal dataHToFAxisSlaveArray    : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
    signal rxMaster                  : AxiStreamMasterArray(1 downto 0) := (others => axiStreamMasterInit(AXI_STREAM_DATA_BUS_C));
    signal rxSlave                   : AxiStreamSlaveArray(1 downto 0);
-   signal txMaster                  : AxiStreamMasterType := axiStreamMasterInit(AXI_STREAM_DATA_BUS_C);
-   signal txSlave                   : AxiStreamSlaveType;
+   signal txMaster                  : AxiStreamMasterArray(1 downto 0) := (others => axiStreamMasterInit(AXI_STREAM_DATA_BUS_C));
+   signal txSlave                   : AxiStreamSlaveArray(1 downto 0);
    
    
    attribute keep of appClk            : signal is "true";
@@ -399,7 +401,7 @@ architecture mapping of Application is
 begin
 
 
-  dsgcRst <= sysRst or preProcCrtl(0);
+  dsgcRst <= hlsRst or preProcCrtl(0);
   -----------------------------------------------------------------------------
   -- remaps data lines into adapter board control/status lines
   -----------------------------------------------------------------------------
@@ -1262,8 +1264,8 @@ begin
            sAxiWriteMaster => mAxiWriteMasters(HLS0_AXI_INDEX_C),
            sAxiWriteSlave  => mAxiWriteSlaves(HLS0_AXI_INDEX_C),
            -- Master Port
-           mAxiClk         => sysClk,
-           mAxiClkRst      => sysRst,
+           mAxiClk         => hlsClk,
+           mAxiClkRst      => hlsRst,
            mAxiReadMaster  => axilCorrectorReadMaster(0),
            mAxiReadSlave   => axilCorrectorReadSlave(0),
            mAxiWriteMaster => axilCorrectorWriteMaster(0),
@@ -1310,7 +1312,7 @@ begin
            -- FIFO configurations
            MEMORY_TYPE_G       => "block",
            GEN_SYNC_FIFO_G     => false,
-           FIFO_ADDR_WIDTH_G   => 4,
+           FIFO_ADDR_WIDTH_G   => 6,
            -- AXI Stream Port Configurations
            SLAVE_AXI_CONFIG_G  => COMM_AXIS_CONFIG_C,--128 to 192 bus width
            MASTER_AXI_CONFIG_G => AXI_STREAM_DATA_BUS_C)
@@ -1321,8 +1323,8 @@ begin
            sAxisMaster => dataToHLSAxisMasterArray(0),
            sAxisSlave  => dataToHLSAxisSlaveArray(0),
            -- Master Port
-           mAxisClk    => sysClk,
-           mAxisRst    => sysRst,
+           mAxisClk    => hlsClk,
+           mAxisRst    => hlsRst,
            mAxisMaster => rxMaster(0),
            mAxisSlave  => rxSlave(0));
 
@@ -1348,8 +1350,8 @@ begin
            sAxisMaster => sAxisL2Masters(0),
            sAxisSlave  => sAxisL2Slaves(0),
            -- Master Port
-           mAxisClk    => sysClk,
-           mAxisRst    => sysRst,
+           mAxisClk    => hlsClk,
+           mAxisRst    => hlsRst,
            mAxisMaster => rxMaster(1),
            mAxisSlave  => rxSlave(1));
 
@@ -1358,7 +1360,7 @@ begin
            G_S_AXI_CRTL_ADDR_WIDTH => 5
            )
          port map (
-           axisClk     => sysClk,
+           axisClk     => hlsClk,
            axisRst     => dsgcRst,
            -- Slave Port
            sAxisMaster => rxMaster,
@@ -1383,22 +1385,74 @@ begin
            -- FIFO configurations
            MEMORY_TYPE_G       => "block",
            GEN_SYNC_FIFO_G     => false,
-           FIFO_ADDR_WIDTH_G   => 4,
+           FIFO_ADDR_WIDTH_G   => 6,
            INT_WIDTH_SELECT_G  => "NARROW",
            -- AXI Stream Port Configurations
            SLAVE_AXI_CONFIG_G  => AXI_STREAM_DATA_BUS_C, --192 to 128
            MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
          port map (
            -- Slave Port
-           sAxisClk    => sysClk,
-           sAxisRst    => sysRst,
-           sAxisMaster => txMaster,
-           sAxisSlave  => txSlave,
+           sAxisClk    => hlsClk,
+           sAxisRst    => hlsRst,
+           sAxisMaster => txMaster(0),
+           sAxisSlave  => txSlave(0),
            -- Master Port
            mAxisClk    => sysClk,
            mAxisRst    => sysRst,
-           mAxisMaster => dataAxisMasters(2),
-           mAxisSlave  => dataAxisSlaves(2));
+           mAxisMaster => dataHToFAxisMasterArray(0),
+           mAxisSlave  => dataHToFAxisSlaveArray(0));
+           
+       U_PREPROC_CLB_TO_DMA : entity surf.AxiStreamFifoV2
+         generic map (
+           -- General Configurations
+           TPD_G               => TPD_G,
+           INT_PIPE_STAGES_G   => 1,
+           PIPE_STAGES_G       => 1,
+           SLAVE_READY_EN_G    => true,
+           VALID_THOLD_G       => 0,
+           -- FIFO configurations
+           MEMORY_TYPE_G       => "block",
+           GEN_SYNC_FIFO_G     => false,
+           FIFO_ADDR_WIDTH_G   => 6,
+           INT_WIDTH_SELECT_G  => "NARROW",
+           -- AXI Stream Port Configurations
+           SLAVE_AXI_CONFIG_G  => AXIS_CLB_CONFIG_C, --64 to 128
+           MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
+         port map (
+           -- Slave Port
+           sAxisClk    => hlsClk,
+           sAxisRst    => hlsRst,
+           sAxisMaster => txMaster(1),
+           sAxisSlave  => txSlave(1),
+           -- Master Port
+           mAxisClk    => sysClk,
+           mAxisRst    => sysRst,
+           mAxisMaster => dataHToFAxisMasterArray(1),
+           mAxisSlave  => dataHToFAxisSlaveArray(1));
+
+       U_STREAM_MUX : entity surf.AxiStreamMux 
+        generic map(
+          TPD_G                => TPD_G,
+          NUM_SLAVES_G         => 2,
+          PIPE_STAGES_G        => 0,
+          MODE_G               =>"ROUTED",
+          TDEST_ROUTES_G       => (0=>x"01", 1=>x"00"),
+          TDEST_LOW_G          => 0,      -- LSB of updated tdest for INDEX
+          ILEAVE_EN_G          => false,  -- Set to true if interleaving dests, arbitrate on gaps
+          ILEAVE_ON_NOTVALID_G => false,  -- Rearbitrate when tValid drops on selected channel
+          ILEAVE_REARB_G       => 0)  -- Max number of transactions between arbitrations, 0 = unlimited
+        port map(
+          -- Clock and reset
+          axisClk      => sysClk,
+          axisRst      => sysRst,
+          -- Slaves
+          sAxisMasters(0) => dataHToFAxisMasterArray(0),
+          sAxisMasters(1) => dataHToFAxisMasterArray(1),
+          sAxisSlaves(0)  => dataHToFAxisSlaveArray(0),
+          sAxisSlaves(1)  => dataHToFAxisSlaveArray(1),
+          -- Master
+          mAxisMaster  => dataAxisMasters(2),
+          mAxisSlave   => dataAxisSlaves(2));
 
        mAxiWriteSlaves(HLS1_AXI_INDEX_C) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
        mAxiReadSlaves(HLS1_AXI_INDEX_C)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);

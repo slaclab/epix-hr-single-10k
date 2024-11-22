@@ -180,12 +180,14 @@ static void process_row (Ib::Stream            &ibStream,
 void AxiStreamDarkSubGainCorr   (Ib ::Stream   &ibStream,
                                  Ob ::Stream   &obStream,
                                  Clb::Stream  &clbStream,
+                                 Clb::Stream  &clbStreamRtrn,
                                  ConfigRegs  &configRegs)
 {
    // Set the input and output ports as AXI4-Stream
    #pragma HLS INTERFACE      axis port= ibStream
    #pragma HLS INTERFACE      axis port= obStream
    #pragma HLS INTERFACE      axis port=clbStream
+   #pragma HLS INTERFACE      axis port=clbStreamRtrn
    #pragma HLS INTERFACE s_axilite port=configRegs  bundle=crtl
 
    // --------------------------------------------------------------------
@@ -216,9 +218,7 @@ void AxiStreamDarkSubGainCorr   (Ib ::Stream   &ibStream,
    {
 	   if (!clbStream_empty)
 	   {
-		   calibHls.constructStream (clbStream);
-		   configRegs.setLoadCalib(false);
-		   loadCalib = false;
+		   calibHls.constructStreamfb (clbStream, clbStreamRtrn);
 	   }
    }
 
