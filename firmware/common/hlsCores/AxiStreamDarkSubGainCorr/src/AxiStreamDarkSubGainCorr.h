@@ -420,7 +420,7 @@ public:
    static constexpr auto NPixels = TileCfg::NPixels;
 
    using Dark_t = uint16_t;
-   using Gain_t = uint16_t;
+   using Gain_t = uint8_t;
 
    ///Dark_t m_darks[NPixels];
    ///Gain_t m_gains[NPixels];
