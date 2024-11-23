@@ -666,7 +666,7 @@ begin
    -- clkOut(0) : 160.00 MHz ASIC ref clock
    -- clkOut(1) : 50.00  MHz adc clock
    -- clkOut(2) : 100.00 MHz app clock
-   -- clkOut(3) : 200.00 MHz app clock
+   -- clkOut(3) : 166.66 MHz app clock
    U_CoreClockGen : entity surf.ClockManagerUltraScale 
    generic map(
       TPD_G                  => 1 ns,
@@ -686,7 +686,7 @@ begin
       CLKOUT0_DIVIDE_G       => 1,
       CLKOUT1_DIVIDE_G       => 20,       -- 1000 Base clk
       CLKOUT2_DIVIDE_G       => 10,       -- 1000 Base clk
-      CLKOUT3_DIVIDE_G       => 5,        -- 1000 Base clk
+      CLKOUT3_DIVIDE_G       => 6,        -- 1000 Base clk
       CLKOUT0_PHASE_G        => 0.0,
       CLKOUT1_PHASE_G        => 0.0,
       CLKOUT2_PHASE_G        => 0.0,
