@@ -134,8 +134,8 @@ class Root(pr.Root):
 
         # Connect Dummy RX/TX to DMA stream
         self.dummyGen0 == self.dmaCalibStreams[0]
-        self.dummyGen1 == self.dmaStreams[2]
-        #self.dummyGen1 == self.dmaCalibStreams[1]
+        #self.dummyGen1 == self.dmaStreams[2] #attaches data and calib feedback to gen1, hack to get feedback
+        #self.dummyGen1 == self.dmaCalibStreams[1] #this should be used when we get the second side included in the correction
 
       
         @self.command()
