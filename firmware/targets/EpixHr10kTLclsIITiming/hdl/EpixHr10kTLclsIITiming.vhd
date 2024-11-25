@@ -189,6 +189,10 @@ architecture top_level of EpixHr10kTLclsIITiming is
    -- snIO and Dig monitoring share signals
    signal asicDM          : sl;
 
+   attribute keep : string;
+   attribute keep of axisL2Masters        : signal is "true";
+   attribute keep of axisL2Slaves         : signal is "true";
+
 begin
 
    U_App : entity work.Application

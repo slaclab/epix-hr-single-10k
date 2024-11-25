@@ -382,26 +382,30 @@ architecture mapping of Application is
    signal txSlave                   : AxiStreamSlaveArray(1 downto 0);
    
    
-   attribute keep of appClk            : signal is "true";
-   attribute keep of asicRdClk         : signal is "true";
-   attribute keep of iAsicAcq          : signal is "true";
-   attribute keep of ssiCmd_i          : signal is "true";
-   attribute keep of iDaqTrigger       : signal is "true";
-   attribute keep of iRunTrigger       : signal is "true";
-   attribute keep of connMpsMux        : signal is "true";
-   attribute keep of connTgMux         : signal is "true";
-   attribute keep of deserData         : signal is "true";
-   attribute keep of rxLinkUp          : signal is "true";
-   attribute keep of rxValid           : signal is "true";
-   attribute keep of rxData            : signal is "true";
-   attribute keep of rxSof             : signal is "true";
-   attribute keep of rxEofe            : signal is "true";
+   -- attribute keep of appClk            : signal is "true";
+   -- attribute keep of asicRdClk         : signal is "true";
+   -- attribute keep of iAsicAcq          : signal is "true";
+   -- attribute keep of ssiCmd_i          : signal is "true";
+   -- attribute keep of iDaqTrigger       : signal is "true";
+   -- attribute keep of iRunTrigger       : signal is "true";
+   -- attribute keep of connMpsMux        : signal is "true";
+   -- attribute keep of connTgMux         : signal is "true";
+   -- attribute keep of deserData         : signal is "true";
+   -- attribute keep of rxLinkUp          : signal is "true";
+   -- attribute keep of rxValid           : signal is "true";
+   -- attribute keep of rxData            : signal is "true";
+   -- attribute keep of rxSof             : signal is "true";
+   -- attribute keep of rxEofe            : signal is "true";
+   attribute keep of rxMaster            : signal is "true";
+   attribute keep of rxSlave             : signal is "true";
+   attribute keep of txMaster            : signal is "true";
+   attribute keep of txSlave             : signal is "true";
 
 
 begin
 
 
-  dsgcRst <= hlsRst or preProcCrtl(0);
+  dsgcRst <= sysRst or preProcCrtl(0);
   -----------------------------------------------------------------------------
   -- remaps data lines into adapter board control/status lines
   -----------------------------------------------------------------------------
@@ -1264,8 +1268,8 @@ begin
            sAxiWriteMaster => mAxiWriteMasters(HLS0_AXI_INDEX_C),
            sAxiWriteSlave  => mAxiWriteSlaves(HLS0_AXI_INDEX_C),
            -- Master Port
-           mAxiClk         => hlsClk,
-           mAxiClkRst      => hlsRst,
+           mAxiClk         => sysClk,
+           mAxiClkRst      => sysRst,
            mAxiReadMaster  => axilCorrectorReadMaster(0),
            mAxiReadSlave   => axilCorrectorReadSlave(0),
            mAxiWriteMaster => axilCorrectorWriteMaster(0),
@@ -1323,8 +1327,8 @@ begin
            sAxisMaster => dataToHLSAxisMasterArray(0),
            sAxisSlave  => dataToHLSAxisSlaveArray(0),
            -- Master Port
-           mAxisClk    => hlsClk,
-           mAxisRst    => hlsRst,
+           mAxisClk    => sysClk,
+           mAxisRst    => sysRst,
            mAxisMaster => rxMaster(0),
            mAxisSlave  => rxSlave(0));
 
@@ -1350,8 +1354,8 @@ begin
            sAxisMaster => sAxisL2Masters(0),
            sAxisSlave  => sAxisL2Slaves(0),
            -- Master Port
-           mAxisClk    => hlsClk,
-           mAxisRst    => hlsRst,
+           mAxisClk    => sysClk,
+           mAxisRst    => sysRst,
            mAxisMaster => rxMaster(1),
            mAxisSlave  => rxSlave(1));
 
@@ -1360,7 +1364,7 @@ begin
            G_S_AXI_CRTL_ADDR_WIDTH => 5
            )
          port map (
-           axisClk     => hlsClk,
+           axisClk     => sysClk,
            axisRst     => dsgcRst,
            -- Slave Port
            sAxisMaster => rxMaster,
@@ -1373,6 +1377,11 @@ begin
            axiReadSlave   => axilCorrectorReadSlave(0),
            axiWriteMaster => axilCorrectorWriteMaster(0),
            axiWriteSlave  => axilCorrectorWriteSlave(0));
+       -- axilCorrectorWriteSlave(0) <= axiLiteWriteSlaveEmptyInit(AXI_RESP_OK_C);
+       -- axilCorrectorReadSlave(0)  <= axiLiteReadSlaveEmptyInit(AXI_RESP_OK_C);
+             
+       -- txMaster <= rxMaster;
+       -- rxSlave <= txSlave;
        
        U_PREPROC_TO_DMA : entity surf.AxiStreamFifoV2
          generic map (
@@ -1392,8 +1401,8 @@ begin
            MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
          port map (
            -- Slave Port
-           sAxisClk    => hlsClk,
-           sAxisRst    => hlsRst,
+           sAxisClk    => sysClk,
+           sAxisRst    => sysRst,
            sAxisMaster => txMaster(0),
            sAxisSlave  => txSlave(0),
            -- Master Port
@@ -1420,8 +1429,8 @@ begin
            MASTER_AXI_CONFIG_G => COMM_AXIS_CONFIG_C)
          port map (
            -- Slave Port
-           sAxisClk    => hlsClk,
-           sAxisRst    => hlsRst,
+           sAxisClk    => sysClk,
+           sAxisRst    => sysRst,
            sAxisMaster => txMaster(1),
            sAxisSlave  => txSlave(1),
            -- Master Port
@@ -1616,8 +1625,8 @@ begin
          acqNo             => boardConfig.acqCnt,
 
          -- clock fo the HLS core only
-         hlsClk            => hlsClk,
-         hlsRst            => hlsRst,
+         hlsClk            => sysClk,
+         hlsRst            => sysRst,
       
          -- start of readout strobe
          startRdout        => dataSendStreched
